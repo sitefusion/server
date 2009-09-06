@@ -3,7 +3,7 @@
 include( '../conf/webfrontend.conf' );
 
 header( 'Content-Type: application/x-javascript; charset=utf-8' );
-
+/*
 $db = mysql_connect( $WEBCONFIG['databaseHost'], $WEBCONFIG['databaseUsername'], $WEBCONFIG['databasePassword'] );
 mysql_select_db( 'sitefusion' );
 $res = mysql_query( "SELECT `ident` FROM `processes` WHERE `id` = '".mysql_escape_string($_GET['sid'])."'" );
@@ -17,7 +17,7 @@ $dbSession = mysql_fetch_assoc( $res );
 
 if( $dbSession['ident'] != $_GET['ident'] )
 	die( 'Not authorized' );
-
+*/
 
 $name = $_GET['name'];
 
