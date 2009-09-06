@@ -1,0 +1,96 @@
+#!/usr/bin/php
+<?php
+
+$dbhost = readline( 'Database hostname (leave empty for localhost): ' );
+$dbuser = readline( 'Database username: ' );
+$dbpass = readline( 'Database password: ' );
+
+$db = mysql_connect( ($dbhost == '' ? 'localhost':$dbhost), $dbuser, $dbpass );
+
+if( ! $db )
+	die( "Error: Could not connect to server: " . mysql_error() );
+
+echo "Create database 'sitefusion' if it doesn't exist...\n";
+
+if( ! mysql_query( "CREATE DATABASE IF NOT EXISTS `sitefusion`" ) )
+	die( "Error: Could not create database: " . mysql_error() );
+
+mysql_select_db( 'sitefusion' );
+
+echo "Create table 'processes' if it doesn't exist...\n";
+
+if( ! mysql_query( "CREATE TABLE IF NOT EXISTS `processes` (
+	 `id` varchar(32) NOT NULL,
+	 `type` varchar(10) NOT NULL,
+	 `ident` varchar(32) NOT NULL,
+	 `user` varchar(32) NOT NULL,
+	 `app` varchar(32) NOT NULL,
+	 `args` varchar(64) NOT NULL,
+	 `client_ip` varchar(15) NOT NULL,
+	 `port` int(11) NOT NULL,
+	 `pid` int(11) NOT NULL,
+	 `memory` bigint(20) NOT NULL,
+	 `memory_peak` bigint(20) NOT NULL,
+	 `nodes` int(11) NOT NULL,
+	 PRIMARY KEY  (`id`)
+	) ENGINE=MyISAM DEFAULT CHARSET=utf8;") )
+	die( "Error: Could not create table: " . mysql_error() );
+
+
+echo "Create table 'jobs' if it doesn't exist...\n";
+
+if( ! mysql_query( "CREATE TABLE IF NOT EXISTS `jobs` (
+	  `id` int(11) NOT NULL auto_increment,
+	  `owner` varchar(64) NOT NULL,
+	  `job` varchar(64) NOT NULL,
+	  `args` varchar(64) NOT NULL,
+	  `minute` int(11) NOT NULL,
+	  `hour` int(11) NOT NULL,
+	  `monthday` int(11) NOT NULL,
+	  `month` int(11) NOT NULL,
+	  `weekday` int(11) NOT NULL,
+	  `mail_output` varchar(64) NOT NULL,
+	  PRIMARY KEY  (`id`)
+	) ENGINE=MyISAM DEFAULT CHARSET=utf8;") )
+	die( "Error: Could not create table: " . mysql_error() );
+
+
+echo "Create table 'services' if it doesn't exist...\n";
+
+if( ! mysql_query( "CREATE TABLE IF NOT EXISTS `services` (
+	  `id` int(11) NOT NULL auto_increment,
+	  `owner` varchar(64) NOT NULL,
+	  `service` varchar(64) NOT NULL,
+	  `args` varchar(64) NOT NULL,
+	  `daemon` tinyint(4) NOT NULL,
+	  PRIMARY KEY  (`id`)
+	) ENGINE=MyISAM DEFAULT CHARSET=utf8;") )
+	die( "Error: Could not create table: " . mysql_error() );
+
+
+echo "Create table 'subscriptions' if it doesn't exist...\n";
+
+if( ! mysql_query( "CREATE TABLE IF NOT EXISTS `subscriptions` (
+	  `id` int(11) NOT NULL auto_increment,
+	  `serial` varchar(6) default NULL,
+	  `displayname` varchar(128) NOT NULL,
+	  `description` varchar(128) NOT NULL,
+	  `uri` varchar(128) default NULL,
+	  `application` varchar(64) default NULL,
+	  `args` varchar(64) default NULL,
+	  PRIMARY KEY  (`id`),
+	  KEY `serial` (`serial`)
+	) ENGINE=MyISAM  DEFAULT CHARSET=utf8;") )
+	die( "Error: Could not create table: " . mysql_error() );
+
+
+echo "Create table 'users' if it doesn't exist...\n";
+
+if( ! mysql_query( "CREATE TABLE IF NOT EXISTS `users` (
+	  `serial` varchar(6) NOT NULL,
+	  `name` varchar(64) NOT NULL,
+	  `company` varchar(64) NOT NULL,
+	  PRIMARY KEY  (`serial`)
+	) ENGINE=MyISAM DEFAULT CHARSET=utf8;") )
+	die( "Error: Could not create table: " . mysql_error() );
+

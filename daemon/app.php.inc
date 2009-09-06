@@ -1,0 +1,595 @@
+<?php
+
+include_once( 'extendedprocess.php.inc' );
+
+
+class ApplicationProcess extends ExtendedSiteFusionProcess
+{
+	static public $Started;
+	static private $ApplicationStarted = FALSE;
+	static public $Application;
+	static public $ApplicationArguments;
+	static private $LastContact;
+	static private $Headers;
+	static private $RevCommSocket = NULL;
+	static private $EventQueue = array();
+	static private $NextCommOutput = NULL;
+	static private $ConnectedServices = array();
+	static private $DebugWindows = array();
+	
+	static public function StartServer( $client, $parentSocket, $loginCmd, $port ) {
+		if( self::$ApplicationStarted || self::$ProcessType )
+			return;
+		
+		self::$ParentSocket = $parentSocket;
+		self::$ProcessType = 'app';
+		self::$ApplicationStarted = TRUE;
+
+		if( self::$Options['debug'] )
+			self::$DebugSocket = self::OpenUnixSocket( self::$Options['runtimeDirectory'] . '/' . 'debug'.posix_getpid().'.sock' );
+		
+		self::$Socket = self::OpenSocket( self::$Options['address'], $port );
+		
+		$param = self::AuthorizeLogin( $loginCmd );
+		if( ! $param['success'] ) {
+			self::WriteCommand( $client, 'LOGIN', $param );
+			socket_close( $client );
+			self::StopApplicationServer();
+			exit();
+		}
+		
+		self::$ApplicationPath = $param['app'];
+		
+		self::SetSignalHandlers();
+		
+		$param['sid'] = self::$SessionID = md5( time() . $port . mt_rand() );
+		self::WriteCommand( $client, 'LOGIN', $param );
+		socket_close( $client );
+
+		self::WriteCommand( self::$ParentSocket, 'LOGIN', $param );
+		
+		self::$Port = $port;
+		self::$Started = time();
+		self::$LastKeepalive = time();
+		self::$LastContact = time();
+		
+		self::InitializeApplication();
+		
+		self::ApplicationLoop();
+		exit();
+	}
+	
+	static private function StopApplicationServer() {
+		try { socket_close( self::$Socket ); } catch ( SFException $ex ) {}
+		try { socket_close( self::$ParentSocket ); } catch ( SFException $ex ) {}
+		foreach ( self::$ConnectedServices as $service ) {
+			try {
+				self::WriteCommand( $service->socket, 'CLOSE' );
+				socket_close( $service->socket );
+			} catch ( SFException $ex ) {}
+		}
+		if( self::$Options['debug'] ) {
+			try {
+				socket_close( self::$DebugSocket );
+			} catch ( SFException $ex ) {}
+		}
+	}
+	
+	static protected function ApplicationLoop( $subloop = FALSE ) {
+		try {
+			while(1) {
+				if( self::$Shutdown || time() - self::$LastContact > self::$Options['sessionTimeout'] ) {
+					self::StopApplicationServer();
+					return;
+				}
+			
+				if( time() - self::$LastKeepalive > self::$Options['keepaliveInterval'] ) {
+					self::WriteCommand( self::$ParentSocket, 'LIVE' );
+					self::$LastKeepalive = time();
+				}
+			
+				foreach ( self::$ConnectedServices as $service ) {
+					if( time() - $service->lastKeepalive > self::$Options['keepaliveInterval'] ) {
+						self::WriteCommand( $service->socket, 'LIVE' );
+						$service->lastKeepalive = time();
+					}
+				}
+				
+				if( self::$Options['debug'] ) {
+					if( self::$ConnectedDebugger )
+						self::ListenToDebugger();
+					else
+						self::$ConnectedDebugger = self::PollForDebugger();
+				}
+				
+				if(! self::$DebugPaused ) {
+					self::ListenToParent();
+					self::ListenToServices();
+					self::ProcessEventQueue();
+					self::CheckTimers();
+					self::FlushRevComm();
+			
+					if( $client = self::PollForClient() ) {
+						try {
+							$cmd = self::ReadCommand( $client );
+
+							switch ( $cmd->command ) {
+								case 'COMM': self::HandleComm( $client, $cmd ); break;
+								case 'REVCOMM': self::HandleRevComm( $client ); break;
+								case 'FILE': self::HandleFile( $client, $cmd ); break;
+							}
+						}
+						catch ( SFException $ex ) {
+							throw $ex;
+						}
+					}
+					//else usleep( self::$Options['daemonCycleInterval'] );
+				}
+				else usleep( self::$Options['daemonCycleInterval'] );
+				
+				if( $subloop && !self::$DebugPaused )
+					return;
+			}
+		}
+		catch ( SFException $ex ) {
+			if( self::$ConnectedDebugger ) {
+				self::ToDebuggerShowStack( $ex->getTrace(), FALSE, $ex->getMessage() . ' in ' . $ex->getFile() . ' at line ' . $ex->getLine() );
+			}
+			self::StopApplicationServer();
+			return;
+		}
+	}
+	
+	static private function ListenToParent() {
+		while( 1 ) {
+			$read = array(self::$ParentSocket);
+			$write = NULL;
+			$except = NULL;
+
+			if( socket_select($read, $write, $except, 0) < 1 )
+				return;
+			
+			if( count($read) ) {
+				$socket = $read[0];
+				
+				try {
+					$cmd = self::ReadCommand( $socket );
+				
+					switch ( $cmd->command ) {
+						case 'EVENT': self::HandleEvent( $cmd ); break;
+						case 'MESSAGE': self::HandleMessage( $cmd ); break;
+					}
+				}
+				catch ( SFException $ex ) {
+					if( self::$ConnectedDebugger )
+						throw $ex;
+					
+					self::Log($ex->getMessage());
+				}
+			}
+			else return;
+		}
+	}
+	
+	static private function ListenToServices() {
+		$read = array();
+		$write = NULL;
+		$except = NULL;
+		
+		foreach ( self::$ConnectedServices as $s ) {
+			$read[] = $s->socket;
+		}
+		
+		if( ! count($read) )
+			return;
+		
+		if( socket_select($read, $write, $except, 0) < 1 )
+			return;
+		
+		foreach ( $read as $socket ) {
+			$service = self::GetServiceBySocket( $socket );
+			
+			try {
+				$cmd = self::ReadCommand( $socket );
+				
+				switch ( $cmd->command ) {
+					case 'CALLBACK':	self::HandleServiceCmdCallback( $service, $cmd ); break;
+				}
+			}
+			catch ( SFException $ex ) {}
+		}
+	}
+	
+	static private function PollForClient() {
+		try {
+			$read = array( self::$Socket );
+			$write = NULL;
+			$except = NULL;
+			if( socket_select( $read, $write, $except, 0, self::$Options['daemonCycleInterval'] ) > 0 ) {
+				$client = socket_accept( self::$Socket );
+			}
+			else {
+				return NULL;
+			}
+		}
+		catch( SFException $ex ) {
+			self::Log( 'PollForClient: ' . $ex->getMessage() );
+			return FALSE;
+		}
+		return $client;
+	}
+	
+	static private function ReconstructNodeReferences( &$data ) {
+		for( $n = 0; $n < count($data); $n++ ) {
+			if( is_array($data[$n]) )
+				self::ReconstructNodeReferences( $data[$n] );
+			else if( is_object($data[$n]) && isset($data[$n]->__sfNode) )
+				$data[$n] = (isset(self::$Application->registry->all[$data[$n]->__sfNode]) ? self::$Application->registry->all[$data[$n]->__sfNode] : NULL);
+		}
+	}
+	
+	static private function HandleComm( $client, $cmd ) {
+		if( ! isset(self::$Application) )
+			throw new SFException( 'Invalid COMM request, not logged in yet' );
+		
+		try {
+			ob_start();
+			
+			$post = array();
+			parse_str( $cmd->data, $post );
+		
+			$app = self::$Application;
+		
+			$n = 0;
+			while( isset($post[++$n]) ) {
+				$data = json_decode( stripslashes($post[$n]) );
+				
+				self::ReconstructNodeReferences( $data );
+				
+				$id = array_shift( $data );
+				$func = array_shift( $data );
+
+				if( isset($app->registry->all[$id]) )
+					$app->registry->all[$id]->commandHandler( $func, $data );
+			}
+			
+			ob_end_clean();
+		}
+		catch ( SFException $ex ) {
+			if( self::$ConnectedDebugger )
+				throw $ex;
+			
+			self::$NextCommOutput = $ex->getMessage() . ' in file ' . $ex->getFile() . ' at line ' . $ex->getLine() . "\n\n" . $ex->getTraceAsString();
+		}
+		
+		$output = (self::$NextCommOutput ? self::$NextCommOutput : implode("\n",self::$Application->commandBuffer)."\"EXEC_COMPLETE\";");
+		self::$NextCommOutput = NULL;
+		
+		self::WriteCommand( $client, 'COMM', NULL, $output );
+		$app->commandBuffer = array();
+		self::$EventQueue = array();
+		
+		socket_close( $client );
+		
+		self::$LastContact = time();
+		
+		self::UpdateDatabase();
+	}
+	
+	static private function HandleRevComm( $client ) {
+		if( self::$RevCommSocket ) {
+			try { socket_close( self::$RevCommSocket ); } catch ( SFException $ex ) {}
+		}
+		
+		self::$RevCommSocket = $client;
+	}
+	
+	static private function HandleFile( $client, $cmd ) {
+		if( ! isset(self::$Application) )
+			throw new SFException( 'Invalid FILE request, not logged in yet' );
+		
+		try {
+			$app = self::$Application;
+			$id = $cmd->cid;
+			
+			ob_start();
+			$app->registry->all[$id]->outputStream();
+			$content = ob_get_clean();
+		}
+		catch ( SFException $ex ) {
+			if( self::$ConnectedDebugger )
+				throw $ex;
+			
+			$content = $ex->getMessage() . ' in file ' . $ex->getFile() . ' at line ' . $ex->getLine() . "\n\n" . $ex->getTraceAsString();
+		}
+		
+		$contentType = 'application/octet-stream';
+		
+		foreach ( self::$Headers as $h ) {
+			if( preg_match('/^Content-type: (\S+)/i',$h,$match) )
+				$contentType = $match[1];
+		}
+		
+		self::WriteCommand( $client, 'FILE', array('contentType' => $contentType), $content );
+		
+		socket_close( $client );
+		
+		self::$LastContact = time();
+		
+		self::UpdateDatabase();
+	}
+	
+	static private function HandleEvent( $cmd ) {
+		if( ! isset(self::$Application) )
+			throw new SFException( 'Invalid EVENT request, not logged in yet' );
+		
+		try {
+			list($event,$args) = unserialize( $cmd->data );
+		}
+		catch ( SFException $ex ) {
+			return;
+		}
+		
+		self::$EventQueue[] = array( $event, $args );
+	}
+	
+	static private function HandleMessage( $cmd ) {
+		if( ! isset(self::$Application) )
+			throw new SFException( 'Invalid MESSAGE request, not logged in yet' );
+		
+		self::$Application->window->alert( $cmd->data );
+	}
+	
+	static private function HandleServiceCmdCallback( $service, $cmd ) {
+		try {
+			list($name,$args) = unserialize( $cmd->data );
+		}
+		catch ( SFException $ex ) {
+			self::WriteCommand( $service->socket, 'ERROR' );
+			return;
+		}
+		
+		self::WriteCommand( $service->socket, 'OK' );
+		
+		$service->handleCallback( $name, $args );
+	}
+	
+	static private function GetServiceBySocket( $socket ) {
+		foreach ( self::$ConnectedServices as $service ) {
+			if( isset($service->socket) && $socket == $service->socket )
+				return $service;
+		}
+	}
+	
+	static private function AuthorizeLogin( $cmd ) {
+		ob_start();
+		
+		$app = $cmd->app;
+		$args = (isset($cmd->args) && $cmd->args != '' ? explode(',',$cmd->args) : array());
+		$error = NULL;
+		$user = $cmd->username;
+		$pass = $cmd->password;
+		$granted = FALSE;
+		
+		$GLOBALS['LoadJS'] = array();
+		$GLOBALS['LoadCSS'] = array();
+		$GLOBALS['include_path'] = self::$Options['sitefusionPath'] . '/';
+		$_SERVER['HTTP_HOST'] = 'localhost';
+		
+		if( ereg( '[^a-zA-Z0-9_\-\/]', $app ) || (! file_exists(self::$Options['sitefusionPath'].'/app/' . $app . '.startup.php.inc')) )
+			return array( 'success' => 0, 'error' => 'invalid_app' );
+
+		include_once( 'sys/application.php.inc' );
+		include_once( 'app/' . $app . '.startup.php.inc' );
+
+		if( function_exists( 'authorizeLogin' ) )
+			$granted = authorizeLogin( $args, $user, $pass );
+		else
+			return array( 'success' => 0, 'error' => 'no_auth_func' );
+
+		if( ! $granted )
+			return array( 'success' => 0, 'error' => 'invalid_login' );
+
+		$ip = $cmd->ip;
+		$ident = md5( $ip . $user . md5($pass) );
+
+		$class = getApplication( $args );
+		$win = new XULWindow();
+		
+		self::$Application = $appinstance = new $class;
+		$appinstance->authUsername = $user;
+		$appinstance->authIp = $ip;
+		$appinstance->authIdent = $ident;
+		$appinstance->applicationName = $app;
+		$appinstance->initBaseApplication( 0, $win );
+		self::$ApplicationArguments = $args;
+		
+		ob_end_clean();
+		
+		return array( 'success' => 1, 'ip' => $ip, 'type' => 'app', 'ident' => $ident, 'app' => $app, 'args' => $cmd->args, 'user' => $user, 'includeJs' => implode( ",", $GLOBALS['LoadJS'] ) );
+	}
+	
+	static private function InitializeApplication() {
+		self::$Application->init( self::$ApplicationArguments );
+		self::$Application->postInit();
+	}
+	
+	static private function ProcessEventQueue() {
+		if( ! count(self::$EventQueue) )
+			return;
+		
+		ob_start();
+		
+		foreach ( self::$EventQueue as $ge ) {
+			self::$Application->handleGlobalEvent( $ge[0], $ge[1] );
+		}
+		
+		ob_end_clean();
+		
+		self::$EventQueue = array();
+	}
+	
+	static private function CheckTimers() {
+		if( isset(self::$Timers[0]) && self::$Timers[0][0] <= microtime(TRUE) ) {
+			try {
+				list($time,$timer) = array_shift( self::$Timers );
+				
+				ob_start();
+				$timer->trigger();
+				ob_end_clean();
+			}
+			catch ( SFException $ex ) {
+				if( self::$ConnectedDebugger )
+					throw $ex;
+				
+				self::$NextCommOutput = $ex->getMessage() . ' in file ' . $ex->getFile() . ' at line ' . $ex->getLine() . "\n\n" . $ex->getTraceAsString();
+			}
+		}
+	}
+	
+	static protected function FlushRevComm() {
+		if( (! self::$RevCommSocket) || ( (!count(self::$Application->commandBuffer)) && (!self::$NextCommOutput) ) )
+			return;
+		
+		try {
+			$read = NULL;
+			$write = array( self::$RevCommSocket );
+			$except = NULL;
+			
+			if( socket_select( $read, $write, $except, 0 ) > 0 ) {
+				$output = (self::$NextCommOutput ? self::$NextCommOutput : implode("\n",self::$Application->commandBuffer)."\"EXEC_COMPLETE\";");
+				self::$NextCommOutput = NULL;
+				
+				self::WriteCommand( self::$RevCommSocket, 'REVCOMM', NULL, $output );
+				self::$Application->commandBuffer = array();
+				
+				socket_close( self::$RevCommSocket );
+				self::$RevCommSocket = NULL;
+				
+				self::$LastContact = time();
+			}
+		}
+		catch ( SFException $ex ) {}
+		
+		self::UpdateDatabase();
+	}
+	
+	static public function GetService( $id ) {
+		self::WriteCommand( self::$ParentSocket, 'GETSERVICE', array( 'id' => (int)$id ) );
+		$cmd = self::ReadCommand( self::$ParentSocket );
+		
+		if( $cmd->command != 'OK' )
+			throw new SFException( 'Service ID invalid' );
+		
+		$socket = socket_create( AF_UNIX, SOCK_STREAM, 0 );
+		if( $socket === FALSE )
+			throw new SFException( "Socket error: " . socket_strerror(socket_last_error()) );
+		
+		$result = FALSE;
+		
+		while( $result === FALSE ) {
+			try {
+				$result = socket_connect( $socket, self::$Options['runtimeDirectory'] . '/service' . $cmd->pid . '.sock' );
+			}
+			catch( SFException $ex ) {}
+		}
+		
+		self::WriteCommand( $socket, 'GETSERVICE' );
+		
+		$service = new SiteFusionService( $id, $socket );
+		
+		self::$ConnectedServices[] = $service;
+		
+		return $service;
+	}
+	
+	static public function GetServiceByName( $owner, $name ) {
+		$list = array();
+		foreach ( self::GetServiceList() as $service ) {
+			if( $service['owner'] == $owner && $service['service'] == $name )
+				$list[] = $service;
+		}
+		
+		if(! count($list) )
+			throw new SFException( 'Invalid service identifier' );
+		
+		if( count($list) == 1 )
+			return self::GetService( $list[0]['id'] );
+		else
+			return self::GetService( $list[mt_rand(0,count($list)-1)]['id'] );
+	}
+	
+	static public function CallServiceFunction( $service, $name, $args ) {
+		self::WriteCommand( $service->socket, 'CALL', array( 'name' => $name ), serialize($args) );
+		
+		return self::ReadCommand( $service->socket );
+	}
+	
+	static private function UpdateDatabase() {
+		if( !self::$Application )
+			return;
+		
+		self::VerifyDatabaseState();
+		self::DatabaseQuery( "UPDATE `sitefusion`.`processes` SET `memory` = ".memory_get_usage().", `memory_peak` = ".memory_get_peak_usage().", `nodes` = ".count(self::$Application->registry->all)." WHERE `id` = '".self::$SessionID."' LIMIT 1" );
+	}
+	
+	static public function Header( $text ) {
+		self::$Headers[] = $text;
+	}
+	
+	static public function DebugShowStack( $bt ) {
+		if( !self::$Application )
+			return;
+		
+		$file = $bt[0]['file'];
+		$line = $bt[0]['line'];
+		
+		if( isset(self::$DebugWindows[$file.$line]) ) {
+			if( ! self::$DebugWindows[$file.$line]->isRegistered )
+				self::$Application->window->addChild( self::$DebugWindows[$file.$line] = new SiteFusionDebugWindow( $bt ) );
+			else
+				self::$DebugWindows[$file.$line]->addStackView( $bt );
+		}
+		else
+			self::$Application->window->addChild( self::$DebugWindows[$file.$line] = new SiteFusionDebugWindow( $bt ) );
+	}
+	
+	static public function DebuggerWriteCommand( $socket, $cmd, $args = NULL, $data = NULL ) {
+		if( self::$ApplicationPath != 'sitefusion/admin' )
+			return;
+		
+		return self::WriteCommand( $socket, $cmd, $args, $data );
+	}
+
+	static public function DebuggerReadCommand( $socket ) {
+		if( self::$ApplicationPath != 'sitefusion/admin' )
+			return;
+		
+		return self::ReadCommand( $socket );
+	}
+	
+	static public function GetDebugSocket( $pid ) {
+		if( self::$ApplicationPath != 'sitefusion/admin' )
+			return;
+
+		$socket = socket_create( AF_UNIX, SOCK_STREAM, 0 );
+		if( $socket === FALSE )
+			throw new SFException( "Service unavailable: " . socket_strerror(socket_last_error()) );
+		
+		$result = socket_connect( $socket, self::$Options['runtimeDirectory'] . '/debug' . $pid . '.sock' );
+		if( $result === FALSE )
+			throw new SFException( "Service unavailable: " . socket_strerror(socket_last_error($socket)) );
+		
+		return $socket;
+	}
+}
+
+
+function sfstack() {
+	$bt = debug_backtrace();
+	
+	ApplicationProcess::DebugShowStack( $bt );
+}
+
+
+
