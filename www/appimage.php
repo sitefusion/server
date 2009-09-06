@@ -20,6 +20,9 @@ if( $dbSession['ident'] != $_GET['ident'] )
 $name = $_GET['name'];
 
 if( preg_match( '/^[a-zA-Z0-9\-_\/]+\.[a-zA-Z]{3}$/i', $name ) && is_file($WEBCONFIG['sitefusionPath'].'/'.$name) ) {
+	if( substr($name,-8) == '.php.inc' || substr($name,-4) == '.php' )
+		die( 'Unauthorized file access' );
+	
 	switch ( strtolower(substr($name,-3)) ) {
 		case 'jpg': header( 'Content-Type: image/jpeg' ); break;
 		case 'gif': header( 'Content-Type: image/gif' ); break;
