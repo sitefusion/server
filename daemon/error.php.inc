@@ -1,5 +1,11 @@
 <?php
 
+/**
+ * @package SiteFusion
+ * @subpackage Daemon
+*/
+
+
 
 class SFException extends Exception {
 	public function	__construct( $message, $code = NULL, $file = NULL, $line = NULL ) {
@@ -9,38 +15,10 @@ class SFException extends Exception {
 	}
 }
 
-class SFDException extends Exception {
-	public function	__construct( $message, $code = NULL, $file = NULL, $line = NULL ) {
-		parent::__construct( $message, $code );
-		$this->file = $file;
-		$this->line = $line;
-	}
-}
 
 function errorHandler( $no, $str, $file, $line, $context = NULL ) {
-//	if( $no == E_NOTICE || $no == E_WARNING || $no == E_USER_NOTICE || $no == E_USER_WARNING || $no == E_RECOVERABLE_ERROR ) {
 		throw new SFException( strip_tags($str), $no, $file, $line );
 		return;
-//	}
-	
-/*	ob_clean();
-	$str = addslashes($str);
-	$text = "ERROR $no: $str\\n\\nFile: $file\\nLine: $line\\n";
-	
-	
-	$bt = debug_backtrace();
-	
-	for( $n = 1; isset($bt[$n]); $n++ ) {
-		$file = ( isset($bt[$n]['file']) ? $bt[$n]['file'] : '' );
-		$line = ( isset($bt[$n]['line']) ? $bt[$n]['line'] : '' );
-		$text .= "\\n\\nBacktrace $n:\\nFile: $file\\nLine: $line";
-	}
-	elseif( MODE_XUL ) {
-		$text = str_replace( "\\n", "\n", $text );
-		echo $text;
-	}
-	
-	die();*/
 }
 
 
@@ -72,23 +50,8 @@ class Error
 			$text .= "\\n\\nBacktrace $n:\\nFile: $file\\nLine: $line";
 		}
 
-		if( MODE_HTA ) {
-			?>
-			<html>
-			<head>
-			<script language="Javascript">
-			showError = false;
-			alert( "<?= $text ?>" );
-			</script>
-			</head>
-			<body></body>
-			</html>
-			<?php
-		}
-		elseif( MODE_XUL ) {
-			$text = str_replace( "\\n", "\n", $text );
-			echo $text;
-		}
+		$text = str_replace( "\\n", "\n", $text );
+		echo $text;
 		
 		die();
 	}
@@ -113,23 +76,8 @@ class Error
 			$text .= "\\n\\nBacktrace $n:\\nFile: $file\\nLine: $line";
 		}
 
-		if( MODE_HTA ) {
-			?>
-			<html>
-			<head>
-			<script language="Javascript">
-			showError = false;
-			alert( "<?= $text ?>" );
-			</script>
-			</head>
-			<body></body>
-			</html>
-			<?php
-		}
-		elseif( MODE_XUL ) {
-			$text = str_replace( "\\n", "\n", $text );
-			echo $text;
-		}
+		$text = str_replace( "\\n", "\n", $text );
+		echo $text;
 		
 		die();
 	}

@@ -1,5 +1,11 @@
 <?php
 
+/**
+ * @package SiteFusion
+ * @subpackage Daemon
+*/
+
+
 
 class JobProcess extends SiteFusionProcess
 {

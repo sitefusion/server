@@ -1,8 +1,10 @@
 <?php
 
-define( 'CLIENT_TYPE', 'XUL' );
-define( 'MODE_XUL', true );
-define( 'MODE_HTA', false );
+/**
+ * @package SiteFusion
+ * @subpackage Daemon
+*/
+
 
 class DaemonProcess extends SiteFusionProcess
 {
@@ -19,7 +21,7 @@ class DaemonProcess extends SiteFusionProcess
 	
 	static private $DefaultOptions = array(
 		'address' => '127.0.0.1',
-		'port' => '10000',
+		'port' => '5173',
 		'logfile' => 'main.log',
 		'timezone' => 'Europe/Amsterdam',
 		'keepaliveInterval' => 60,
@@ -50,7 +52,7 @@ class DaemonProcess extends SiteFusionProcess
 		
 		date_default_timezone_set( self::$Options['timezone'] );
 		
-		self::OpenLog();
+		if( ! self::OpenLog() ) exit(1);
 		
 		try {
 			self::Log( 'Starting server...' );
@@ -69,7 +71,7 @@ class DaemonProcess extends SiteFusionProcess
 			if( self::$Options['changeIdentity'] && $currentUser['name'] == self::$Options['systemUser'] )
 				self::$Options['changeIdentity'] = FALSE;
 			
-			self::InitRuntimeDir();
+			if( ! self::InitRuntimeDir() ) exit(1);
 			
 			if( self::$Options['changeIdentity'] )
 				self::ChangeIdentity();
@@ -151,24 +153,32 @@ class DaemonProcess extends SiteFusionProcess
 	}
 	
 	static private function InitRuntimeDir() {
-		$dir = self::$Options['runtimeDirectory'];
+		try {
+			$dir = self::$Options['runtimeDirectory'];
 		
-		if( file_exists( $dir ) ) {
-			foreach ( scandir( $dir ) as $file ) {
-				if( $file != '.' && $file != '..' )
-					unlink( $dir . '/' . $file );
-			}
+			if( file_exists( $dir ) ) {
+				foreach ( scandir( $dir ) as $file ) {
+					if( $file != '.' && $file != '..' )
+						unlink( $dir . '/' . $file );
+				}
 			
-			if( self::$Options['changeIdentity'] ) {
-				rmdir( $dir );
-				mkdir( $dir, 0755 );
+				if( self::$Options['changeIdentity'] ) {
+					rmdir( $dir );
+					mkdir( $dir, 0755 );
+				}
 			}
-		}
-		else
-			mkdir( $dir, 0755 );
+			else
+				mkdir( $dir, 0755 );
 		
-		if( self::$Options['changeIdentity'] )
-			chown( $dir, self::$Options['systemUser'] );
+			if( self::$Options['changeIdentity'] )
+				chown( $dir, self::$Options['systemUser'] );
+			
+			return TRUE;
+		}
+		catch ( SFException $ex ) {
+			self::Log( 'Failed to initialize runtime directory: ' . $ex->getMessage() );
+			return FALSE;
+		}
 	}
 	
 	static private function WritePIDFile() {
@@ -926,18 +936,26 @@ class SiteFusionProcess
 	protected function __construct() {}
 	
 	static protected function OpenLog() {
-		if(! file_exists( self::$Options['logfile'] ) ) {
-			touch( self::$Options['logfile'] );
-			if( self::$Options['changeIdentity'] ) {
-				chown( self::$Options['logfile'], self::$Options['systemUser'] );
-				chmod( self::$Options['logfile'], 0664 );
+		try {
+			if(! file_exists( self::$Options['logfile'] ) ) {
+				touch( self::$Options['logfile'] );
+				if( self::$Options['changeIdentity'] ) {
+					chown( self::$Options['logfile'], self::$Options['systemUser'] );
+					chmod( self::$Options['logfile'], 0664 );
+				}
+			}
+		
+			if(! self::$Log = fopen( self::$Options['logfile'], 'a' ) ) {
+				echo "Unable to open logfile ".self::$Options['logfile']." for writing, exiting...\n";
+				return FALSE;
 			}
 		}
-		
-		if(! self::$Log = fopen( self::$Options['logfile'], 'a' ) ) {
-			echo "Unable to open logfile ".self::$Options['logfile']." for writing, exiting...\n";
+		catch( SFException $ex ) {
+			echo $ex->getMessage() . "\n";
 			return FALSE;
 		}
+		
+		return TRUE;
 	}
 	
 	static protected function Log( $text ) {

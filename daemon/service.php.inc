@@ -1,5 +1,11 @@
 <?php
 
+/**
+ * @package SiteFusion
+ * @subpackage Daemon
+*/
+
+
 include_once( 'extendedprocess.php.inc' );
 
 
