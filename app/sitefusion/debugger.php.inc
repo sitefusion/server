@@ -39,7 +39,7 @@ class SitefusionDebugger extends XULChildWindow
 	public function init() {
 		$this->socket = ApplicationProcess::GetDebugSocket( $this->debugPid );
 		$this->appStatus = 'running';
-		$this->setEvent( 'close', sendMessage, $this, 'closeSocket' );
+		$this->setEvent( 'close', MSG_SEND, $this, 'closeSocket' );
 		$this->timer = $this->rootApplication->setInterval( 50, $this, 'listenToApplication' );
 		
 		$this->addChild(
@@ -66,12 +66,12 @@ class SitefusionDebugger extends XULChildWindow
 			)
 		);
 		
-		$this->stackTree->width(200)->hidecolumnpicker(TRUE)->setEvent( 'select', sendMessage, $this, 'treeSelect', $this->stackTree );
-		$this->pauseButton->image( '/app/sitefusion/images/player_pause.png' )->setEvent( 'command', sendMessage, $this, 'pauseProcess' );
-		$this->resumeButton->image( '/app/sitefusion/images/player_play.png' )->setEvent( 'command', sendMessage, $this, 'resumeProcess' );
+		$this->stackTree->width(200)->hidecolumnpicker(TRUE)->setEvent( 'select', MSG_SEND, $this, 'treeSelect', $this->stackTree );
+		$this->pauseButton->image( '/app/sitefusion/images/player_pause.png' )->setEvent( 'command', MSG_SEND, $this, 'pauseProcess' );
+		$this->resumeButton->image( '/app/sitefusion/images/player_play.png' )->setEvent( 'command', MSG_SEND, $this, 'resumeProcess' );
 		$this->resumeButton->disabled( TRUE );
-		$this->ticksCheck->setEvent( 'command', sendMessage, $this, 'setTicks', $this->ticksCheck );
-		$this->appTicksCheck->disabled( TRUE )->setEvent( 'command', sendMessage, $this, 'setTicks', $this->appTicksCheck );
+		$this->ticksCheck->setEvent( 'command', MSG_SEND, $this, 'setTicks', $this->ticksCheck );
+		$this->appTicksCheck->disabled( TRUE )->setEvent( 'command', MSG_SEND, $this, 'setTicks', $this->appTicksCheck );
 		$this->size( 750, 550 );
 	}
 	
@@ -184,7 +184,7 @@ class SitefusionDebugger extends XULChildWindow
 			new XULMenuItem( '7 lines', '7' ),
 			new XULMenuItem( '5 lines', '5' ),
 			new XULMenuItem( '3 lines', '3' )
-		)->setEvent( 'command', sendMessage, $this, 'showLinesChanged', $this->showLines );
+		)->setEvent( 'command', MSG_SEND, $this, 'showLinesChanged', $this->showLines );
 		
 		$this->showLines->selectItem((string)$this->showLinesValue);
 		
@@ -295,7 +295,7 @@ class SitefusionDebuggerStackRow extends XULRow
 		$this->setEventReflex( 'mouseover', "$this->js.widgetElement.style.textDecoration = 'underline';" );
 		$this->setEventReflex( 'mouseout', "$this->js.widgetElement.style.textDecoration = '';" );
 		
-		$this->setEvent( 'click', sendMessage, $this, 'select' );
+		$this->setEvent( 'click', MSG_SEND, $this, 'select' );
 		$this->parent->setEventHandler( 'lineSelected', $this, 'checkSelection' );
 	}
 	
