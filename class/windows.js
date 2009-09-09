@@ -156,7 +156,7 @@ SiteFusion.Classes.ChildWindow = Class.create( SiteFusion.Classes.BasicWindow, {
 		this.dialog = true;
 		this.resizable = false;
 		
-		this.setEventHost( [ 'initialized', 'hasClosed' ] );
+		this.setEventHost( [ 'initialized', 'close', 'hasClosed' ] );
 		
 		this.eventHost.initialized.msgType = 0;
 		this.eventHost.hasClosed.msgType = 0;
