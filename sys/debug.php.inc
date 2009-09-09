@@ -53,7 +53,7 @@ class SiteFusionDebugWindow extends XULChildWindow
 		);
 		
 		$this->scrollBox->setStyle( 'overflow', 'auto' );
-		$this->stackTree->flex(1)->width(70)->hidecolumnpicker(TRUE)->setEvent( 'select', sendMessage, $this, 'treeSelect', $this->stackTree );
+		$this->stackTree->flex(1)->width(70)->hidecolumnpicker(TRUE)->setEvent( 'select', MSG_SEND, $this, 'treeSelect', $this->stackTree );
 		$this->bufferStackAdds = FALSE;
 		
 		array_unshift( $this->stackAdds, $this->backtrace );
@@ -79,7 +79,7 @@ class SiteFusionDebugWindow extends XULChildWindow
 		);
 		
 		$this->stackViewBox->addChild( $panel = new SiteFusionDebugStackView( $bt ) );
-		$treeItem->setEvent( 'select', sendMessage, $this, 'treeSelect' );
+		$treeItem->setEvent( 'select', MSG_SEND, $this, 'treeSelect' );
 		$treeItem->panel = $panel;
 		$this->stackViewBox->selectedPanel( $panel );
 		$this->stackTree->select( $treeItem );
@@ -139,7 +139,7 @@ class SiteFusionDebugStackView extends XULGrid
 			elseif( $type == '->' ) {
 				$callBox->addChild( $label = new XULLabel( get_class($object), 'underline' ), new XULLabel( '-> '.$function ) );
 				$label->setStyle( 'cursor', 'pointer' )->setStyle( 'color', 'blue' );
-				$label->setEvent( 'click', sendMessage, $this, 'showObject' );
+				$label->setEvent( 'click', MSG_SEND, $this, 'showObject' );
 				$label->object = $object;
 			}
 			else
@@ -165,19 +165,19 @@ class SiteFusionDebugStackView extends XULGrid
 							$show = $args[$a];
 						$callBox->addChild( $label = new XULLabel( '"'.$show.'"' ) );
 						$label->setStyle( 'cursor', 'pointer' )->setStyle( 'color', 'maroon' );
-						$label->setEvent( 'click', sendMessage, $this, 'showObject' );
+						$label->setEvent( 'click', MSG_SEND, $this, 'showObject' );
 						$label->object = $args[$a];
 						break;
 					case 'object':
 						$callBox->addChild( $label = new XULLabel( get_class($args[$a]), 'underline' ) );
 						$label->setStyle( 'cursor', 'pointer' )->setStyle( 'color', 'blue' );
-						$label->setEvent( 'click', sendMessage, $this, 'showObject' );
+						$label->setEvent( 'click', MSG_SEND, $this, 'showObject' );
 						$label->object = $args[$a];
 						break;
 					case 'array':
 						$callBox->addChild( $label = new XULLabel( 'Array('.count($args[$a]).')', 'underline' ) );
 						$label->setStyle( 'cursor', 'pointer' )->setStyle( 'color', 'blue' );
-						$label->setEvent( 'click', sendMessage, $this, 'showObject' );
+						$label->setEvent( 'click', MSG_SEND, $this, 'showObject' );
 						$label->object = $args[$a];
 						break;
 					default:
@@ -246,19 +246,19 @@ class SiteFusionDebugObjectInspector extends XULChildWindow
 							$show = $val;
 						$row->addChild( $label = new XULLabel( '"'.$show.'"' ) );
 						$label->setStyle( 'cursor', 'pointer' )->setStyle( 'color', 'maroon' );
-						$label->setEvent( 'click', sendMessage, $this, 'showObject' );
+						$label->setEvent( 'click', MSG_SEND, $this, 'showObject' );
 						$label->object = $val;
 						break;
 					case 'object':
 						$row->addChild( $label = new XULLabel( get_class($val), 'underline' ) );
 						$label->setStyle( 'cursor', 'pointer' )->setStyle( 'color', 'blue' );
-						$label->setEvent( 'click', sendMessage, $this, 'showObject' );
+						$label->setEvent( 'click', MSG_SEND, $this, 'showObject' );
 						$label->object = $val;
 						break;
 					case 'array':
 						$row->addChild( $label = new XULLabel( 'Array('.count($val).')', 'underline' ) );
 						$label->setStyle( 'cursor', 'pointer' )->setStyle( 'color', 'blue' );
-						$label->setEvent( 'click', sendMessage, $this, 'showObject' );
+						$label->setEvent( 'click', MSG_SEND, $this, 'showObject' );
 						$label->object = $val;
 						break;
 					default:

@@ -115,9 +115,9 @@ class FileUploader extends Node
 			Comm::CreateRemoteObject( $this, array( $this->hostWindow ) )
 		);
 		
-		$this->setEvent( 'cycle', sendMessage, $this, 'handleFileChunk' );
-		$this->setEvent( 'cancelled', sendMessage, $this, 'handleError' );
-		$this->setEvent( 'failed', sendMessage, $this, 'handleError' );
+		$this->setEvent( 'cycle', MSG_SEND, $this, 'handleFileChunk' );
+		$this->setEvent( 'cancelled', MSG_SEND, $this, 'handleError' );
+		$this->setEvent( 'failed', MSG_SEND, $this, 'handleError' );
 	}
 
 	public function setDestination( $destPath, $destName ) {

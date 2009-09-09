@@ -72,11 +72,11 @@ class XULCustomTree extends XULTree
 	public function initView() {
 		$this->callMethod( 'setView' );
 		
-		$this->setEvent( 'cellValueChange', sendMessage, $this, 'cellValueYieldCollect' );
-		$this->setEvent( 'treeDrop', sendMessage, $this, 'treeDropHandler' );
-		$this->setEvent( 'nodeDrop', sendMessage, $this, 'nodeDropHandler' );
-		$this->setEvent( 'openStateChange', sendMessage, $this, 'openStateCollector' );
-		$this->setEvent( 'sortColumn', sendMessage, $this, 'sortColumnHandler' );
+		$this->setEvent( 'cellValueChange', MSG_SEND, $this, 'cellValueYieldCollect' );
+		$this->setEvent( 'treeDrop', MSG_SEND, $this, 'treeDropHandler' );
+		$this->setEvent( 'nodeDrop', MSG_SEND, $this, 'nodeDropHandler' );
+		$this->setEvent( 'openStateChange', MSG_SEND, $this, 'openStateCollector' );
+		$this->setEvent( 'sortColumn', MSG_SEND, $this, 'sortColumnHandler' );
 		
 		$this->hostWindow->addStyleSheetRule(
 			'treechildren::-moz-tree-checkbox { list-style-image: none; }',

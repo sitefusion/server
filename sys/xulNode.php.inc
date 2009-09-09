@@ -929,7 +929,7 @@ class Node
 		$this->callMethod( 'setDroppable', $flavours );
 		
 		if( $eventObj && $eventHandler ) {
-			$this->setEvent( 'sfdragdrop', sendMessage, $eventObj, $eventHandler );
+			$this->setEvent( 'sfdragdrop', MSG_SEND, $eventObj, $eventHandler );
 		}
 	}
 	
