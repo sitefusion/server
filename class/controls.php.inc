@@ -336,9 +336,9 @@ class XULDatePicker extends Node
 			$this->setProperty( 'value', $value );
 			$this->setProperty( 'serverValue', $value );
 			$d = explode( '-', $value );
-			$this->setProperty( 'widgetElement.year', (int) $d[0] );
-			$this->setProperty( 'widgetElement.month', ((int)$d[1]) - 1 );
-			$this->setProperty( 'widgetElement.date', (int) $d[2] );
+			$this->setProperty( 'element.year', (int) $d[0] );
+			$this->setProperty( 'element.month', ((int)$d[1]) - 1 );
+			$this->setProperty( 'element.date', (int) $d[2] );
 		}
 	}
 }

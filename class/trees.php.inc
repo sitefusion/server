@@ -105,7 +105,7 @@ class XULTree extends BranchNode
 			if( $item instanceof XULTreeItem )
 				$this->callMethod( 'select', $item );
 			else
-				$this->callMethod( 'widgetElement.view.selection.select', $item );
+				$this->callMethod( 'element.view.selection.select', $item );
 		}
 	}
 }

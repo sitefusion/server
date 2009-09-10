@@ -37,11 +37,11 @@ SiteFusion.Classes.Browser = Class.create( SiteFusion.Classes.Node, {
 	},
 	
 	setSrc: function( src ) {
-		this.widgetElement.setAttribute( 'src', src );
+		this.element.setAttribute( 'src', src );
 	},
 	
 	reload: function() {
-		this.widgetElement.reload( );
+		this.element.reload();
 	}
 } );
 

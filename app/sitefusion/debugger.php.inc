@@ -292,8 +292,8 @@ class SitefusionDebuggerStackRow extends XULRow
 	}
 	
 	public function init() {
-		$this->setEventReflex( 'mouseover', "$this->js.widgetElement.style.textDecoration = 'underline';" );
-		$this->setEventReflex( 'mouseout', "$this->js.widgetElement.style.textDecoration = '';" );
+		$this->setEventReflex( 'mouseover', "$this->js.element.style.textDecoration = 'underline';" );
+		$this->setEventReflex( 'mouseout', "$this->js.element.style.textDecoration = '';" );
 		
 		$this->setEvent( 'click', MSG_SEND, $this, 'select' );
 		$this->parent->setEventHandler( 'lineSelected', $this, 'checkSelection' );
