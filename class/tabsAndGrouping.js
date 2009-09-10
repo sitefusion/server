@@ -124,6 +124,18 @@ SiteFusion.Classes.Caption = Class.create( SiteFusion.Classes.Node, {
 } );
 
 
+SiteFusion.Classes.Separator = Class.create( SiteFusion.Classes.Node, {
+	sfClassName: 'XULSeparator',
+	
+	initialize: function( win ) {
+		this.element = win.createElement( 'separator' );
+		this.element.sfNode = this;
+		
+		this.setEventHost();
+	}
+} );
+
+
 SiteFusion.Classes.Spacer = Class.create( SiteFusion.Classes.Node, {
 	sfClassName: 'XULSpacer',
 	

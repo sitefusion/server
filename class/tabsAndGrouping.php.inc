@@ -249,6 +249,29 @@ class XULCaption extends BranchNode
 }
 
 
+class XULSeparator extends Node
+{
+	public $remoteConstructor = 'Separator';
+	
+	
+	/**
+	 * Constructor
+	 *
+	 * @param string	$orient
+	 * @param string	$className
+	*/
+	
+	public function __construct( $orient = NULL, $className = NULL ) {
+		if( $orient !== NULL )
+			$this->orient( $orient );
+		if( $className != NULL )
+			$this->className( $className );
+		
+		parent::__construct();
+	}
+}
+
+
 class XULSpacer extends Node
 {
 	public $remoteConstructor = 'Spacer';
@@ -260,7 +283,6 @@ class XULSpacer extends Node
 	 * @param int		$flex
 	 * @param int		$width
 	 * @param int		$height
-	 * @param mixed		$childNodes
 	*/
 	
 	public function __construct() {
@@ -273,9 +295,8 @@ class XULSpacer extends Node
 				$this->width( array_shift($args) );
 			if( count($args) && is_int($args[0]) )
 				$this->height( array_shift($args) );
-			
-			parent::__construct( $args );
 		}
-		else parent::__construct();
+		
+		parent::__construct();
 	}
 }

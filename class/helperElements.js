@@ -48,3 +48,15 @@ SiteFusion.Classes.ArrowScrollBox = Class.create( SiteFusion.Classes.Node, {
 	}
 } );
 
+
+SiteFusion.Classes.Dropmarker = Class.create( SiteFusion.Classes.Node, {
+	sfClassName: 'XULDropmarker',
+	
+	initialize: function( win ) {
+		this.element = win.createElement( 'dropmarker' );
+		this.element.sfNode = this;
+		
+		this.setEventHost();
+	}
+} );
+

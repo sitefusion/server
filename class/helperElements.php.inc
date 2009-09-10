@@ -64,3 +64,9 @@ class XULArrowScrollBox extends BranchNode
 	}
 }
 
+
+class XULDropmarker extends Node
+{
+	public $remoteConstructor = 'Dropmarker';
+}
+
