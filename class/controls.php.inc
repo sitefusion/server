@@ -180,7 +180,7 @@ class XULScale extends Node
 	
 	public function attach() {
 		parent::attach();
-		$this->setEvent( 'yield', queueMessage, $this, 'yieldCollect' );
+		$this->setEvent( 'yield', MSG_QUEUE, $this, 'yieldCollect' );
 	}
 	
 	public function min( $min = NULL ) {
