@@ -26,6 +26,11 @@
 // - - - - - - - - - - - - - - END LICENSE BLOCK - - - - - - - - - - - - -
 
 
+/**
+ * @package SiteFusionAdmin
+*/
+
+
 function authorizeLogin( $args, $user, $pass ) {
 	include( 'sfadminPasswd.php.inc' );
 	return ($user == 'admin' && $pass == $password);

@@ -26,6 +26,11 @@
 // - - - - - - - - - - - - - - END LICENSE BLOCK - - - - - - - - - - - - -
 
 
+/**
+ * @package Webfrontend
+*/
+
+
 function WriteCommand( $socket, $cmd, $param = NULL, $data = NULL ) {
 	if(! is_array($param) )
 		$param = array();

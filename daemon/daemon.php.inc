@@ -27,8 +27,8 @@
 
 
 /**
- * @package SiteFusion
- * @subpackage Daemon
+ * @package Daemon
+ * @subpackage Master
 */
 
 

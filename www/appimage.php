@@ -26,6 +26,11 @@
 // - - - - - - - - - - - - - - END LICENSE BLOCK - - - - - - - - - - - - -
 
 
+/**
+ * @package Webfrontend
+*/
+
+
 include( '../conf/webfrontend.conf' );
 
 $db = mysql_connect( $WEBCONFIG['databaseHost'], $WEBCONFIG['databaseUsername'], $WEBCONFIG['databasePassword'] );

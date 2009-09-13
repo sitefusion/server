@@ -27,7 +27,7 @@
 
 
 /**
- * @package SiteFusion
+ * @package API
  * @subpackage Trees
 */
 

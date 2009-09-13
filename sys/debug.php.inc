@@ -25,6 +25,11 @@
 //
 // - - - - - - - - - - - - - - END LICENSE BLOCK - - - - - - - - - - - - -
 
+/**
+ * @package API
+ * @subpackage Debugger
+*/
+
 
 class SiteFusionDebugWindow extends XULChildWindow
 {

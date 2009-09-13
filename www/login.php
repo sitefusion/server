@@ -26,6 +26,11 @@
 // - - - - - - - - - - - - - - END LICENSE BLOCK - - - - - - - - - - - - -
 
 
+/**
+ * @package Webfrontend
+*/
+
+
 include( '../conf/webfrontend.conf' );
 include( 'functions.php' );
 

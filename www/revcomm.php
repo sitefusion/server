@@ -26,6 +26,11 @@
 // - - - - - - - - - - - - - - END LICENSE BLOCK - - - - - - - - - - - - -
 
 
+/**
+ * @package Webfrontend
+*/
+
+
 ignore_user_abort( TRUE );
 
 include( '../conf/webfrontend.conf' );

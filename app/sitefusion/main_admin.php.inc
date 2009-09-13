@@ -26,6 +26,11 @@
 // - - - - - - - - - - - - - - END LICENSE BLOCK - - - - - - - - - - - - -
 
 
+/**
+ * @package SiteFusionAdmin
+*/
+
+
 include_once( 'debugger.php.inc' );
 
 class SitefusionAdmin extends Application

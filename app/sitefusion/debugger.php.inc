@@ -26,6 +26,11 @@
 // - - - - - - - - - - - - - - END LICENSE BLOCK - - - - - - - - - - - - -
 
 
+/**
+ * @package SiteFusionAdmin
+*/
+
+
 class SitefusionDebugger extends XULChildWindow
 {
 	public $title = 'Debugger';

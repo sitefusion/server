@@ -27,10 +27,26 @@
 
 
 /**
- * @package SiteFusion
+ * @package API
  * @subpackage Node
 */
 
+
+/**
+ * This is the base class of all nodes. It provides all methods necessary for manipulating XUL attributes,
+ * event firing, handling and yielding, reflexes and styling.
+ * 
+ * @property int			$id					Registry ID for the node (only set when the node is registered)
+ * @property Node			$parent				Parent node for this node (only set when the node is registered)
+ * @property bool			$isRegistered		Indicates whether the node is registered and thus part of the XUL tree on the client side
+ * @property bool			$isChild			Indicates whether the node is a child of another node
+ * @property XULWindow		$rootWindow			Reference to the root window object (only set when the node is registered)
+ * @property Application	$rootApplication	Reference to the application object (only set when the node is registered)
+ * @property array			$eventHandler		[INTERNAL] Keeps track of event handlers
+ * @property array			$eventYielder		[INTERNAL] Keeps track of event yielders
+ * @property array			$handlerFor			[INTERNAL] Keeps track of event handlers of other nodes
+ * @property array			$eventHandler		[INTERNAL] Keeps track of event yielders of other nodes
+*/
 
 class Node
 {
@@ -63,14 +79,38 @@ class Node
 	
 	/* Event Handling */
 	
-	final public function createClientEvent( $event, $type = -1 ) {
+	/**
+	 * Creates a new event on the client side
+	 * 
+	 * NOTE: this is not about firing an event. This method actually creates a new addition to
+	 * the set of fireable client events of this node.
+	 * 
+	 * @param string	$event		Name of the new event
+	 * @param int		$type		Message type for the new event (one of MSG_SEND, MSG_QUEUE or MSG_NONE)
+	*/
+	
+	public function createClientEvent( $event, $type = -1 ) {
 		if(! $this->isRegistered )
 			Error::CallerFatal( "Can't create a client-side event on an unregistered node" );
 		
 		$this->callMethod( 'createEvent', array( $event, $type ) );
 	}
 	
-	final public function setEvent( $event, $type, $obj, $func, $yielders = NULL ) {
+	
+	/**
+	 * Shorthand version for setEventType, setEventHandler and setEventYielder
+	 * 
+	 * This method sets an event type, handler and yielder(s) in one convenient call.
+	 * 
+	 * @param string		$event		Event name
+	 * @param int			$type		Message type (one of MSG_SEND, MSG_QUEUE or MSG_NONE)
+	 * @param object|string	$obj		Object or class name to call the handler method on
+	 * @param string		$func		Name of the handler method
+	 * @param mixed			$yielders	Node or array of nodes to yield when this event fires
+	 * @param Node	Returns reference to self ($this) for easy chaining of method calls
+	*/
+	
+	public function setEvent( $event, $type, $obj, $func, $yielders = NULL ) {
 		$this	-> setEventType( $event, $type )
 			-> setEventHandler( $event, $obj, $func );
 		
@@ -79,8 +119,20 @@ class Node
 		
 		return $this;
 	}
+	
+	
+	/**
+	 * Sets an event handler
+	 * 
+	 * This method sets an event handler to call when a certain event fires.
+	 * 
+	 * @param string		$event		Event name
+	 * @param object|string	$obj		Object or class name to call the handler method on
+	 * @param string		$func		Name of the handler method
+	 * @param Node	Returns reference to self ($this) for easy chaining of method calls
+	*/
 
-	final public function setEventHandler( $event, $obj, $func ) {
+	public function setEventHandler( $event, $obj, $func ) {
 		$handler = array( $obj, $func );
 		
 		if( isset( $this->eventHandler[$event] ) )
@@ -94,7 +146,19 @@ class Node
 		return $this;
 	}
 	
-	final public function removeEventHandler( $event, $obj, $func ) {
+	
+	/**
+	 * Removes an event handler
+	 * 
+	 * This method removes a previously set event handler for a certain event.
+	 * 
+	 * @param string		$event		Event name
+	 * @param object|string	$obj		Object or class name to call the handler method on
+	 * @param string		$func		Name of the handler method
+	 * @param Node	Returns reference to self ($this) for easy chaining of method calls
+	*/
+	
+	public function removeEventHandler( $event, $obj, $func ) {
 		$handler = array( $obj, $func );
 		
 		if(! isset( $this->eventHandler[$event] ) )
@@ -114,7 +178,21 @@ class Node
 		return $this;
 	}
 	
-	final public function setEventYielder( $event, $obj ) {
+	
+	/**
+	 * Sets a node to yield when an event on this node fires
+	 * 
+	 * .
+	 * 
+	 * @param string		$event		Event name
+	 * @param int			$type		Message type (one of MSG_SEND, MSG_QUEUE or MSG_NONE)
+	 * @param object|string	$obj		Object or class name to call the handler method on
+	 * @param string		$func		Name of the handler method
+	 * @param mixed			$yielders	Node or array of nodes to yield when this event fires
+	 * @param Node	Returns reference to self ($this) for easy chaining of method calls
+	*/
+	
+	public function setEventYielder( $event, $obj ) {
 		if( ! $this->isRegistered )
 			Error::CallerFatal( 'Can`t set eventYielder because the hosting node is not registered' );
 		
@@ -146,7 +224,7 @@ class Node
 		return $this;
 	}
 	
-	final public function removeEventYielder( $event, $obj ) {
+	public function removeEventYielder( $event, $obj ) {
 		if( ! $this->isRegistered )
 			Error::CallerFatal( 'Can`t remove eventYielder because the hosting node is not registered' );
 		
@@ -177,7 +255,7 @@ class Node
 		return $this;
 	}
 	
-	final public function setEventType( $event, $type ) {
+	public function setEventType( $event, $type ) {
 		if( ! $this->isRegistered )
 			Error::CallerFatal( 'Can`t set event type because the hosting node is not registered' );
 		
@@ -188,7 +266,7 @@ class Node
 		return $this;
 	}
 	
-	final public function setEventReflex( $event, $code ) {
+	public function setEventReflex( $event, $code ) {
 		if( ! $this->isRegistered )
 			Error::CallerFatal( 'Can`t set event reflex because the node is not registered' );
 		
@@ -197,7 +275,7 @@ class Node
 		return $this;
 	}
 	
-	final public function removeEventReflex( $event ) {
+	public function removeEventReflex( $event ) {
 		if( ! $this->isRegistered )
 			Error::CallerFatal( 'Can`t remove event reflex because the node is not registered' );
 		
@@ -206,7 +284,7 @@ class Node
 		return $this;
 	}
 
-	final public function commandHandler( $event, $data ) {
+	public function commandHandler( $event, $data ) {
 		if(! is_array($data) )
 			$data = array($data);
 		
@@ -233,7 +311,7 @@ class Node
 		return $eventobj;
 	}
 	
-	final public function fireLocalEvent( $event, $args = NULL ) {
+	public function fireLocalEvent( $event, $args = NULL ) {
 		if( $args === NULL )
 			$args = array();
 		
@@ -242,7 +320,7 @@ class Node
 		return $eventobj;
 	}
 	
-	final public function fireClientEvent( $event, $args = NULL ) {
+	public function fireClientEvent( $event, $args = NULL ) {
 		if(! $this->isRegistered )
 			Error::CallerFatal( 'Unregistered node cannot fire a ClientEvent' );
 		
@@ -251,7 +329,7 @@ class Node
 		);
 	}
 	
-	final public function yield() {
+	public function yield() {
 		if(! $this->isRegistered )
 			Error::CallerFatal( 'Unregistered node cannot yield' );
 		

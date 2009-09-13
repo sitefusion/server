@@ -26,6 +26,11 @@
 // - - - - - - - - - - - - - - END LICENSE BLOCK - - - - - - - - - - - - -
 
 
+/**
+ * @package Webfrontend
+*/
+
+
 include( '../conf/webfrontend.conf' );
 
 header( 'Content-Type: application/x-javascript; charset=utf-8' );
