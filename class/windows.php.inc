@@ -32,6 +32,13 @@
 */
 
 
+
+/**
+ * Basic window functionality
+ * 
+ * Not to be constructed directly
+*/
+
 class XULBasicWindow extends BranchNode
 {
 	public function preventClose( $bool = TRUE ) {
@@ -84,6 +91,19 @@ class XULBasicWindow extends BranchNode
 		$this->callMethod( 'openLink', array($url) );
 	}
 }
+
+
+/**
+ * Window element
+ * 
+ * This is the root window class. It is constructed automatically once upon application launch,
+ * and should not be constructed separately. Use XULChildWindow or XULDialog for additional 
+ * application windows.
+ * 
+ * @see XULChildWindow
+ * @see XULDialog
+ * @link https://developer.mozilla.org/en/XUL/window
+*/
 
 class XULWindow extends XULBasicWindow
 {
@@ -140,6 +160,12 @@ class XULWindow extends XULBasicWindow
 	}
 }
 
+
+/**
+ * Child window element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/window
+*/
 
 class XULChildWindow extends XULBasicWindow
 {
@@ -241,6 +267,12 @@ class XULChildWindow extends XULBasicWindow
 	}
 }
 
+
+/**
+ * Dialog element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/dialog
+*/
 
 class XULDialog extends XULChildWindow
 {
@@ -569,6 +601,11 @@ class PromptService extends Node
 		$this->carryValue = $carryValue;
 		$this->callMethod( 'select', array($title,$text,$list,(int)$selectedIndex) );
 	}
+	
+	
+	/**
+	 * [INTERNAL FUNCTION] Collects the results of a prompt
+	*/
 	
 	public function yieldCollect( $e, $result, $checkState, $value, $username, $password ) {
 		$this->result = $result;

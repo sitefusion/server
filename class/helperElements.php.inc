@@ -32,11 +32,23 @@
 */
 
 
+/**
+ * Grippy element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/grippy
+*/
+
 class XULGrippy extends Node
 {
 	public $remoteConstructor = 'Grippy';
 }
 
+
+/**
+ * Arrowscrollbox element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/arrowscrollbox
+*/
 
 class XULArrowScrollBox extends BranchNode
 {
@@ -64,6 +76,12 @@ class XULArrowScrollBox extends BranchNode
 	}
 }
 
+
+/**
+ * Dropmarker element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/dropmarker
+*/
 
 class XULDropmarker extends Node
 {

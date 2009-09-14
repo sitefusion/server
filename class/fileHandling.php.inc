@@ -32,13 +32,25 @@
 */
 
 
+/**
+ * OS-native filepicker dialog
+ * 
+ * Opening modes can be one of 'open', 'save', 'getfolder' or 'openmultiple'. This node needs to be
+ * added to a window as a child first. Then the open() method can be called, after which the dialog
+ * opens. You can set an event handler for the local event 'closed', at which time the property
+ * XULFilePicker->returnCode will contain one of the strings 'ok', 'cancel' or 'replace', indicating
+ * the action desired by the user. The property XULFilePicker->file will contain the selected file or
+ * folder if the dialog was of mode 'save', 'open' or 'getfolder'. In the case of an 'openmultiple'
+ * picker the property XULFilePicker->files will contain an array of the selected paths.
+*/
+
 class XULFilePicker extends Node
 {
 	public $remoteConstructor = 'FilePicker';
 	public $file = NULL;
 	public $files = NULL;
 	public $returnCode = 'cancel';
-
+	
 	public function __construct( $title, $mode = 'open', $defaultString = '' ) {
 		$this->title = $title;
 		$this->defaultString = (string) $defaultString;
@@ -92,6 +104,21 @@ class XULFilePicker extends Node
 	}
 }
 
+
+/**
+ * Background file uploader
+ * 
+ * This class creates an object that uploads a file from the client to the server.
+ * Construct it with a destination path and name (on the server). Then call the 
+ * method startUpload( $path ) where $path is the location of the file on the client
+ * side. This path can be retrieved with f.e. XULFilePicker. This control fires the
+ * event 'finished' when the upload was successful, 'failed' when it went wrong or 
+ * 'cancelled' when the upload was cancelled through the cancelUpload() method. It
+ * also fires the event 'cycle' for every chunk received, allowing you to keep track
+ * of progress.
+ * 
+ * @see XULFilePicker
+*/
 
 class FileUploader extends Node
 {
@@ -166,6 +193,17 @@ class FileUploader extends Node
 	}
 }
 
+
+/**
+ * Background file downloader
+ * 
+ * This class constructs a node that downloads a file from the server to the client in 
+ * the background. Construct it with the local (server) path as the first argument and
+ * the remote (client) path as the second argument, and call startDownload(). At present
+ * this control does not supply any progress information. This will be added soon.
+ * 
+ * @see XULFilePicker
+*/
 
 class FileDownloader extends Node
 {

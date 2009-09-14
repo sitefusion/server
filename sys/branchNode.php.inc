@@ -32,9 +32,23 @@
 */
 
 
+/**
+ * This class represents all nodes that are capable of having childnodes
+ * 
+ * It adds methods for adding, inserting, removing and extracting nodes.
+*/
+
 class BranchNode extends Node
 {
 	public $children = array();
+	
+	
+	/**
+	 * Add one or more nodes to this node's child collection
+	 * 
+	 * @param mixed	$nodes		One or more nodes or array(s) of nodes to add
+	 * @return mixed	Returns a reference to self ($this) for easy chaining of method calls
+	*/
 	
 	public function addChild() {
 		$args = func_get_args();
@@ -75,6 +89,15 @@ class BranchNode extends Node
 		return $this;
 	}
 	
+	
+	/**
+	 * Add a new childnode before an existing one
+	 * 
+	 * @param Node	$node		New node
+	 * @param Node	$childnode	Existing node before which to insert the new node
+	 * @return mixed	Returns a reference to self ($this) for easy chaining of method calls
+	*/
+	
 	public function addChildBefore( $node, $childnode ) {
 		if( $node->isChild ) {
 			Error::CallerFatal( 'Node is already a child' );
@@ -108,6 +131,15 @@ class BranchNode extends Node
 		return $this;
 	}
 
+	
+	/**
+	 * Add a new childnode after an existing one
+	 * 
+	 * @param Node	$node		New node
+	 * @param Node	$childnode	Existing node after which to insert the new node
+	 * @return mixed	Returns a reference to self ($this) for easy chaining of method calls
+	*/
+	
 	public function addChildAfter( $node, $childnode ) {
 		if( $node->isChild ) {
 			Error::CallerFatal( 'Node is already a child' );
@@ -127,6 +159,14 @@ class BranchNode extends Node
 		
 		return $this;
 	}
+	
+	
+	/**
+	 * Adds one or more new childnodes in front of all existing childnodes
+	 * 
+	 * @param mixed	$nodes		One or more nodes or array(s) of nodes to add
+	 * @return mixed	Returns a reference to self ($this) for easy chaining of method calls
+	*/
 	
 	public function addChildFirst() {
 		$args = func_get_args();
@@ -150,6 +190,11 @@ class BranchNode extends Node
 		return $this;
 	}
 	
+	
+	/**
+	 * [INTERNAL FUNCTION] Registers childnodes, called when this node is registered
+	*/
+	
 	public function registerChildren() {
 		
 		foreach( $this->children as $child ) {
@@ -168,6 +213,17 @@ class BranchNode extends Node
 		}
 		
 	}
+	
+	
+	/**
+	 * Removes one or more childnodes from this node's child collection
+	 * 
+	 * Use this method if you don't intend to reuse the node(s)
+	 * 
+	 * @see Node::removeNode()
+	 * @param mixed	$nodes		One or more nodes or array(s) of nodes to remove
+	 * @return bool	Whether the operation was successful
+	*/
 	
 	public function removeChild() {
 		
@@ -204,6 +260,17 @@ class BranchNode extends Node
 		
 		return TRUE;
 	}
+	
+	
+	/**
+	 * Extracts one or more childnodes from this node's child collection
+	 * 
+	 * Use this method if you intend to reuse the node(s)
+	 * 
+	 * @see Node::extractNode()
+	 * @param mixed	$nodes		One or more nodes or array(s) of nodes to remove
+	 * @return Node|array	The removed node or array of nodes
+	*/
 	
 	public function extractChild() {
 		
@@ -242,6 +309,11 @@ class BranchNode extends Node
 		return ( sizeof($return) == 1 ? $return[0]:$return );
 	}
 	
+	
+	/**
+	 * [INTERNAL FUNCTION] Registers childnodes, called when this node is registered
+	*/
+	
 	public function unregisterChildren() {
 		
 		foreach( $this->children as $child ) {
@@ -255,15 +327,44 @@ class BranchNode extends Node
 		
 	}
 	
+	
+	/**
+	 * Removes all childnodes from this node's child collection
+	 * 
+	 * Use this method if you don't intend to reuse the removed nodes
+	 * 
+	 * @see Node::removeNode()
+	 * @return bool	Whether the operation was successful
+	*/
+	
 	public function removeChildren() {
 		if( count($this->children) )
 			return $this->removeChild( $this->children );
 	}
 	
+	
+	/**
+	 * Extracts all childnodes from this node's child collection
+	 * 
+	 * Use this method if you intend to reuse the nodes
+	 * 
+	 * @see Node::extractNode()
+	 * @return Node|array	The removed node or array of nodes
+	*/
+	
 	public function extractChildren() {
 		if( count($this->children) )
 			return $this->extractChild( $this->children );
 	}
+	
+	
+	/**
+	 * Get the index of a child node
+	 * 
+	 * Returns the index of the given childnode (as in the $children array) or NULL if not found
+	 * 
+	 * @return int|NULL	The index of the childnode or NULL if not found
+	*/
 	
 	public function findChild( $child ) {
 		for( $n = 0; $n < count($this->children); $n++ ) {

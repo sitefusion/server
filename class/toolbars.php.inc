@@ -32,10 +32,23 @@
 */
 
 
+/**
+ * ToolbarSeparator element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/toolbarseparator
+*/
+
 class XULToolBarSeparator extends Node
 {
 	public $remoteConstructor = 'ToolBarSeparator';
 }
+
+
+/**
+ * Toolbox element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/toolbox
+*/
 
 class XULToolBox extends BranchNode
 {
@@ -57,10 +70,24 @@ class XULToolBox extends BranchNode
 	}
 }
 
+
+/**
+ * Toolbar element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/toolbar
+*/
+
 class XULToolBar extends BranchNode
 {
 	public $remoteConstructor = 'ToolBar';
 }
+
+
+/**
+ * Toolbarbutton element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/toolbarbutton
+*/
 
 class XULToolBarButton extends BranchNode
 {

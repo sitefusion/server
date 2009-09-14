@@ -32,6 +32,12 @@
 */
 
 
+/**
+ * Label element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/label
+*/
+
 class XULLabel extends Node
 {
 	protected $value = '';
@@ -44,6 +50,12 @@ class XULLabel extends Node
 		$this->textStyle( $style );
 	}
 }
+
+/**
+ * Description element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/description
+*/
 
 class XULDescription extends BranchNode
 {
@@ -58,6 +70,12 @@ class XULDescription extends BranchNode
 	}
 }
 
+
+/**
+ * Image element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/image
+*/
 
 class XULImage extends Node
 {
@@ -96,6 +114,15 @@ class XULImage extends Node
 	}
 }
 
+
+/**
+ * Direct GD image display element
+ * 
+ * Supply this element with an image type ('jpg', 'gif' or 'png') through the method setImageType($type)
+ * and call cacheStream( $gdImage ) in which $gdImage is a valid GD image resource.
+ * 
+ * @link https://developer.mozilla.org/en/XUL/image
+*/
 
 class XULDirectImage extends Node
 {
@@ -165,6 +192,14 @@ class XULDirectImage extends Node
 	}
 }
 
+
+/**
+ * Direct filesystem image display element
+ * 
+ * This object behaves like a normal image, but accepts a filepath on the local (server) filesystem
+ * 
+ * @link https://developer.mozilla.org/en/XUL/image
+*/
 
 class XULFileSystemImage extends Node
 {

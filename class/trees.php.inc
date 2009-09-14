@@ -32,6 +32,12 @@
 */
 
 
+/**
+ * Tree element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/tree
+*/
+
 class XULTree extends BranchNode
 {
 	public $remoteConstructor = 'Tree';
@@ -110,10 +116,24 @@ class XULTree extends BranchNode
 	}
 }
 
+
+/**
+ * Treecols element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/treecols
+*/
+
 class XULTreeCols extends BranchNode
 {
 	public $remoteConstructor = 'TreeCols';
 }
+
+
+/**
+ * Treecol element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/treecol
+*/
 
 class XULTreeCol extends BranchNode
 {
@@ -193,11 +213,24 @@ class XULTreeCol extends BranchNode
 	}
 }
 
+
+/**
+ * Treechildren element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/treechildren
+*/
+
 class XULTreeChildren extends BranchNode
 {
 	public $remoteConstructor = 'TreeChildren';
 }
 
+
+/**
+ * Treeitem element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/treeitem
+*/
 
 class XULTreeItem extends BranchNode
 {
@@ -248,10 +281,23 @@ class XULTreeItem extends BranchNode
 }
 
 
+/**
+ * Treerow element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/treerow
+*/
+
 class XULTreeRow extends BranchNode
 {
 	public $remoteConstructor = 'TreeRow';
 }
+
+
+/**
+ * Treecell element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/treecell
+*/
 
 class XULTreeCell extends BranchNode
 {
@@ -298,6 +344,13 @@ class XULTreeCell extends BranchNode
 		return $this->attributeMethod( 'properties', $prop );
 	}
 }
+
+
+/**
+ * Treeseparator element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/treeseparator
+*/
 
 class XULTreeSeparator extends Node
 {

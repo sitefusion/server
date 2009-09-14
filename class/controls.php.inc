@@ -32,6 +32,12 @@
 */
 
 
+/**
+ * Button element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/button
+*/
+
 class XULButton extends BranchNode
 {
 	public $label;
@@ -87,6 +93,12 @@ class XULButton extends BranchNode
 }
 
 
+/**
+ * Progressmeter element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/progressmeter
+*/
+
 class XULProgressMeter extends Node
 {
 	public $remoteConstructor = 'ProgressMeter';
@@ -110,6 +122,12 @@ class XULProgressMeter extends Node
 }
 
 
+/**
+ * Splitter element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/splitter
+*/
+
 class XULSplitter extends Node
 {
 	public $remoteConstructor = 'Splitter';
@@ -127,6 +145,12 @@ class XULSplitter extends Node
 	}
 }
 
+
+/**
+ * Colorpicker element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/colorpicker
+*/
 
 class XULColorPicker extends Node
 {
@@ -161,6 +185,12 @@ class XULColorPicker extends Node
 	}
 }
 
+
+/**
+ * Scale element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/scale
+*/
 
 class XULScale extends Node
 {
@@ -200,6 +230,12 @@ class XULScale extends Node
 	}
 }
 
+
+/**
+ * Textbox element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/textbox
+*/
 
 class XULTextBox extends BranchNode
 {
@@ -262,6 +298,13 @@ class XULTextBox extends BranchNode
 	}
 }
 
+
+/**
+ * Timepicker element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/timepicker
+*/
+
 class XULTimePicker extends BranchNode
 {
 	public $remoteConstructor = 'TimePicker';
@@ -303,6 +346,12 @@ class XULTimePicker extends BranchNode
 }
 
 
+/**
+ * Datepicker element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/datepicker
+*/
+
 class XULDatePicker extends Node
 {
 	public $remoteConstructor = 'DatePicker';
@@ -343,6 +392,12 @@ class XULDatePicker extends Node
 	}
 }
 
+
+/**
+ * Checkbox element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/checkbox
+*/
 
 class XULCheckBox extends BranchNode
 {
@@ -392,6 +447,12 @@ class XULCheckBox extends BranchNode
 }
 
 
+/**
+ * Radiogroup element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/radiogroup
+*/
+
 class XULRadioGroup extends BranchNode
 {
 	public $remoteConstructor = 'RadioGroup';
@@ -418,6 +479,12 @@ class XULRadioGroup extends BranchNode
 	}
 }
 
+
+/**
+ * Radio element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/radio
+*/
 
 class XULRadio extends BranchNode
 {
@@ -489,6 +556,12 @@ class XULRadio extends BranchNode
 	}
 }
 
+
+/**
+ * Menulist element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/menulist
+*/
 
 class XULMenuList extends BranchNode
 {

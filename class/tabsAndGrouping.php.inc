@@ -32,6 +32,13 @@
 */
 
 
+
+/**
+ * Tabbox element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/tabbox
+*/
+
 class XULTabBox extends BranchNode
 {
 	public $remoteConstructor = 'TabBox';
@@ -85,6 +92,13 @@ class XULTabBox extends BranchNode
 	}
 }
 
+
+/**
+ * Tabs element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/tabs
+*/
+
 class XULTabs extends BranchNode
 {
 	public $remoteConstructor = 'Tabs';
@@ -103,6 +117,13 @@ class XULTabs extends BranchNode
 			$this->callMethod( 'selectedItem', array($tab) );
 	}	
 }
+
+
+/**
+ * Tab element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/tab
+*/
 
 class XULTab extends BranchNode
 {
@@ -152,11 +173,25 @@ class XULTab extends BranchNode
 	}
 }
 
+
+/**
+ * Tabpanels element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/tabpanels
+*/
+
 class XULTabPanels extends BranchNode
 {
 	public $remoteConstructor = 'TabPanels';
 	public $flex = 1;
 }
+
+
+/**
+ * Tabpanel element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/tabpanel
+*/
 
 class XULTabPanel extends BranchNode
 {
@@ -164,6 +199,12 @@ class XULTabPanel extends BranchNode
 	public $flex = 1;
 }
 
+
+/**
+ * Groupbox element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/groupbox
+*/
 
 class XULGroupBox extends BranchNode
 {
@@ -195,6 +236,13 @@ class XULGroupBox extends BranchNode
 		else parent::__construct();
 	}
 }
+
+
+/**
+ * Caption element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/caption
+*/
 
 class XULCaption extends BranchNode
 {
@@ -249,6 +297,12 @@ class XULCaption extends BranchNode
 }
 
 
+/**
+ * Separator element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/separator
+*/
+
 class XULSeparator extends Node
 {
 	public $remoteConstructor = 'Separator';
@@ -271,6 +325,12 @@ class XULSeparator extends Node
 	}
 }
 
+
+/**
+ * Spacer element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/spacer
+*/
 
 class XULSpacer extends Node
 {

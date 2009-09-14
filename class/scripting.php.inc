@@ -32,11 +32,25 @@
 */
 
 
+
+/**
+ * Keyset element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/keyset
+*/
+
 class XULKeySet extends BranchNode
 {
 	public $remoteConstructor = 'KeySet';
 }
 
+
+
+/**
+ * Key element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/key
+*/
 
 class XULKey extends Node
 {
@@ -80,6 +94,10 @@ class XULKey extends Node
 	}
 }
 
+
+/**
+ * Trigger, custom element
+*/
 
 class Trigger extends Node
 {

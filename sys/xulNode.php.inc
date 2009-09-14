@@ -107,7 +107,7 @@ class Node
 	 * @param object|string	$obj		Object or class name to call the handler method on
 	 * @param string		$func		Name of the handler method
 	 * @param mixed			$yielders	Node or array of nodes to yield when this event fires
-	 * @param Node	Returns reference to self ($this) for easy chaining of method calls
+	 * @return Node	Returns reference to self ($this) for easy chaining of method calls
 	*/
 	
 	public function setEvent( $event, $type, $obj, $func, $yielders = NULL ) {
@@ -129,7 +129,7 @@ class Node
 	 * @param string		$event		Event name
 	 * @param object|string	$obj		Object or class name to call the handler method on
 	 * @param string		$func		Name of the handler method
-	 * @param Node	Returns reference to self ($this) for easy chaining of method calls
+	 * @return Node	Returns reference to self ($this) for easy chaining of method calls
 	*/
 
 	public function setEventHandler( $event, $obj, $func ) {
@@ -155,7 +155,7 @@ class Node
 	 * @param string		$event		Event name
 	 * @param object|string	$obj		Object or class name to call the handler method on
 	 * @param string		$func		Name of the handler method
-	 * @param Node	Returns reference to self ($this) for easy chaining of method calls
+	 * @return Node	Returns reference to self ($this) for easy chaining of method calls
 	*/
 	
 	public function removeEventHandler( $event, $obj, $func ) {
@@ -182,14 +182,19 @@ class Node
 	/**
 	 * Sets a node to yield when an event on this node fires
 	 * 
-	 * .
+	 * Yielding means that a node transfers its current input on the client side to the server
+	 * side. For example, a textbox the user just entered text in transfers its content to
+	 * the server, synchronising both sides. The transfer is done through the 'yield' event,
+	 * Which is usually handled automatically on the server side, placing the transferred contents
+	 * in the designated property on the node. This usually occurs when another event fires, for 
+	 * example the pressing of a button (the 'command' event). To make the button trigger the 
+	 * yield of the textbox, the setEventYielder() method should be called on the button with the
+	 * event name ('command') as the first argument and the textbox node as the second argument, 
+	 * indicating that the button should yield the textbox when its command event fires.
 	 * 
 	 * @param string		$event		Event name
-	 * @param int			$type		Message type (one of MSG_SEND, MSG_QUEUE or MSG_NONE)
-	 * @param object|string	$obj		Object or class name to call the handler method on
-	 * @param string		$func		Name of the handler method
-	 * @param mixed			$yielders	Node or array of nodes to yield when this event fires
-	 * @param Node	Returns reference to self ($this) for easy chaining of method calls
+	 * @param Node			$obj		Node to yield when this event fires
+	 * @return Node	Returns reference to self ($this) for easy chaining of method calls
 	*/
 	
 	public function setEventYielder( $event, $obj ) {
@@ -224,6 +229,17 @@ class Node
 		return $this;
 	}
 	
+	
+	/**
+	 * Removed a node this is yielded when an event on this node fires
+	 * 
+	 * This method is the opposite of setEventYielder(), and removes a previously set yielder
+	 * 
+	 * @param string		$event		Event name
+	 * @param Node			$obj		Node to yield when this event fires
+	 * @return Node	Returns reference to self ($this) for easy chaining of method calls
+	*/
+	
 	public function removeEventYielder( $event, $obj ) {
 		if( ! $this->isRegistered )
 			Error::CallerFatal( 'Can`t remove eventYielder because the hosting node is not registered' );
@@ -255,6 +271,29 @@ class Node
 		return $this;
 	}
 	
+	
+	/**
+	 * Sets the event type for a certain event
+	 * 
+	 * The event type determines what happens to the event when it fires. There are three event
+	 * types: MSG_SEND, MSG_QUEUE and MSG_NONE.
+	 * 
+	 * When an event fires, a series of actions unfold:
+	 * 1. The event reflex is executed (if any)
+	 * 2. If there are yielder nodes set, their 'yield' events are fired
+	 * 3. The message for the current event is produced if the event type is not MSG_NONE
+	 * 
+	 * If the event type is MSG_QUEUE, the message is appended to the queue. If the event type is
+	 * MSG_SEND, the queue is flushed with the current event message tailing the flush. Yield events
+	 * are always of the type MSG_QUEUE, so that they don't get sent before the event message that
+	 * triggered them is produced. This way the whole event triggering, yielding and sending only
+	 * requires one communication cycle.
+	 * 
+	 * @param string		$event		Event name
+	 * @param int			$type		Event type
+	 * @return Node	Returns reference to self ($this) for easy chaining of method calls
+	*/
+	
 	public function setEventType( $event, $type ) {
 		if( ! $this->isRegistered )
 			Error::CallerFatal( 'Can`t set event type because the hosting node is not registered' );
@@ -266,6 +305,29 @@ class Node
 		return $this;
 	}
 	
+	
+	/**
+	 * Sets a reflex for a certain event
+	 * 
+	 * A reflex is a piece of JavaScript that gets executed immediately upon firing an event,
+	 * without requiring server communication. This can be used for simple actions, such as
+	 * coloring a button on a mouseover event. If this would have to be done through an event
+	 * handler on the server side, there would be a delay which is not desirable for such
+	 * simple actions. The JavaScript code is supplied through a string, in which references
+	 * to a node can be made with the Node->js property. This property refers to the SiteFusion
+	 * JavaScript node object, which also contains a reference to the XUL element in the element
+	 * JavaScript property. Setting a reflex that colors a button red when the mouse hovers it
+	 * would be done like:
+	 * 
+	 * $button->setEventReflex( "mouseover", "$button->js.element.style.backgroundColor = 'red';" );
+	 * 
+	 * A node can only hold one reflex per event.
+	 * 
+	 * @param string		$event		Event name
+	 * @param int			$code		JavaScript code to execute when the event fires
+	 * @return Node	Returns reference to self ($this) for easy chaining of method calls
+	*/
+	
 	public function setEventReflex( $event, $code ) {
 		if( ! $this->isRegistered )
 			Error::CallerFatal( 'Can`t set event reflex because the node is not registered' );
@@ -274,6 +336,16 @@ class Node
 		
 		return $this;
 	}
+	
+	
+	/**
+	 * Removes a previously set reflex for a certain event
+	 * 
+	 * This function removes the reflex set for the given event.
+	 *
+	 * @param string	$event	Event name
+	 * @return Node	Returns reference to self ($this) for easy chaining of method calls
+	*/
 	
 	public function removeEventReflex( $event ) {
 		if( ! $this->isRegistered )
@@ -284,6 +356,15 @@ class Node
 		return $this;
 	}
 
+	
+	/**
+	 * [INTERNAL FUNCTION] Handles an incoming event for this node
+	 *
+	 * @param Event	$event	Event object
+	 * @param array	$data	Event arguments
+	 * @return Event	Event object
+	*/
+	
 	public function commandHandler( $event, $data ) {
 		if(! is_array($data) )
 			$data = array($data);
@@ -311,6 +392,19 @@ class Node
 		return $eventobj;
 	}
 	
+	
+	/**
+	 * Fires a local (server) event
+	 * 
+	 * This method fires an event on the server side, which does not go through the client.
+	 * Events fired through this method do not have to be valid clientside events, and can
+	 * be used to build event-driven applications.
+	 * 
+	 * @param string|Event	$event		Event object or name
+	 * @param array			$args		Event arguments
+	 * @return Event		Event object
+	*/
+	
 	public function fireLocalEvent( $event, $args = NULL ) {
 		if( $args === NULL )
 			$args = array();
@@ -320,6 +414,18 @@ class Node
 		return $eventobj;
 	}
 	
+	
+	/**
+	 * Fires a remote (client) event
+	 * 
+	 * This method fires an event on the client side, as if it was the result of a user action.
+	 * Events fired through this method can only be valid clientside events, either pre-existing
+	 * standard XUL or SiteFusion events or an event created with the createClientEvent() method.
+	 * 
+	 * @param string		$event		Event name
+	 * @param array			$args		Event arguments
+	*/
+	
 	public function fireClientEvent( $event, $args = NULL ) {
 		if(! $this->isRegistered )
 			Error::CallerFatal( 'Unregistered node cannot fire a ClientEvent' );
@@ -328,6 +434,16 @@ class Node
 			Comm::CallMethod( $this, 'fireEvent', array($event,$args) )
 		);
 	}
+	
+	
+	/**
+	 * Manually yield this node
+	 * 
+	 * This method calls the 'yield' method on the node, which usually results in a yield event
+	 * being triggered.
+	 * 
+	 * @return Node	Returns reference to self ($this) for easy chaining of method calls
+	*/
 	
 	public function yield() {
 		if(! $this->isRegistered )
@@ -339,6 +455,14 @@ class Node
 		
 		return $this;
 	}
+	
+	
+	/**
+	 * [INTERNAL FUNCTION] Removes event handler and yielder links to other nodes
+	 * 
+	 * This method is called before a node is removed to clear all links to other nodes, enabling
+	 * the PHP garbage collector to free up the memory.
+	*/
 	
 	public function unlink() {
 		foreach ( $this->eventHandler as $event => $hs ) {
@@ -363,7 +487,15 @@ class Node
 			$y[1]->removeEventYielder( $y[0], $this );
 		}
 	}
-
+	
+	
+	/**
+	 * [INTERNAL FUNCTION] Removes links to child and parent nodes
+	 * 
+	 * This method is called before a node is removed to clear all links its child and parent
+	 * nodes, enabling the PHP garbage collector to free up the memory.
+	*/
+	
 	public function unbind() {
 		if( $this instanceof BranchNode ) {
 			foreach ( $this->children as $child ) {
@@ -379,6 +511,11 @@ class Node
 
 	/* Comm methods */
 	
+	
+	/**
+	 * [INTERNAL FUNCTION] Calls the remote constructor of this class
+	*/
+	
 	public function createRemoteObject( $args = NULL ) {
 		if(! $this->isRegistered )
 			Error::CallerFatal( 'Can\'t call createRemoteObject on unregistered node' );
@@ -389,7 +526,12 @@ class Node
 		
 		return $this;
 	}
-
+	
+	
+	/**
+	 * [INTERNAL FUNCTION] Inserts the newly constructed node's element into the DOM tree on the client side
+	*/
+	
 	public function insertElement() {
 		if(! $this->isRegistered )
 			Error::CallerFatal( 'Can\'t call insertElement on unregistered node' );
@@ -400,7 +542,12 @@ class Node
 		
 		return $this;
 	}
-
+	
+	
+	/**
+	 * [INTERNAL FUNCTION] Removes the node's element from the client DOM tree
+	*/
+	
 	public function removeElement() {
 		if(! $this->isRegistered )
 			Error::CallerFatal( 'Can\'t call removeElement on unregistered node' );
@@ -412,6 +559,11 @@ class Node
 		return $this;
 	}
 
+	
+	/**
+	 * [INTERNAL FUNCTION] Removes this node from the client registry
+	*/
+	
 	public function unRegister() {
 		if(! $this->isRegistered )
 			Error::CallerFatal( 'Can\'t call unRegister on unregistered node' );
@@ -422,7 +574,16 @@ class Node
 		
 		return $this;
 	}
-
+	
+	
+	/**
+	 * Call a JavaScript method on the client-side node
+	 * 
+	 * @param string	$name		Name of the method (may also contain dots to traverse to properties containing other objects)
+	 * @param array		$args		Method call arguments (may contain references to nodes)
+	 * @return Node	Returns reference to self ($this) for easy chaining of method calls
+	*/
+	
 	public function callMethod( $name, $args = NULL ) {
 		if(! $this->isRegistered )
 			Error::CallerFatal( 'Can\'t call callMethod on unregistered node' );
@@ -433,7 +594,16 @@ class Node
 		
 		return $this;
 	}
-
+	
+	
+	/**
+	 * Set a JavaScript property on the client-side node
+	 * 
+	 * @param string	$name		Name of the property (may also contain dots to traverse to properties containing other objects)
+	 * @param mixed		$value		Value to set the property to (may also be a reference to a node)
+	 * @return Node	Returns reference to self ($this) for easy chaining of method calls
+	*/
+	
 	public function setProperty( $name, $value ) {
 		if(! $this->isRegistered )
 			Error::CallerFatal( 'Can\'t call setProperty on unregistered node' );
@@ -444,6 +614,16 @@ class Node
 		
 		return $this;
 	}
+	
+	
+	/**
+	 * Set a JavaScript method on the client-side node
+	 * 
+	 * @param string	$name		Name of the new method (may also contain dots to traverse to properties containing other objects)
+	 * @param array		$args		Array of argument names for the JavaScript method to accept
+	 * @param string	$code		JavaScript code for the body of the method
+	 * @return Node	Returns reference to self ($this) for easy chaining of method calls
+	*/
 	
 	public function setMethod( $method, $args, $code ) {
 		if(! $this->isRegistered )
@@ -456,6 +636,15 @@ class Node
 		return $this;
 	}
 
+	
+	/**
+	 * Set an attribute on the client-side XUL node
+	 * 
+	 * @param string	$name		Name of the attribute
+	 * @param string	$value		New value for the attribute
+	 * @return Node	Returns reference to self ($this) for easy chaining of method calls
+	*/
+	
 	public function setAttribute( $name, $value ) {
 		if(! $this->isRegistered )
 			Error::CallerFatal( 'Can\'t call setAttribute on unregistered node' );
@@ -467,6 +656,14 @@ class Node
 		return $this;
 	}
 
+	
+	/**
+	 * Remove an attribute on the client-side XUL node
+	 * 
+	 * @param string	$name		Name of the attribute
+	 * @return Node	Returns reference to self ($this) for easy chaining of method calls
+	*/
+	
 	public function removeAttribute( $name ) {
 		if(! $this->isRegistered )
 			Error::CallerFatal( 'Can\'t call removeAttribute on unregistered node' );
@@ -477,6 +674,15 @@ class Node
 		
 		return $this;
 	}
+	
+	
+	/**
+	 * Set a CSS style property on the client-side XUL node
+	 * 
+	 * @param string	$name		Name of the CSS property (camelized, so backgroundColor instead of background-color)
+	 * @param string	$value		New value for the style property
+	 * @return Node	Returns reference to self ($this) for easy chaining of method calls
+	*/
 	
 	public function setStyle( $name, $value ) {
 		if(! $this->isRegistered )
@@ -493,15 +699,36 @@ class Node
 
 	/* Generic methods */
 	
+	
+	/**
+	 * [INTERNAL FUNCTION] Default attach method
+	 * 
+	 * The default action on attach is to call createRemoteObject() and insertElement().
+	*/
+	
 	public function attach() {
 		$this->createRemoteObject( array( $this->hostWindow ) );
 		$this->insertElement();
 	}
-
+	
+	
+	/**
+	 * [INTERNAL FUNCTION] Default detach method
+	 * 
+	 * The default action on detach is to call removeElement() and unRegister().
+	*/
+	
 	public function detach() {
 		$this->removeElement();
 		$this->unRegister();
 	}
+	
+	
+	/**
+	 * Give this node focus
+	 * 
+	 * Equivalent of the JavaScript focus() method.
+	*/
 	
 	public function focus() {
 		$this->callMethod( 'focus' );
@@ -509,11 +736,27 @@ class Node
 		return $this;
 	}
 	
+	
+	/**
+	 * Make this node loose focus
+	 * 
+	 * Equivalent of the JavaScript blur() method.
+	*/
+	
 	public function blur() {
 		$this->callMethod( 'blur' );
 		
 		return $this;
 	}
+	
+	
+	/**
+	 * Removes and unregisters this node and its childnodes
+	 *
+	 * This method removes and unlinks this node and its child nodes from each other.
+	 * Use this method when you intend to discard the node(s) entirely. If you want
+	 * to reuse the node and its childnodes, use the method extractNode().
+	*/
 	
 	public function removeNode() {
 		if(! $this->isChild )
@@ -522,12 +765,33 @@ class Node
 		$this->parent->removeChild( $this );
 	}
 	
+	
+	/**
+	 * Extracts this node and its childnodes
+	 * 
+	 * This method extracts this node and its childnodes without breaking their links.
+	 * Use this method if you intend to reuse this node or the subbranch that it contains.
+	 * 
+	 * @return Node	The extracted node
+	*/
+	
 	public function extractNode() {
 		if(! $this->isChild )
 			Error::CallerFatal( 'extractNode: Node is not a child' );
 		
-		$this->parent->extractChild( $this );
+		return $this->parent->extractChild( $this );
 	}
+	
+	
+	/**
+	 * Return the first ancestor of a certain class of this node
+	 * 
+	 * This method goes down the parent lineage and returns the first ancestor that is of 
+	 * the given class. Returns NULL if no such ancestor was found.
+	 * 
+	 * @param string	$className	Name of the class
+	 * @return Node|NULL	The found node or NULL if none was found
+	*/
 	
 	public function findAncestor( $className ) {
 		if( !$this->isRegistered )
@@ -545,7 +809,16 @@ class Node
 	}
 	
 	
-	/* Attribute setter */
+	/**
+	 * Convenient attribute setter
+	 * 
+	 * This method sets both the property and attribute (when the node is registered).
+	 * If value is NULL, returns the current value. Otherwise returns the node.
+	 * 
+	 * @param string	$name	Name of the attribute and property
+	 * @param mixed		$value	Value (if NULL returns current value)
+	 * @return mixed	Returns the current value or reference to self ($this) for easy chaining of method calls
+	*/
 	
 	public function attributeMethod( $name, $value ) {
 		if( $value === NULL )
@@ -566,12 +839,31 @@ class Node
 
 	/* Sizing */
 	
+	/**
+	 * Set the size of the element
+	 * 
+	 * Sets the width and height (in pixels).
+	 * 
+	 * @param int	$width		Width in pixels
+	 * @param int	$height		Height in pixels
+	 * @return Node	Returns reference to self ($this) for easy chaining of method calls
+	*/
+	
 	public function size( $width, $height ) {
 		$this->width( $width );
 		$this->height( $height );
 		
 		return $this;
 	}
+	
+	
+	/**
+	 * Set the width of the element
+	 * 
+	 * @link https://developer.mozilla.org/en/XUL/Attribute/width
+	 * @param int	$width		Width in pixels
+	 * @return mixed	Returns the current value or reference to self ($this) for easy chaining of method calls
+	*/
 	
 	public function width( $width = NULL ) {
 		if( $width === NULL )
@@ -584,6 +876,15 @@ class Node
 		
 		return $this;
 	}
+	
+	
+	/**
+	 * Set the height of the element
+	 * 
+	 * @link https://developer.mozilla.org/en/XUL/Attribute/height
+	 * @param int	$height		Height in pixels
+	 * @return mixed	Returns the current value or reference to self ($this) for easy chaining of method calls
+	*/
 	
 	public function height( $height = NULL ) {
 		if( $height === NULL )
@@ -600,6 +901,14 @@ class Node
 	
 	/* Padding */
 	
+	
+	/**
+	 * Set the padding of the element
+	 * 
+	 * @param int	$pix		Padding in pixels
+	 * @return mixed	Returns the current value or reference to self ($this) for easy chaining of method calls
+	*/
+	
 	public function padding( $pix = NULL ) {
 		if( $pix === NULL )
 			return (isset($this->padding) ? $this->padding : NULL);
@@ -611,6 +920,14 @@ class Node
 		
 		return $this;
 	}
+	
+	
+	/**
+	 * Set the top padding of the element
+	 * 
+	 * @param int	$pix		Padding in pixels
+	 * @return mixed	Returns the current value or reference to self ($this) for easy chaining of method calls
+	*/
 	
 	public function paddingTop( $pix = NULL ) {
 		if( $pix === NULL )
@@ -624,6 +941,14 @@ class Node
 		return $this;
 	}
 
+	
+	/**
+	 * Set the right padding of the element
+	 * 
+	 * @param int	$pix		Padding in pixels
+	 * @return mixed	Returns the current value or reference to self ($this) for easy chaining of method calls
+	*/
+	
 	public function paddingRight( $pix = NULL ) {
 		if( $pix === NULL )
 			return (isset($this->paddingRight) ? $this->paddingRight : NULL);
@@ -635,7 +960,15 @@ class Node
 		
 		return $this;
 	}
-
+	
+	
+	/**
+	 * Set the bottom padding of the element
+	 * 
+	 * @param int	$pix		Padding in pixels
+	 * @return mixed	Returns the current value or reference to self ($this) for easy chaining of method calls
+	*/
+	
 	public function paddingBottom( $pix = NULL ) {
 		if( $pix === NULL )
 			return (isset($this->paddingBottom) ? $this->paddingBottom : NULL);
@@ -648,6 +981,14 @@ class Node
 		return $this;
 	}
 
+	
+	/**
+	 * Set the left padding of the element
+	 * 
+	 * @param int	$pix		Padding in pixels
+	 * @return mixed	Returns the current value or reference to self ($this) for easy chaining of method calls
+	*/
+	
 	public function paddingLeft( $pix = NULL ) {
 		if( $pix === NULL )
 			return (isset($this->paddingLeft) ? $this->paddingLeft : NULL);
@@ -664,6 +1005,14 @@ class Node
 
 	/* Margin */
 	
+	
+	/**
+	 * Set the margin of the element
+	 * 
+	 * @param int	$pix		Margin in pixels
+	 * @return mixed	Returns the current value or reference to self ($this) for easy chaining of method calls
+	*/
+	
 	public function margin( $pix = NULL ) {
 		if( $pix === NULL )
 			return (isset($this->margin) ? $this->margin : NULL);
@@ -675,6 +1024,14 @@ class Node
 		
 		return $this;
 	}
+	
+	
+	/**
+	 * Set the top margin of the element
+	 * 
+	 * @param int	$pix		Margin in pixels
+	 * @return mixed	Returns the current value or reference to self ($this) for easy chaining of method calls
+	*/
 	
 	public function marginTop( $pix = NULL ) {
 		if( $pix === NULL )
@@ -688,6 +1045,14 @@ class Node
 		return $this;
 	}
 
+	
+	/**
+	 * Set the right margin of the element
+	 * 
+	 * @param int	$pix		Margin in pixels
+	 * @return mixed	Returns the current value or reference to self ($this) for easy chaining of method calls
+	*/
+	
 	public function marginRight( $pix = NULL ) {
 		if( $pix === NULL )
 			return (isset($this->marginRight) ? $this->marginRight : NULL);
@@ -700,6 +1065,14 @@ class Node
 		return $this;
 	}
 
+	
+	/**
+	 * Set the bottom margin of the element
+	 * 
+	 * @param int	$pix		Margin in pixels
+	 * @return mixed	Returns the current value or reference to self ($this) for easy chaining of method calls
+	*/
+	
 	public function marginBottom( $pix = NULL ) {
 		if( $pix === NULL )
 			return (isset($this->marginBottom) ? $this->marginBottom : NULL);
@@ -712,6 +1085,14 @@ class Node
 		return $this;
 	}
 
+	
+	/**
+	 * Set the left margin of the element
+	 * 
+	 * @param int	$pix		Margin in pixels
+	 * @return mixed	Returns the current value or reference to self ($this) for easy chaining of method calls
+	*/
+	
 	public function marginLeft( $pix = NULL ) {
 		if( $pix === NULL )
 			return (isset($this->marginLeft) ? $this->marginLeft : NULL);
@@ -727,6 +1108,14 @@ class Node
 	
 	/* Text and Background Properties */
 	
+	
+	/**
+	 * Set the text size for the element
+	 * 
+	 * @param string	$size		Text size in CSS form (#pt #px etc)
+	 * @return mixed	Returns the current value or reference to self ($this) for easy chaining of method calls
+	*/
+	
 	public function textSize( $size = NULL ) {
 		if( $size === NULL )
 			return (isset($this->textSize) ? $this->textSize : NULL);
@@ -740,6 +1129,14 @@ class Node
 		
 		return $this;
 	}
+	
+	
+	/**
+	 * Set the text color for the element
+	 * 
+	 * @param string	$color		Color in HTML format (#XXXXXX)
+	 * @return mixed	Returns the current value or reference to self ($this) for easy chaining of method calls
+	*/
 	
 	public function textColor( $color = NULL ) {
 		if( $color === NULL )
@@ -755,6 +1152,23 @@ class Node
 		return $this;
 	}
 
+	
+	/**
+	 * Set the text style for the element
+	 * 
+	 * You can supply one or more of the following attributes in a space-separated string
+	 * 
+	 * - bold
+	 * - italic
+	 * - underline
+	 * - strike
+	 * - blink
+	 * - overline
+	 * 
+	 * @param string	$style		Style string
+	 * @return mixed	Returns the current value or reference to self ($this) for easy chaining of method calls
+	*/
+	
 	public function textStyle( $style = NULL ) {
 		if( $style === NULL )
 			return (isset($this->textStyle) ? $this->textStyle : NULL);
@@ -781,6 +1195,14 @@ class Node
 		return $this;
 	}
 	
+	
+	/**
+	 * Set the background color for the element
+	 * 
+	 * @param string	$color	Color in HTML format (#XXXXXX)
+	 * @return mixed	Returns the current value or reference to self ($this) for easy chaining of method calls
+	*/
+	
 	public function backgroundColor( $color = NULL ) {
 		if( $color === NULL )
 			return (isset($this->backgroundColor) ? $this->backgroundColor : NULL);
@@ -800,6 +1222,14 @@ class Node
 	/* Standard XUL attributes */
 
 
+	
+	/**
+	 * Set the CSS classname for the element
+	 * 
+	 * @param string	$className		Class name
+	 * @return mixed	Returns the current value or reference to self ($this) for easy chaining of method calls
+	*/
+	
 	public function className( $className = NULL ) {
 		if( $className === NULL )
 			return (isset($this->className) ? $this->className : NULL);
@@ -811,6 +1241,15 @@ class Node
 		
 		return $this;
 	}
+	
+	
+	/**
+	 * Set the flex attribute for this element
+	 * 
+	 * @link https://developer.mozilla.org/en/XUL/Attribute/flex
+	 * @param int	$val		Flex value
+	 * @return mixed	Returns the current value or reference to self ($this) for easy chaining of method calls
+	*/
 	
 	public function flex( $val = NULL ) {
 		if( $val === NULL )
@@ -824,6 +1263,15 @@ class Node
 		return $this;
 	}
 	
+	
+	/**
+	 * Set the disabled attribute for this element
+	 * 
+	 * @link https://developer.mozilla.org/en/XUL/Attribute/disabled
+	 * @param bool	$state		Disabled (true or false)
+	 * @return mixed	Returns the current value or reference to self ($this) for easy chaining of method calls
+	*/
+	
 	public function disabled( $state = NULL ) {
 		if( $state === NULL )
 			return (isset($this->disabled) ? $this->disabled : NULL);
@@ -835,6 +1283,15 @@ class Node
 		
 		return $this;
 	}
+	
+	
+	/**
+	 * Set the label attribute for this element
+	 * 
+	 * @link https://developer.mozilla.org/en/XUL/Attribute/label
+	 * @param string	$text		Label text
+	 * @return mixed	Returns the current value or reference to self ($this) for easy chaining of method calls
+	*/
 	
 	public function label( $text = NULL ) {
 		if( $text === NULL )
@@ -848,6 +1305,15 @@ class Node
 		return $this;
 	}
 	
+	
+	/**
+	 * Set the value attribute for this element
+	 * 
+	 * @link https://developer.mozilla.org/en/XUL/Attribute/value
+	 * @param mixed	$val		Value attribute content
+	 * @return mixed	Returns the current value or reference to self ($this) for easy chaining of method calls
+	*/
+	
 	public function value( $val = NULL ) {
 		if( $val === NULL )
 			return (isset($this->value) ? $this->value : NULL);
@@ -859,6 +1325,15 @@ class Node
 		
 		return $this;
 	}
+	
+	
+	/**
+	 * Set the orient attribute for this element
+	 * 
+	 * @link https://developer.mozilla.org/en/XUL/Attribute/orient
+	 * @param string	$dir		Orient value ('horizontal' or 'vertical')
+	 * @return mixed	Returns the current value or reference to self ($this) for easy chaining of method calls
+	*/
 	
 	public function orient( $dir = NULL ) {
 		if( $dir === NULL )
@@ -872,6 +1347,15 @@ class Node
 		return $this;
 	}
 
+	
+	/**
+	 * Set the pack attribute for this element
+	 * 
+	 * @link https://developer.mozilla.org/en/XUL/Attribute/pack
+	 * @param string	$pack		Pack value
+	 * @return mixed	Returns the current value or reference to self ($this) for easy chaining of method calls
+	*/
+	
 	public function pack( $pack = NULL ) {
 		if( $pack === NULL )
 			return (isset($this->pack) ? $this->pack : NULL);
@@ -884,6 +1368,15 @@ class Node
 		return $this;
 	}
 
+	
+	/**
+	 * Set the align attribute for this element
+	 * 
+	 * @link https://developer.mozilla.org/en/XUL/Attribute/align
+	 * @param string	$align		Align value
+	 * @return mixed	Returns the current value or reference to self ($this) for easy chaining of method calls
+	*/
+	
 	public function align( $align = NULL ) {
 		if( $align === NULL )
 			return (isset($this->align) ? $this->align : NULL);
@@ -896,6 +1389,15 @@ class Node
 		return $this;
 	}
 
+	
+	/**
+	 * Set the crop attribute for this element
+	 * 
+	 * @link https://developer.mozilla.org/en/XUL/Attribute/crop
+	 * @param string	$crop		Crop value
+	 * @return mixed	Returns the current value or reference to self ($this) for easy chaining of method calls
+	*/
+	
 	public function crop( $crop = NULL ) {
 		if( $crop === NULL )
 			return (isset($this->crop) ? $this->crop : NULL);
@@ -908,6 +1410,15 @@ class Node
 		return $this;
 	}
 
+	
+	/**
+	 * Set the accessKey attribute for this element
+	 * 
+	 * @link https://developer.mozilla.org/en/XUL/Attribute/accesskey
+	 * @param string	$key		accessKey value
+	 * @return mixed	Returns the current value or reference to self ($this) for easy chaining of method calls
+	*/
+	
 	public function accessKey( $key = NULL ) {
 		if( $key === NULL )
 			return (isset($this->accessKey) ? $this->accessKey : NULL);
@@ -920,29 +1431,53 @@ class Node
 		return $this;
 	}
 	
-	public function visible( $vis = NULL ) {
-		if( $vis === NULL )
-			return (isset($this->visible) ? $this->visible : NULL);
-		
-		$this->visible = (bool) $vis;
-		
-		if( $this->isRegistered )
-			$this->setAttribute( 'visible', $this->visible );
-		
-		return $this;
-	}
-
+	
+	/**
+	 * Set the hidden attribute for this element
+	 * 
+	 * @link https://developer.mozilla.org/en/XUL/Attribute/hidden
+	 * @param bool	$hid		Hidden value (true or false)
+	 * @return mixed	Returns the current value or reference to self ($this) for easy chaining of method calls
+	*/
+	
 	public function hidden( $hid = NULL ) {
 		return $this->attributeMethod( 'hidden', $hid );
 	}
 
+	
+	/**
+	 * Set the equalsize attribute for this element
+	 * 
+	 * @link https://developer.mozilla.org/en/XUL/Attribute/equalsize
+	 * @param string	$state		Equalsize value
+	 * @return mixed	Returns the current value or reference to self ($this) for easy chaining of method calls
+	*/
+	
 	public function equalsize( $state = NULL ) {
 		return $this->attributeMethod( 'equalsize', $state );
 	}
 	
+	
+	/**
+	 * Set the tooltiptext attribute for this element
+	 * 
+	 * @link https://developer.mozilla.org/en/XUL/Attribute/tooltiptext
+	 * @param string	$text		Text to show in a tooltip when hovering the element
+	 * @return mixed	Returns the current value or reference to self ($this) for easy chaining of method calls
+	*/
+	
 	public function tooltiptext( $text = NULL ) {
 		return $this->attributeMethod( 'tooltiptext', $text );
 	}
+	
+	
+	/**
+	 * Set a contextmenu to show when clicking the context (right) mouse or keyboard button on this element
+	 * 
+	 * @link https://developer.mozilla.org/en/XUL/Attribute/context
+	 * @param XULPopup|XULPanel	$node		Popup node to show as context menu
+	 * @return mixed	Returns the current value or reference to self ($this) for easy chaining of method calls
+	*/
 	
 	public function context( $node = NULL ) {
 		if( $node === NULL )
@@ -956,6 +1491,15 @@ class Node
 		return $this;
 	}
 	
+	
+	/**
+	 * Set a popup menu to show when clicking on this element
+	 * 
+	 * @link https://developer.mozilla.org/en/XUL/Attribute/popup
+	 * @param XULPopup|XULPanel	$node		Popup node to show as popup menu
+	 * @return mixed	Returns the current value or reference to self ($this) for easy chaining of method calls
+	*/
+	
 	public function popup( $node = NULL ) {
 		if( $node === NULL )
 			return (isset($this->popup) ? $this->popup : NULL);
@@ -967,6 +1511,15 @@ class Node
 		
 		return $this;
 	}
+	
+	
+	/**
+	 * Set a tooltip to show when hovering over this element
+	 * 
+	 * @link https://developer.mozilla.org/en/XUL/Attribute/tooltip
+	 * @param XULToolTip	$node		Tooltip node to show as tooltip
+	 * @return mixed	Returns the current value or reference to self ($this) for easy chaining of method calls
+	*/
 	
 	public function tooltip( $node = NULL ) {
 		if( $node === NULL )
@@ -983,6 +1536,20 @@ class Node
 	
 	/* Drag & Drop */
 	
+	
+	/**
+	 * Set this element as draggable
+	 * 
+	 * This enables the user to drag the element and drop it on another element that was indicates as dropzone 
+	 * by the setDroppable() method. By default it supports one droppable flavour called 'sfNode/classname' in 
+	 * which 'classname' is the PHP classname of the node. The data carried by this flavour is a reference to 
+	 * the dragged node itself. Additional flavours with their accompanying data can be set through the 
+	 * $flavours parameter in array with the flavour type as the key and the data as the value.
+	 * 
+	 * @see setDroppable()
+	 * @param array	$flavours	Array of additional flavours
+	*/
+	
 	public function setDraggable( $flavours = NULL ) {
 		if( ! $this->isRegistered )
 			Error::Fatal( "Can't call setDraggable() on unregistered node" );
@@ -997,6 +1564,20 @@ class Node
 		
 		$this->callMethod( 'setDraggable', $send );
 	}
+	
+	
+	/**
+	 * Set this element as a dropzone
+	 * 
+	 * Sets this element as a dropzone for draggable elements. The flavours specified in the $flavours array
+	 * dicate which elements can be dropped on it. If specified, the handler method on the handler object is
+	 * called when an element is dropped.
+	 * 
+	 * @see setDraggable()
+	 * @param array			$flavours		Array of acceptable data flavours
+	 * @param object|string	$eventObj		Handler object or classname
+	 * @param string		$eventHandler	Method to call on the handler object or class
+	*/
 	
 	public function setDroppable( $flavours, $eventObj = NULL, $eventHandler = NULL ) {
 		if( ! $this->isRegistered )
@@ -1013,6 +1594,10 @@ class Node
 	
 	
 	/* Layout initializing on attach() */
+	
+	/**
+	 * [INTERNAL FUNCTION] Initializes the attributes of a node when it is registered
+	*/
 	
 	public function initNodeLayout() {
 		

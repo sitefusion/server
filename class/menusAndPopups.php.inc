@@ -32,10 +32,24 @@
 */
 
 
+
+/**
+ * Menubar element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/menubar
+*/
+
 class XULMenuBar extends BranchNode
 {
 	public $remoteConstructor = 'MenuBar';
 }
+
+
+/**
+ * Menupopup element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/menupopup
+*/
 
 class XULMenuPopup extends BranchNode
 {
@@ -43,10 +57,24 @@ class XULMenuPopup extends BranchNode
 }
 
 
+
+/**
+ * Menuseparator element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/menuseparator
+*/
+
 class XULMenuSeparator extends Node
 {
 	public $remoteConstructor = 'MenuSeparator';
 }
+
+
+/**
+ * Menu element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/menu
+*/
 
 class XULMenu extends BranchNode
 {
@@ -73,6 +101,13 @@ class XULMenu extends BranchNode
 	}
 }
 
+
+
+/**
+ * Menuitem element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/menuitem
+*/
 
 class XULMenuItem extends BranchNode
 {
@@ -135,10 +170,24 @@ class XULMenuItem extends BranchNode
 }
 
 
+
+/**
+ * Popupset element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/popupset
+*/
+
 class XULPopupSet extends BranchNode
 {
 	public $remoteConstructor = 'PopupSet';
 }
+
+
+/**
+ * Popup element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/popup
+*/
 
 class XULPopup extends BranchNode
 {
@@ -185,6 +234,13 @@ class XULPopup extends BranchNode
 }
 
 
+
+/**
+ * Tooltip element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/tooltip
+*/
+
 class XULToolTip extends BranchNode
 {
 	public $remoteConstructor = 'ToolTip';
@@ -225,6 +281,13 @@ class XULToolTip extends BranchNode
 	}
 }
 
+
+
+/**
+ * Panel element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/panel
+*/
 
 class XULPanel extends BranchNode
 {

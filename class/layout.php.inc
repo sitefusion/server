@@ -32,6 +32,12 @@
 */
 
 
+/**
+ * Box element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/box
+*/
+
 class XULBox extends BranchNode
 {
 	public $remoteConstructor = 'Box';
@@ -63,20 +69,48 @@ class XULBox extends BranchNode
 	}
 }
 
+
+/**
+ * HBox element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/hbox
+*/
+
 class XULHBox extends XULBox
 {
 	public $remoteConstructor = 'HBox';
 }
+
+
+/**
+ * VBox element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/vbox
+*/
 
 class XULVBox extends XULBox
 {
 	public $remoteConstructor = 'VBox';
 }
 
+
+/**
+ * BBox element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/bbox
+*/
+
 class XULBBox extends XULBox
 {
 	public $remoteConstructor = 'BBox';
 }
+
+
+/**
+ * Scrollbox element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/scrollbox
+*/
 
 class XULScrollBox extends XULBox
 {
@@ -94,6 +128,13 @@ class XULScrollBox extends XULBox
 		$this->callMethod( 'ensureElementIsVisible', array( $node ) );
 	}
 }
+
+
+/**
+ * HTML viewing box, custom element
+ * 
+ * Use the content() method to fill this box with a HTML page
+*/
 
 class XULHTMLBox extends Node
 {
@@ -130,6 +171,12 @@ class XULHTMLBox extends Node
 }
 
 
+/**
+ * Stack element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/stack
+*/
+
 class XULStack extends BranchNode
 {
 	public $remoteConstructor = 'Stack';
@@ -160,6 +207,13 @@ class XULStack extends BranchNode
 		else parent::__construct();
 	}
 }
+
+
+/**
+ * Deck element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/deck
+*/
 
 class XULDeck extends BranchNode
 {
@@ -201,6 +255,13 @@ class XULDeck extends BranchNode
 }
 
 
+
+/**
+ * Grid element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/grid
+*/
+
 class XULGrid extends BranchNode
 {
 	public $remoteConstructor = 'Grid';
@@ -226,15 +287,36 @@ class XULGrid extends BranchNode
 	}
 }
 
+
+/**
+ * Columns element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/columns
+*/
+
 class XULColumns extends BranchNode
 {
 	public $remoteConstructor = 'Columns';
 }
 
+
+/**
+ * Rows element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/rows
+*/
+
 class XULRows extends BranchNode
 {
 	public $remoteConstructor = 'Rows';
 }
+
+
+/**
+ * Column element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/column
+*/
 
 class XULColumn extends BranchNode
 {
@@ -266,6 +348,13 @@ class XULColumn extends BranchNode
 		else parent::__construct();
 	}
 }
+
+
+/**
+ * Row element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/row
+*/
 
 class XULRow extends BranchNode
 {

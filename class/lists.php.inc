@@ -32,6 +32,13 @@
 */
 
 
+
+/**
+ * Listbox element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/listbox
+*/
+
 class XULListBox extends BranchNode
 {
 	public $remoteConstructor = 'ListBox';
@@ -96,6 +103,13 @@ class XULListBox extends BranchNode
 	}
 }
 
+
+/**
+ * Listitem element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/listitem
+*/
+
 class XULListItem extends BranchNode
 {
 	public $remoteConstructor = 'ListItem';
@@ -142,10 +156,24 @@ class XULListItem extends BranchNode
 	}
 }
 
+
+/**
+ * Listcols element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/listcols
+*/
+
 class XULListCols extends BranchNode
 {
 	public $remoteConstructor = 'ListCols';
 }
+
+
+/**
+ * Listcol element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/listcol
+*/
 
 class XULListCol extends BranchNode
 {
@@ -172,10 +200,24 @@ class XULListCol extends BranchNode
 	}
 }
 
+
+/**
+ * Listhead element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/listhead
+*/
+
 class XULListHead extends BranchNode
 {
 	public $remoteConstructor = 'ListHead';
 }
+
+
+/**
+ * Listheader element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/listheader
+*/
 
 class XULListHeader extends BranchNode
 {
@@ -201,6 +243,13 @@ class XULListHeader extends BranchNode
 		else parent::__construct();
 	}
 }
+
+
+/**
+ * Listcell element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/listcell
+*/
 
 class XULListCell extends BranchNode
 {
