@@ -55,7 +55,7 @@ SiteFusion.Classes.BasicWindow = Class.create( SiteFusion.Classes.Node, {
 	},
 
 	addStyleSheetRule: function( ruleText ) {
-		var sheet = this.windowObject.document.styleSheets[1];
+		var sheet = this.windowObject.document.styleSheets[0];
 		sheet.insertRule( ruleText, sheet.cssRules.length );
 	},
 
