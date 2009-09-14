@@ -216,10 +216,7 @@ class Application
 				array_splice( $args, $n, 1, $args[$n--] );
 		}
 		
-		if( $this->forwardCommandTo != NULL )
-			$this->forwardCommandTo->sendCommand( join("\n",$args) );
-		else
-			array_push( $this->commandBuffer, join("\n",$args) );
+		array_push( $this->commandBuffer, join("\n",$args) );
 		
 		return TRUE;
 	}
