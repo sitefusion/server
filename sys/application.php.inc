@@ -372,7 +372,7 @@ class Application
 	 * 
 	 * @param string	$owner	Application group for the service
 	 * @param string	$name	Name of the service
-	 * @return Service	Service object
+	 * @return SiteFusionService	Service object
 	*/
 	
 	public function getService( $owner, $name ) {
