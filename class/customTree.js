@@ -106,7 +106,7 @@ SiteFusion.Classes.CustomTree = Class.create( SiteFusion.Classes.Node, {
 	
 	setView: function() {
 		var oThis = this;
-		this.view = new this.ViewConstructor( oThis );
+		this.view = new SiteFusion.Classes.CustomTree.ViewConstructor( oThis );
 		setTimeout( function() {
 			oThis.element.view = oThis.view;
 			var tc = oThis.element.getElementsByTagName('treechildren')[0];
