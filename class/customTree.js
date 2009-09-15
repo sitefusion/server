@@ -28,15 +28,15 @@
 SiteFusion.Classes.CustomTree = Class.create( SiteFusion.Classes.Node, {
 	sfClassName: 'XULCustomTree',
 	
-	isSparse: false,
-	isDraggable: false,
-	allowDrop: false,
-	allowForeignDrop: false,
-	sortable: false,
-	
 	initialize: function( win ) {
 		this.element = win.createElement( 'tree' );
 		this.element.sfNode = this;
+		
+		this.isSparse = false;
+		this.isDraggable = false;
+		this.allowDrop = false;
+		this.allowForeignDrop = false;
+		this.sortable = false;
 		
 		this.setEventHost( [ 'yield', 'openStateChange', 'cellValueChange', 'treeDrop', 'nodeDrop', 'sortColumn' ] );
 		
@@ -47,13 +47,12 @@ SiteFusion.Classes.CustomTree = Class.create( SiteFusion.Classes.Node, {
 		onDragStart: function( event, transferData, dragAction ) {
 			var tree = event.target.parentNode.sfNode;
 			var selection = tree.getSelection();
-			var Ci = Components.interfaces;
 			var dragAllowed;
 			
 			if( tree.isDraggable ) {
 				dragAllowed = true;
-				for( index in selection ) {
-					var row = tree.view.idToRow[selection[index]];
+				for( var n = 0; n < selection.length; n++ ) {
+					var row = tree.view.idToRow[selection[n]];
 					if( typeof(row.isDraggable) != 'undefined' && row.isDraggable === false ) {
 						dragAllowed = false;
 						break;
@@ -62,8 +61,8 @@ SiteFusion.Classes.CustomTree = Class.create( SiteFusion.Classes.Node, {
 			}
 			else {
 				var countAllowed = 0;
-				for( index in selection ) {
-					var row = tree.view.idToRow[selection[index]];
+				for( var n = 0; n < selection.length; n++ ) {
+					var row = tree.view.idToRow[selection[n]];
 					if( typeof(row.isDraggable) != 'undefined' && row.isDraggable !== false )
 						countAllowed++;
 				}
