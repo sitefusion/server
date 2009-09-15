@@ -569,6 +569,32 @@ class TreeDataRow extends TreeDataItem
 			throw new SFException( "No such column: $name" );
 	}
 	
+	public function __isset( $name ) {
+		for( $colId = 0; $colId < count($this->dataSet->columns); $colId++ ) {
+			if( $this->dataSet->columns[$colId] == $name )
+				return TRUE;
+		}
+		return isset($this->_variables[$name]);
+	}
+	
+	public function __unset( $name ) {
+		for( $colId = 0; $colId < count($this->dataSet->columns); $colId++ ) {
+			if( $this->dataSet->columns[$colId] == $name ) {
+				switch ( $this->dataSet->colTypes[$colId] ) {
+					case 'text':			$this->_cells[$colId] = ''; break;
+					case 'checkbox':		$this->_cells[$colId] = FALSE; break;
+					case 'progressmeter':	$this->_cells[$colId] = 0; break;
+				}
+				
+				if( $this->_isSync )
+					$this->updateCell( $colId, $this->_cells[$colId] );
+				
+				return;
+		}
+		
+		unset( $this->_variables[$name] );
+	}
+	
 	public function openStateChanged( $state ) {
 		$oldState = $this->_isOpen;
 		$this->_isOpen = $state;
