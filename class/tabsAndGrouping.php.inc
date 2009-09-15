@@ -42,7 +42,7 @@
 class XULTabBox extends BranchNode
 {
 	public $remoteConstructor = 'TabBox';
-	public $align = 'start';
+	public $align = 'stretch';
 	public $flex = 1;
 	protected $selectedTab = NULL;
 	protected $selectedPanel = NULL;
