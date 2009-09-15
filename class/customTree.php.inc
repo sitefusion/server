@@ -590,6 +590,7 @@ class TreeDataRow extends TreeDataItem
 					$this->updateCell( $colId, $this->_cells[$colId] );
 				
 				return;
+			}
 		}
 		
 		unset( $this->_variables[$name] );
