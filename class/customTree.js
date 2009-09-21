@@ -142,6 +142,12 @@ SiteFusion.Classes.CustomTree = Class.create( SiteFusion.Classes.Node, {
 	},
 
 	select: function( itemJSON ) {
+		if( ! this.view.selection ) {
+			var oThis = this;
+			setTimeout( function() { oThis.select( itemJSON ); }, 10 );
+			return;
+		}
+		
 		var idx, ids = eval('('+itemJSON+')');
 		this.view.selection.clearSelection();
 		
@@ -271,8 +277,8 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
 		
 		this.rowCount = this.visibleData.length;
 		
-		if( updateRowCount && this.treeBox )
-			this.treeBox.rowCountChanged( visiblePos, 1 );
+		if( updateRowCount )
+			this.rowCountChanged( visiblePos, 1 );
 	};
 	
 	this.removeDataSetRow = function( rowId ) {
@@ -310,8 +316,7 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
 		
 		this.rowCount = this.visibleData.length;
 		
-		if( this.treeBox )
-			this.treeBox.rowCountChanged( idx, -visibleCount );
+		this.rowCountChanged( idx, -visibleCount );
 	};
 	
 	this.applyChildOrder = function( rowId, orderJSON ) {
@@ -359,7 +364,7 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
 			
 			row.isOpen = false;
 			this.rowCount = this.visibleData.length;
-			this.treeBox.rowCountChanged( idx + 1, -visCount );
+			this.rowCountChanged( idx + 1, -visCount );
 			this.invalidateRow( idx );
 		}
 		else {
@@ -369,7 +374,7 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
 			
 			row.isOpen = true;
 			this.rowCount = this.visibleData.length;
-			this.treeBox.rowCountChanged( idx + 1, added );
+			this.rowCountChanged( idx + 1, added );
 			this.invalidateRow( idx );
 		}
 	};
@@ -578,7 +583,6 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
 		if( session.sourceNode ) {
 			switch ( session.sourceNode.tagName ) {
 				case 'treechildren':
-				//	session.sourceNode.parentNode.widgetObj.draggedSelection;
 					this.sfTree.fireEvent( 'treeDrop', [
 						session.sourceNode.parentNode.sfNode,
 						session.sourceNode.parentNode.sfNode.draggedSelection.join(','),
@@ -632,6 +636,11 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
 		}
 		var oThis = this;
 		this.invalidateTableTimer = setTimeout( function() { oThis.treeBox.invalidate(); oThis.invalidateTableTimer = null; }, 1 );
+	};
+	
+	this.rowCountChanged = function( idx, count ) {
+		if( this.treeBox )
+			this.treeBox.rowCountChanged( idx, count );
 	};
 };
 

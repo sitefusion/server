@@ -85,7 +85,7 @@ class XULCustomTree extends XULTree
 	}
 	
 	public function cellValueYieldCollect( $e, $rowId, $colId, $value ) {
-		$this->dataSet->idToRow[$rowId]->pushedUpdate( $colId, $value );
+		$value = $this->dataSet->idToRow[$rowId]->pushedUpdate( $colId, $value );
 		$this->fireLocalEvent( 'cellUpdated', array( $this->dataSet->idToRow[$rowId], $this->dataSet->columns[$colId], $value ) );
 	}
 	
@@ -606,9 +606,9 @@ class TreeDataRow extends TreeDataItem
 	
 	public function pushedUpdate( $colId, $value ) {
 		switch ( $this->dataSet->colTypes[$colId] ) {
-			case 'text':			$this->_cells[$colId] = (string)$value; break;
-			case 'checkbox':		$this->_cells[$colId] = ($value == 'true' ? TRUE:FALSE); break;
-			case 'progressmeter':	$this->_cells[$colId] = (int)$value; break;
+			case 'text':			return ($this->_cells[$colId] = (string)$value);
+			case 'checkbox':		return ($this->_cells[$colId] = ($value == 'true' ? TRUE:FALSE));
+			case 'progressmeter':	return ($this->_cells[$colId] = (int)$value);
 		}
 	}
 	
@@ -681,6 +681,9 @@ class TreeDataSet extends TreeDataSupports
 		$this->children = array();
 		
 		foreach ( $tree->children[0]->children as $col ) {
+			if( ! $col instanceof XULTreeCol )
+				continue;
+			
 			if( ! isset($col->dataId) )
 				throw new SFException( "XULTreeCol is missing dataId property" );
 			
