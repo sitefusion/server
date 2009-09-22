@@ -112,6 +112,13 @@ SiteFusion.Classes.Window = Class.create( SiteFusion.Classes.BasicWindow, {
 		this.windowObject.addEventListener( 'close', onClose, true );
 		
 		SiteFusion.Comm.RevComm();
+		
+		SiteFusion.Comm.AddToRegistry( 0, this );
+		
+		SiteFusion.Comm.BusyHandlers.push( SiteFusion.Interface.CursorBusy );
+		SiteFusion.Comm.IdleHandlers.push( SiteFusion.Interface.CursorIdle );
+		
+		this.fireEvent( 'initialized' );
 	},
 	
 	onClose: function( event ) {
