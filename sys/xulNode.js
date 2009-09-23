@@ -85,27 +85,31 @@ SiteFusion.Classes.Node = Class.create( {
 		SiteFusion.Interface.DeferredCallbacks.push( function() { oThis.setEventListener( evt ); } );
 	},
 	
-	eventHandler: function ( e ) {
-		var obj = e.currentTarget;
+	eventHandler: function ( event ) {
+		var obj = event.currentTarget;
 
 		if( ! obj.sfNode ) return;
 		
-		window.event = e;
-		return obj.sfNode.fireEvent( e.type );
+		return obj.sfNode.fireEvent( event );
 	},
 
 	fireEvent: function( e, args ) {
-		if( this.eventHost[e] == null )
+		var event = typeof(e) == 'string' ? null:e;
+		var eventName = typeof(e) == 'string' ? e:e.type;
+		
+		if( this.eventHost[eventName] == null )
 			SiteFusion.Error( 'Widget ' + this.sfClassName + ' does not support event ' + e );
 
-		var sfEvent = this.eventHost[e];
+		var sfEvent = this.eventHost[eventName];
 		
 		if( ! args )
 			args = new Array();
 
 		if( sfEvent.reflex != null ) {
-			if( sfEvent.reflex( e, args ) === false )
-				return false;
+			this._dummy = sfEvent.reflex;
+			var ret = this._dummy( eventName, args, event );
+			delete this._dummy;
+			if( !ret ) return false;
 		}
 
 		for( var n = 0; n < sfEvent.length; n++ ) {
@@ -114,9 +118,9 @@ SiteFusion.Classes.Node = Class.create( {
 		}
 
 		if( sfEvent.msgType == 0 )
-			SiteFusion.Comm.SendCommand( this.cid, e, args );
+			SiteFusion.Comm.SendCommand( this.cid, eventName, args );
 		else if( sfEvent.msgType == 1 )
-			SiteFusion.Comm.QueueCommand( this.cid, e, args );
+			SiteFusion.Comm.QueueCommand( this.cid, eventName, args );
 
 		return true;
 	},
@@ -159,7 +163,7 @@ SiteFusion.Classes.Node = Class.create( {
 
 		var func;
 		try {
-			eval( "func = function( eventName, eventArguments ) { " + ctrlUnHtml(code) + " }" );
+			eval( "func = function( eventName, eventArguments, eventObject ) { " + code + " }" );
 		}
 		catch ( e ) {
 			SiteFusion.Error( 'Reflex contains an error: ' + e );
