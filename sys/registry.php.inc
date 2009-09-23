@@ -45,7 +45,7 @@ class Registry
 		$rootwin = is_object($parent) ? $parent->rootWindow:$obj;
 
 		$obj->id = $id;
-		$obj->js = 'window.registry['.$id.']';
+		$obj->js = 'R['.$id.']';
 		$obj->isRegistered = TRUE;
 		$obj->rootWindow = $rootwin;
 		$obj->rootApplication = $rootwin->application;
@@ -85,7 +85,7 @@ class Registry
 		$rootwin = is_object($parent) ? $parent->rootWindow:$obj;
 
 		$obj->id = $id;
-		$obj->js = 'window.registry['.$id.']';
+		$obj->js = 'R['.$id.']';
 		$obj->isRegistered = TRUE;
 		$obj->rootWindow = $rootwin;
 		$obj->rootApplication = $rootwin->application;
