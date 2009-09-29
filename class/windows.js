@@ -91,7 +91,7 @@ SiteFusion.Classes.BasicWindow = Class.create( SiteFusion.Classes.Node, {
 		if( navigator.platform.match(/mac/i) ) {
 			this.systemMenuBar = menubar;
 			var quitItem = this.windowObject.document.getElementById('menu_FileQuitItem');
-			quitItem.setAttribute( 'oncommand', 'SiteFusion.RootWindow.onClose(event);' );
+			quitItem.setAttribute( 'oncommand', 'sfRootWindow.onClose(event);' );
 		}
 		else {
 			menubar.parentNode.removeChild( menubar );
