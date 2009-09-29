@@ -52,18 +52,15 @@ function LoadClass( $class, $type = 'class' ) {
 	$basename = $type . '/' . $class;
 	$searchname = $type . '/' . $class;
 	
-	if( isset( $GLOBALS['include_path'] ) ) {
-		$searchname = $GLOBALS['include_path'] . $searchname;
+	if( isset( ApplicationProcess::$IncludePath ) ) {
+		$searchname = ApplicationProcess::$IncludePath . $searchname;
 	}
 	
 	if( is_file( $searchname . '.php.inc' ) )
 		include_once( $searchname . '.php.inc' );
 
-	if( is_file( $searchname . '.js' ) && ! in_array($basename,$GLOBALS['LoadJS']) )
-		array_push( $GLOBALS['LoadJS'], $basename );
-	
-	if( is_file( $searchname . '.css' ) && ! in_array($basename,$GLOBALS['LoadCSS']) )
-		array_push( $GLOBALS['LoadCSS'], $basename );
+	if( is_file( $searchname . '.js' ) && ! in_array($basename,ApplicationProcess::$JSLibraries) )
+		array_push( ApplicationProcess::$JSLibraries, $basename );
 }
 
 
@@ -77,20 +74,23 @@ LoadClass( 'comm', 'sys' );
 
 // User classes
 LoadClass( 'windows' );
-LoadClass( 'controls' );
-LoadClass( 'layout' );
-LoadClass( 'lists' );
-LoadClass( 'menusAndPopups' );
-LoadClass( 'tabsAndGrouping' );
-LoadClass( 'textAndImages' );
-LoadClass( 'helperElements' );
-LoadClass( 'toolbars' );
-LoadClass( 'windowStructure' );
-LoadClass( 'trees' );
-LoadClass( 'customTree' );
-LoadClass( 'fileHandling' );
-LoadClass( 'scripting' );
-LoadClass( 'layoutEditor' );
+
+if( !(defined('SF_AUTOLOAD_CLASSES') && SF_AUTOLOAD_CLASSES === FALSE) ) {
+	LoadClass( 'controls' );
+	LoadClass( 'layout' );
+	LoadClass( 'lists' );
+	LoadClass( 'menusAndPopups' );
+	LoadClass( 'tabsAndGrouping' );
+	LoadClass( 'textAndImages' );
+	LoadClass( 'helperElements' );
+	LoadClass( 'toolbars' );
+	LoadClass( 'windowStructure' );
+	LoadClass( 'trees' );
+	LoadClass( 'customTree' );
+	LoadClass( 'fileHandling' );
+	LoadClass( 'scripting' );
+	LoadClass( 'layoutEditor' );
+}
 
 
 
@@ -147,7 +147,7 @@ class Event
  * to the window and its child nodes will contain a reference to this window in the 
  * property Node->rootWindow, and to the application in the property Node->rootApplication.
  * 
- * @property int		$pid					POSIX id for the application process
+ * @property int		$pid					PID for the application process
  * @property XULWindow	$window					Root window and node of the application
  * @property string		$applicationName		Name of the application
  * @property Registry	$registry				[INTERNAL] Node registry for the Comm layer
@@ -167,6 +167,14 @@ class Application
 	public $handlerFor = array();
 	public $yielderFor = array();
 	
+	// Root window default flags
+	public $alwaysLowered = FALSE;
+	public $alwaysRaised = FALSE;
+	public $centerscreen = FALSE;
+	public $resizable = TRUE;
+	public $width = NULL;
+	public $height = NULL;
+	
 	
 	/**
 	 * [INTERNAL FUNCTION] This function initializes the Application class
@@ -175,27 +183,53 @@ class Application
 	 * @param XULWindow		$window	XULWindow root window object for the application 
 	*/
 	
-	public function initBaseApplication( $pid, $window ) {
-		$this->pid = $pid;
-		$this->window = $window;
-		$window->application = $this;
+	public function __construct( $user, $ip, $ident, $app, $args ) {
+		$this->authUser = $user;
+		$this->authIp = $ip;
+		$this->authIdent = $ident;
+		$this->applicationName = $app;
+		$this->applicationArguments = $args;
+		
+		$this->window = new XULWindow;
+		$this->window->application = $this;
 		
 		$this->registry = new Registry();
-		$this->registry->add( NULL, $window );
+		$this->registry->add( NULL, $this->window );
 		
-		$window->setEvent( 'close', MSG_SEND, $this, 'onWindowClose' );
+		$this->window->setEvent( 'close', MSG_SEND, $this, 'onWindowClose' );
+		$this->window->setEvent( 'clientInit', MSG_QUEUE, $this, 'onClientInit' );
+		$this->window->setEvent( 'clientComponentsInit', MSG_QUEUE, $this, 'onClientComponentsInit' );
+		$this->window->setEvent( 'initialized', MSG_SEND, $this, 'init' );
+	}
+	
+	
+	public function preinit( $args ) {
+		
 	}
 	
 	
 	/**
-	 * Application Post-init function
+	 * [INTERNAL FUNCTION] This function handles the clientInit event
+	 * and sets the Application::$client array.
 	 * 
-	 * This function is called after the application's init() function finishes. You can override 
-	 * this function to alter behavior. The default behavior is to center the window.
+	 * @param Event			$event			Event object
+	 * @param array			$platformInfo	Platform info assoc. array 
 	*/
 	
-	public function postInit() {
-		$this->window->callMethod( 'center' );
+	public function onClientInit( $event, $platformInfo ) {
+		$this->client = $platformInfo;
+	}
+	
+	
+	/**
+	 * [INTERNAL FUNCTION] This function handles the clientComponentsInit event
+	 * 
+	 * @param Event			$event			Event object
+	 * @param array			$components		Components info assoc. array
+	*/
+	
+	public function onClientComponentsInit( $event, $components ) {
+		$this->clientComponents = $components;
 	}
 	
 	

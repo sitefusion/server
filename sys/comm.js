@@ -26,6 +26,10 @@
 
 
 SiteFusion.Comm = {
+	MSG_NONE: -1,
+	MSG_SEND: 0,
+	MSG_QUEUE: 1,
+	
 	CommConnection: null,
 	RevCommConnection: null,
 	IdleHandlers: [],

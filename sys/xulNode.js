@@ -26,6 +26,7 @@
 
 
 SiteFusion.Classes.Node = Class.create( {
+	preventDeferredInsertion: false,
 	
 	setEventHost: function( events, exclude ) {
 		this.eventHost = {};
@@ -59,7 +60,7 @@ SiteFusion.Classes.Node = Class.create( {
 			SiteFusion.Error( 'Event ' + evt + ' is already defined' );
 
 		this.eventHost[evt] = new Array();
-		this.eventHost[evt].msgType = type ? type : -1;
+		this.eventHost[evt].msgType = type;
 		this.eventHost[evt].reflex = null;
 	},
 	
@@ -96,7 +97,7 @@ SiteFusion.Classes.Node = Class.create( {
 	fireEvent: function( e, args ) {
 		var event = typeof(e) == 'string' ? null:e;
 		var eventName = typeof(e) == 'string' ? e:e.type;
-		
+
 		if( this.eventHost[eventName] == null )
 			SiteFusion.Error( 'Widget ' + this.sfClassName + ' does not support event ' + e );
 
@@ -186,6 +187,9 @@ SiteFusion.Classes.Node = Class.create( {
 	},
 	
 	addChild: function( childSFNode ) {
+		if( childSFNode.parentNode )
+			return;
+		
 		if( this.isPainted ) {
 			this.deferredSFChildren.push( [ 'addChild', childSFNode ] );
 		}
@@ -196,6 +200,9 @@ SiteFusion.Classes.Node = Class.create( {
 	},
 
 	addChildBefore: function( childSFNode, beforeSFNode ) {
+		if( childSFNode.parentNode )
+			return;
+		
 		if( this.isPainted ) {
 			this.deferredSFChildren.push( [ 'addChildBefore', childSFNode, beforeSFNode ] );
 		}
@@ -276,8 +283,8 @@ SiteFusion.Classes.Node = Class.create( {
 	},
 
 	numericValue: function( num ) {
-		this.element.setAttribute( 'value', num + 0 );
-		this.element.value = num + 0;
+		this.element.setAttribute( 'value', num );
+		this.element.value = num;
 	},
 
 	mode: function( mode ) {

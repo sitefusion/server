@@ -25,6 +25,60 @@
 // - - - - - - - - - - - - - - END LICENSE BLOCK - - - - - - - - - - - - -
 
 
+SiteFusion.Registry = [];
+SiteFusion.Classes = {};
+SiteFusion.ClientComponents = {};
+
+
+SiteFusion.Initialize = function() {
+	SiteFusion.RootWindow = new SiteFusion.Classes.Window( window );
+	
+	SiteFusion.RootWindow.createEvent( 'clientInit', SiteFusion.Comm.MSG_QUEUE );
+	SiteFusion.RootWindow.createEvent( 'clientComponentsInit', SiteFusion.Comm.MSG_QUEUE );
+	
+	SiteFusion.InitializeClient();
+	SiteFusion.InitializeClientComponents();
+	
+	SiteFusion.RootWindow.fireEvent( 'initialized' );
+};
+
+
+SiteFusion.InitializeClient = function() {
+	var platformInfo = {
+		appCodeName: navigator.appCodeName,
+		appName: navigator.appName,
+		appVersion: navigator.appVersion,
+		buildID: navigator.buildID,
+		language: navigator.language,
+		oscpu: navigator.oscpu,
+		platform: navigator.platform,
+		vendor: navigator.vendor,
+		vendorSub: navigator.vendorSub
+	};
+	
+	SiteFusion.RootWindow.fireEvent( 'clientInit', [ platformInfo ] );
+};
+
+
+SiteFusion.InitializeClientComponents = function() {
+	var compProperties = {};
+	
+	for( id in SiteFusion.ClientComponents ) {
+		var component = SiteFusion.ClientComponents[id];
+		if( !(typeof(component) == 'object' && typeof(component.AssertSelf) == 'function') ) {
+			delete SiteFusion.ClientComponents[id];
+			continue;
+		}
+		
+		var status = component.AssertSelf();
+		
+		compProperties[id] = status;
+	}
+	
+	SiteFusion.RootWindow.fireEvent( 'clientComponentsInit', [ compProperties ] );
+};
+
+
 SiteFusion.Interface = {
 	ChildWindows: [],
 	DeferredCallbacks: [],

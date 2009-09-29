@@ -182,10 +182,7 @@ class XULDirectImage extends Node
 			case 'gif': $contentType = 'image/gif'; break;
 		}
 		
-		if( class_exists('ApplicationProcess') )
-			ApplicationProcess::Header( 'Content-Type: ' . $contentType );
-		else
-			header( 'Content-Type: ' . $contentType );
+		ApplicationProcess::Header( 'Content-Type: ' . $contentType );
 		
 		readfile($this->imageStreamData);
 		unlink($this->imageStreamData);
@@ -208,7 +205,7 @@ class XULFileSystemImage extends Node
 	public $height = NULL;
 	public $imagePath = NULL;
 	
-	public function __construct( $path=NULL, $width = NULL, $height = NULL ) {
+	public function __construct( $path = NULL, $width = NULL, $height = NULL ) {
 		$this->imagePath = $path;
 		if( $width !== NULL )
 			$this->width( $width );
@@ -239,10 +236,8 @@ class XULFileSystemImage extends Node
 			default: $contentType = 'application/octet-stream';
 		}
 		
-		if( class_exists('ApplicationProcess') )
-			ApplicationProcess::Header( 'Content-Type: ' . $contentType );
-		else
-			header( 'Content-Type: ' . $contentType );
+		ApplicationProcess::Header( 'Content-Type: ' . $contentType );
+		
 		readfile($this->imagePath);
 	}
 }

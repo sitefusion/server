@@ -63,28 +63,14 @@ try {
 catch ( Exception $ex ) {
 	echo json_encode( array(
 		"success" => FALSE,
-		"error" => 'Could not connect to the SiteFusion server. Please try again later.'
+		"error" => 'server_offline'
 	) );
 	exit();
 }
 
-if( $cmd->success ) {
-	echo json_encode( array(
-		"success" => TRUE,
-		"includeJs" => explode(',', $cmd->includeJs ),
-		"application" => $cmd->app,
-		"args" => $cmd->args,
-		"user" => $cmd->user,
-		"ident" => $cmd->ident,
-		"sid" => $cmd->sid
-	) );
-}
-else {
-	echo json_encode( array(
-		"success" => FALSE,
-		"error" => $cmd->error
-	) );
-}
+$cmd->success = ($cmd->success ? TRUE:FALSE);
+
+echo json_encode($cmd);
 
 socket_close($socket);
 

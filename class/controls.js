@@ -103,9 +103,18 @@ SiteFusion.Classes.TextBox = Class.create( SiteFusion.Classes.Node, {
 		this.element = win.createElement( 'textbox' );
 		this.element.sfNode = this;
 		
-		this.setEventHost( [ 'yield' ] );
-	
+	//	this.element.onkeypress = this._keypressHandler;
+		
+		this.setEventHost( [ 'yield', 'return' ] );
+		
 		this.eventHost.yield.msgType = 1;
+	},
+	
+	_keypressHandler: function( event ) {
+		if( event.keyCode == 13 ) {
+			var oThis = this;
+			setTimeout( function() { oThis.sfNode.fireEvent( 'return' ); }, 10 );
+		}
 	},
 	
 	value: function( text ) {

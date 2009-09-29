@@ -1165,10 +1165,12 @@ class SiteFusionProcess
 		
 			$data = '';
 			while( strlen($data) < $dl ) {
-				$moredata = socket_read( $socket, 2048, PHP_BINARY_READ );
-				if( $moredata === FALSE )
-					throw new SFException( 'ReadCommand: socket_read() failed: '.socket_strerror(socket_last_error($socket)) );
-				$data .= $moredata;
+				$sbuf = socket_read( $socket, 2048, PHP_BINARY_READ );
+				if( $sbuf === FALSE ) {
+					if( socket_last_error($socket) != 35 )
+						throw new SFException( 'ReadCommand: socket_read() failed: '.socket_strerror(socket_last_error($socket)) );
+				}
+				$data .= $sbuf;
 			}
 		}
 	

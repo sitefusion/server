@@ -54,6 +54,11 @@ class XULMenuBar extends BranchNode
 class XULMenuPopup extends BranchNode
 {
 	public $remoteConstructor = 'MenuPopup';
+	
+	public function attach() {
+		$this->createRemoteObject( $this->hostWindow, ($this->parent instanceof XULMenu), ($this->parent instanceof XULMenu ? $this->parent:NULL) );
+		$this->insertElement();
+	}
 }
 
 
@@ -98,6 +103,11 @@ class XULMenu extends BranchNode
 			parent::__construct( $args );
 		}
 		else parent::__construct();
+	}
+	
+	public function attach() {
+		$this->createRemoteObject( $this->hostWindow, ($this->parent instanceof XULMenuBar) );
+		$this->insertElement();
 	}
 }
 
@@ -168,7 +178,6 @@ class XULMenuItem extends BranchNode
 		return $this;
 	}
 }
-
 
 
 /**

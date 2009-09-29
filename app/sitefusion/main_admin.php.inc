@@ -35,11 +35,27 @@ include_once( 'debugger.php.inc' );
 
 class SitefusionAdmin extends Application
 {
+	public $centerscreen = TRUE;
+	public $alwaysRaised = TRUE;
+	public $width = 1024;
+	public $height = 740;
+	
 	public function init( $args ) {
 		$this->window->title( 'SiteFusion Admin' );
-		$this->window->size( 1024, 740 );
 		
 		$this->window->addChild(
+			new XULMenuBar(
+				new XULMenu( 'SiteFusion Admin',
+					new XULMenuPopup(
+						new XULMenuItem( 'bla' )
+					)
+				),
+				new XULMenu( 'test',
+					new XULMenuPopup(
+						new XULMenuItem( 'bla' )
+					)
+				)
+			),
 			$gb1 = new XULGroupBox(
 				$cp1 = new XULCaption( 'Master Process', 'bold' ),
 				

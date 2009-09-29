@@ -84,13 +84,21 @@ SiteFusion.Classes.ScrollBox = Class.create( SiteFusion.Classes.Node, {
 	},
 	
 	scrollTo: function( x, y ) {
-		var xpcomInterface = this.element.boxObject.QueryInterface(Ci.nsIScrollBoxObject);
-		xpcomInterface.scrollTo( x, y );
+		var oThis = this;
+		
+		SiteFusion.Interface.DeferredCallbacks.push( function() {
+			var xpcomInterface = oThis.element.boxObject.QueryInterface(Ci.nsIScrollBoxObject);
+			xpcomInterface.scrollTo( x, y );
+		} );
 	},
 	
 	ensureElementIsVisible: function( node ) {
-		var xpcomInterface = this.element.boxObject.QueryInterface(Ci.nsIScrollBoxObject);
-		xpcomInterface.ensureElementIsVisible(node.element);
+		var oThis = this;
+		
+		SiteFusion.Interface.DeferredCallbacks.push( function() {
+			var xpcomInterface = oThis.element.boxObject.QueryInterface(Ci.nsIScrollBoxObject);
+			xpcomInterface.ensureElementIsVisible(node.element);
+		} );
 	}
 } );
 

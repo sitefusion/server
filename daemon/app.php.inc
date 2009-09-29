@@ -40,7 +40,8 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 	static public $Started;
 	static private $ApplicationStarted = FALSE;
 	static public $Application;
-	static public $ApplicationArguments;
+	static public $JSLibraries = array();
+	static public $IncludePath = NULL;
 	static private $LastContact;
 	static private $Headers;
 	static private $RevCommSocket = NULL;
@@ -167,6 +168,7 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 			if( self::$ConnectedDebugger ) {
 				self::ToDebuggerShowStack( $ex->getTrace(), FALSE, $ex->getMessage() . ' in ' . $ex->getFile() . ' at line ' . $ex->getLine() );
 			}
+			self::Log( $ex->getMessage() . ' in ' . $ex->getFile() . ' at line ' . $ex->getLine() . "\n" . $ex->getTraceAsString() );
 			self::StopApplicationServer();
 			return;
 		}
@@ -403,12 +405,10 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 		$pass = $cmd->password;
 		$granted = FALSE;
 		
-		$GLOBALS['LoadJS'] = array();
-		$GLOBALS['LoadCSS'] = array();
-		$GLOBALS['include_path'] = self::$Options['sitefusionPath'] . '/';
+		self::$IncludePath = self::$Options['sitefusionPath'] . '/';
 		$_SERVER['HTTP_HOST'] = 'localhost';
 		
-		if( ereg( '[^a-zA-Z0-9_\-\/]', $app ) || (! file_exists(self::$Options['sitefusionPath'].'/app/' . $app . '.startup.php.inc')) )
+		if( (!preg_match( '/^[a-zA-Z0-9_\-\/]+$/', $app )) || (! file_exists(self::$Options['sitefusionPath'].'/app/' . $app . '.startup.php.inc')) )
 			return array( 'success' => 0, 'error' => 'invalid_app' );
 
 		include_once( 'sys/application.php.inc' );
@@ -426,24 +426,36 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 		$ident = md5( $ip . $user . md5($pass) );
 
 		$class = getApplication( $args );
-		$win = new XULWindow();
 		
-		self::$Application = $appinstance = new $class;
-		$appinstance->authUsername = $user;
-		$appinstance->authIp = $ip;
-		$appinstance->authIdent = $ident;
-		$appinstance->applicationName = $app;
-		$appinstance->initBaseApplication( 0, $win );
-		self::$ApplicationArguments = $args;
+		self::$Application = new $class ( $user, $ip, $ident, $app, $args );
 		
 		ob_end_clean();
 		
-		return array( 'success' => 1, 'ip' => $ip, 'type' => 'app', 'ident' => $ident, 'app' => $app, 'args' => $cmd->args, 'user' => $user, 'includeJs' => implode( ",", $GLOBALS['LoadJS'] ) );
+		$loginParam = array(
+			'success' => 1,
+			'ip' => $ip,
+			'type' => 'app',
+			'ident' => $ident,
+			'app' => $app,
+			'args' => $cmd->args,
+			'user' => $user,
+			'includeJs' => implode( ",", self::$JSLibraries ),
+			'alwaysLowered' => self::$Application->alwaysLowered,
+			'alwaysRaised' => self::$Application->alwaysRaised,
+			'centerscreen' => self::$Application->centerscreen,
+			'resizable' => self::$Application->resizable
+		);
+		
+		if( is_int(self::$Application->width) && is_int(self::$Application->height) ) {
+			$loginParam['width'] = self::$Application->width;
+			$loginParam['height'] = self::$Application->height;
+		}
+		
+		return $loginParam;
 	}
 	
 	static private function InitializeApplication() {
-		self::$Application->init( self::$ApplicationArguments );
-		self::$Application->postInit();
+		self::$Application->preinit( self::$Application->applicationArguments );
 	}
 	
 	static private function ProcessEventQueue() {

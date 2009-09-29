@@ -84,6 +84,19 @@ SiteFusion.Classes.BasicWindow = Class.create( SiteFusion.Classes.Node, {
 
 	setTitle: function( title ) {
 		this.windowObject.document.title = title;
+	},
+	
+	initMenuBar: function() {
+		var menubar = this.windowObject.document.getElementById('systemMenuBar');
+		if( navigator.platform.match(/mac/i) ) {
+			this.systemMenuBar = menubar;
+			var quitItem = this.windowObject.document.getElementById('key_FileQuitItem');
+			quitItem.oncommand = function(event) { SiteFusion.RootWindow.onClose(event); };
+		}
+		else {
+			menubar.parentNode.removeChild( menubar );
+			this.systemMenuBar = null;
+		}
 	}
 } );
 
@@ -103,22 +116,24 @@ SiteFusion.Classes.Window = Class.create( SiteFusion.Classes.BasicWindow, {
 		
 		this.setEventHost( [ 'initialized', 'idle', 'close' ] );
 		
-		this.eventHost.idle.msgType = 0;
-		this.eventHost.initialized.msgType = 0;
-		this.eventHost.close.msgType = 0;
+		this.eventHost.idle.msgType = SiteFusion.Comm.MSG_SEND;
+		this.eventHost.initialized.msgType = SiteFusion.Comm.MSG_SEND;
+		this.eventHost.close.msgType = SiteFusion.Comm.MSG_SEND;
 		
 		var oThis = this;
 		var onClose = function(event) { oThis.onClose(event); };
 		this.windowObject.addEventListener( 'close', onClose, true );
 		
-		SiteFusion.Comm.RevComm();
-		
 		SiteFusion.Comm.AddToRegistry( 0, this );
+		
+		SiteFusion.Comm.RevComm();
 		
 		SiteFusion.Comm.BusyHandlers.push( SiteFusion.Interface.CursorBusy );
 		SiteFusion.Comm.IdleHandlers.push( SiteFusion.Interface.CursorIdle );
 		
-		this.fireEvent( 'initialized' );
+		this.element.setAttribute( 'id', 'sitefusion-window' );
+		
+		this.initMenuBar();
 	},
 	
 	onClose: function( event ) {
@@ -213,6 +228,8 @@ SiteFusion.Classes.ChildWindow = Class.create( SiteFusion.Classes.BasicWindow, {
 			win.addEventListener( 'dialoghelp', onDialogButton, true );
 			win.addEventListener( 'dialogdisclosure', onDialogButton, true );
 		}
+		
+		this.initMenuBar();
 		
 		this.fireEvent( 'initialized' );
 	},

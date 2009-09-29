@@ -78,7 +78,7 @@ class XULKey extends Node
 	
 	public function init() {
 		if( $this->evtObj && $this->evtMethod )
-			$this->setEvent( 'command', sendMessage, $this->evtObj, $this->evtMethod, $this->evtYielders );
+			$this->setEvent( 'command', MSG_SEND, $this->evtObj, $this->evtMethod, $this->evtYielders );
 	}
 	
 	public function key( $key = NULL ) {

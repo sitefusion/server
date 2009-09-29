@@ -118,29 +118,16 @@ class XULWindow extends XULBasicWindow
 	
 	public function attach() {
 		$this->parent = NULL;
-		
-		$this->setEventHandler( 'initialized', $this, 'onInitialized' );
-	}
-	
-	public function onInitialized( $e, $os = NULL, $workingDir = NULL ) {
-		$this->operatingSystem = $os;
-		$this->workingDirectory = $workingDir;
-		
-		//$this->sizeToContent();
 	}
 	
 	public function open() {
-		$this->application->sendCommand(
-			Comm::CallMethod( $this, 'windowObject.focus' )
-		);
+		$this->callMethod( 'windowObject.focus' );
 	}
 	
 	public function close() {
 		$this->application->onWindowClose();
 		
-		$this->application->sendCommand(
-			Comm::CallMethod( $this, 'windowObject.close' )
-		);
+		$this->callMethod( 'windowObject.close' );
 	}
 	
 	public function title( $title ) {
@@ -154,9 +141,7 @@ class XULWindow extends XULBasicWindow
 		$this->statusBarComponent = $obj;
 		
 		if( $this->isRegistered )
-			$this->rootApplication->sendCommand(
-				Comm::SetProperty( $this, 'statusBarComponent', $obj )
-			);
+			$this->setProperty( 'statusBarComponent', $obj );
 	}
 }
 

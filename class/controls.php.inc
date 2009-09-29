@@ -240,7 +240,7 @@ class XULScale extends Node
 class XULTextBox extends BranchNode
 {
 	public $remoteConstructor = 'TextBox';
-	public $initAttributes = array( 'multiline', 'readonly', 'type', 'cols', 'rows', 'timeout', 'wrap', 'maxlength', 'size' );
+	public $initAttributes = array( 'multiline', 'readonly', 'type', 'cols', 'rows', 'timeout', 'wrap', 'maxlength' );
 
 
 	public function __construct( $value = '', $multiline = FALSE, $width = NULL, $height = NULL ) {
@@ -293,8 +293,10 @@ class XULTextBox extends BranchNode
 		return $this->attributeMethod( 'maxlength', $val );
 	}
 
-	public function size( $val = NULL ) {
-		return $this->attributeMethod( 'size', $val );
+	public function size( $heightOrVal = NULL, $width = NULL ) {
+		if( $width === NULL )
+			return $this->attributeMethod( 'size', $heightOrVal );
+		else parent::size( $heightOrVal, $width );
 	}
 }
 
