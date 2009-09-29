@@ -90,8 +90,8 @@ SiteFusion.Classes.BasicWindow = Class.create( SiteFusion.Classes.Node, {
 		var menubar = this.windowObject.document.getElementById('systemMenuBar');
 		if( navigator.platform.match(/mac/i) ) {
 			this.systemMenuBar = menubar;
-			var quitItem = this.windowObject.document.getElementById('key_FileQuitItem');
-			quitItem.oncommand = function(event) { SiteFusion.RootWindow.onClose(event); };
+			var quitItem = this.windowObject.document.getElementById('menu_FileQuitItem');
+			quitItem.setAttribute( 'oncommand', 'SiteFusion.RootWindow.onClose(event);' );
 		}
 		else {
 			menubar.parentNode.removeChild( menubar );
