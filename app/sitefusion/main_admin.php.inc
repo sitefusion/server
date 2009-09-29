@@ -40,22 +40,10 @@ class SitefusionAdmin extends Application
 	public $width = 1024;
 	public $height = 740;
 	
-	public function init( $args ) {
+	public function init( $event ) {
 		$this->window->title( 'SiteFusion Admin' );
 		
 		$this->window->addChild(
-			new XULMenuBar(
-				new XULMenu( 'SiteFusion Admin',
-					new XULMenuPopup(
-						new XULMenuItem( 'bla' )
-					)
-				),
-				new XULMenu( 'test',
-					new XULMenuPopup(
-						new XULMenuItem( 'bla' )
-					)
-				)
-			),
 			$gb1 = new XULGroupBox(
 				$cp1 = new XULCaption( 'Master Process', 'bold' ),
 				
