@@ -126,14 +126,14 @@ SiteFusion.Classes.Window = Class.create( SiteFusion.Classes.BasicWindow, {
 		
 		SiteFusion.Comm.AddToRegistry( 0, this );
 		
-		SiteFusion.Comm.RevComm();
-		
 		SiteFusion.Comm.BusyHandlers.push( SiteFusion.Interface.CursorBusy );
 		SiteFusion.Comm.IdleHandlers.push( SiteFusion.Interface.CursorIdle );
 		
 		this.element.setAttribute( 'id', 'sitefusion-window' );
 		
 		this.initMenuBar();
+
+		SiteFusion.Comm.RevComm();		
 	},
 	
 	onClose: function( event ) {
@@ -145,6 +145,13 @@ SiteFusion.Classes.Window = Class.create( SiteFusion.Classes.BasicWindow, {
 			event.preventDefault();
 			event.stopPropagation();
 			return false;
+		}
+		
+		if( SiteFusion.Comm.RevCommConnection ) {
+			try {
+				SiteFusion.Comm.RevCommConnection.abort();
+			}
+			catch ( ex ) {}
 		}
 
 		this.close();
@@ -248,7 +255,7 @@ SiteFusion.Classes.ChildWindow = Class.create( SiteFusion.Classes.BasicWindow, {
 			event.stopPropagation();
 			return false;
 		}
-
+		
 		this.fireEvent( 'hasClosed' );
 
 		SiteFusion.Interface.UnregisterChildWindow( this.windowObject );

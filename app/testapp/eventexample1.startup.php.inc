@@ -11,6 +11,7 @@ function getApplication( $args ) {
 class SFEventExample extends Application
 {
 	public function init( $event ) {
+		
 		$this->window->addChild(
 			$this->textboxes = array(
 				new XULTextBox(),

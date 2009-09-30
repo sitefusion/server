@@ -217,3 +217,6 @@ SiteFusion.Comm = {
 };
 
 
+String.prototype.toJSON = function() {
+	return '"'+encodeURIComponent(this).replace("%5C","%5C%5C%5C%5C%5C%5C%5C%5C").replace("%22","%5C%5C%5C%5C%5C%22")+'"';
+};

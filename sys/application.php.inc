@@ -213,11 +213,13 @@ class Application
 	 * and sets the Application::$client array.
 	 * 
 	 * @param Event			$event			Event object
-	 * @param array			$platformInfo	Platform info assoc. array 
+	 * @param object		$cmdlineArgs	Commandline arguments
+	 * @param object		$platformInfo	Platform info
 	*/
 	
-	public function onClientInit( $event, $platformInfo ) {
-		$this->client = $platformInfo;
+	public function onClientInit( $event, $cmdlineArgs, $platformInfo ) {
+		$this->client = (array) $platformInfo;
+		$this->cmdlineArgs = (array) $cmdlineArgs;
 	}
 	
 	
@@ -229,7 +231,7 @@ class Application
 	*/
 	
 	public function onClientComponentsInit( $event, $components ) {
-		$this->clientComponents = $components;
+		$this->clientComponents = (array) $components;
 	}
 	
 	

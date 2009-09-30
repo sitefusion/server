@@ -28,6 +28,7 @@
 SiteFusion.Registry = [];
 SiteFusion.Classes = {};
 SiteFusion.ClientComponents = {};
+SiteFusion.CommandLineArguments = {};
 
 
 SiteFusion.Initialize = function() {
@@ -56,7 +57,20 @@ SiteFusion.InitializeClient = function() {
 		vendorSub: navigator.vendorSub
 	};
 	
-	SiteFusion.RootWindow.fireEvent( 'clientInit', [ platformInfo ] );
+	var cmdlineArgs = {};
+	var query = location.search.substr(1);
+	
+	if( query.length ) {
+		var cmdline = query.split('&');
+		for( var n = 0; n < cmdline.length; n++ ) {
+			var arg = cmdline[n].split('=');
+			cmdlineArgs[arg[0]] = (arg[1] == 'true' ? true:arg[1]);
+		}
+	}
+	
+	SiteFusion.CommandLineArguments = cmdlineArgs;
+	
+	SiteFusion.RootWindow.fireEvent( 'clientInit', [ cmdlineArgs, platformInfo ] );
 };
 
 
