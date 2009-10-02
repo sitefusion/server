@@ -20,23 +20,7 @@ class SFCustomTreeDemo extends Application
 		$this->window->title( 'CustomTree Demo' );
 		$this->window->size( 1024, 740 );
 		
-		// Basic user interface construction. $this->window is the root window, and the
-		// only registered element available when this function is called. It is used to
-		// control the window, and as a container for the rest of the interface elements 
-		// using the addChild() method or its variants. See the documentation on the
-		// BranchNode class for more information.
-		//
-		// Most elements (XULxxxx classes) have 'Dynamic Constructors', for lack of a 
-		// better word. These constructors don't have fixed arguments, but allow you to
-		// set the most used XUL attribute values for the node, and to add child elements
-		// all in the same constructor. For a list of the attributes that can be set with 
-		// the constructor of a certain element, look up the documentation on that class 
-		// at http://www.sitefusion.org/documentation
-		//
-		// For more information on what XUL elements are and what they do, check out the 
-		// Mozilla XUL documentation at https://developer.mozilla.org/en/XUL
-		// 
-		// In this case, we'll be constructing two separate trees, with a splitter in 
+		// We'll be constructing two separate trees, with a splitter in 
 		// between. The left tree will contain a hierarchical data structure of foods, in
 		// which foods can be dragged between categories. The right tree will be a flat
 		// ordered view. It will be empty initially, it will add dragged rows from the 
@@ -168,7 +152,7 @@ class SFCustomTreeDemo extends Application
 		
 		$subData = array(
 			'Vegetables' => array(
-				array( 'name' => 'Arugula', 'description' => 'Arugula is an aromatic salad green. It is also known as rocket, roquette, rugula and rucola, and is popular in Italian cuisine.It is high in vitamins A and C.' ),
+				array( 'name' => 'Cucumber', 'description' => 'Nice in salads' ),
 				array( 'name' => 'Basil', 'description' => 'This aromatic herb is native to India, SE Asia, and NE Africa and is an important herb used in Italian and Thai cooking (and less significantly in other cuisines).' ),
 				array( 'name' => 'Green Beans', 'description' => 'Green beans are an excellent source of vitamin C, vitamin K and manganese. Plus green beans are very good source of vitamin A (notably through their concentration of carotenoids including beta-carotene), dietary fiber, potassium, folate, and iron.' ),
 				array( 'name' => 'Beets', 'description' => 'Are colorful root vegetables containing powerful nutrient compounds that help protect against heart disease, birth defects and certain cancers, especially colon cancer. The greens attached to the beet roots are delicious and can be prepared like spinach or Swiss chard. They are incredibly rich in nutrients, concentrated in vitamins and minerals as well as carotenoids such as beta-carotene and lutein/zeaxanthin. ' )
