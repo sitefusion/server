@@ -101,10 +101,18 @@ SiteFusion.Classes.MenuItem = Class.create( SiteFusion.Classes.Node, {
 		this.element = win.createElement( 'menuitem' );
 		this.element.sfNode = this;
 		
-		this.setEventHost();
+		this.setEventHost([ 'yield' ]);
+	},
+	
+	yield: function() {
+		var type = this.element.getAttribute('type');
+		if(type == 'checkbox' || type == 'radio')
+		{
+			var checked = this.element.getAttribute('checked');
+			this.fireEvent( 'yield', [ checked ] );
+		}
 	}
 } );
-
 
 SiteFusion.Classes.PopupSet = Class.create( SiteFusion.Classes.Node, {
 	sfClassName: 'XULPopupSet',

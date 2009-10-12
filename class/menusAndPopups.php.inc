@@ -156,13 +156,33 @@ class XULMenuItem extends BranchNode
 		else parent::__construct();
 	}
 	
-	public function type( $type ) {
+		public function attach() {
+		parent::attach();
+		$this->setEvent( 'yield', MSG_QUEUE, $this, 'yieldCollect' );
+	}
+	
+	public function yieldCollect( $e, $val ) {
+		$this->checked = $val;
+	}
+	
+	public function type( $type = NULL ) {
+		if( $type == 'checkbox' )
+		{
+			$this->setEventYielder( 'command', $this );
+		}
+		
 		return $this->attributeMethod( 'type', (string) $type );
 	}
 	
-	public function name( $name ) {
+	public function checked( $state = NULL) {
+		return $this->attributeMethod( 'checked', $state );
+	}
+	
+	
+	public function name( $name = NULL ) {
 		return $this->attributeMethod( 'name', (string) $name );
 	}
+	
 
 	public function image( $src = NULL ) {
 		if( $src === NULL )
