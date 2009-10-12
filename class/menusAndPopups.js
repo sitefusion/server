@@ -108,7 +108,7 @@ SiteFusion.Classes.MenuItem = Class.create( SiteFusion.Classes.Node, {
 		var type = this.element.getAttribute('type');
 		if(type == 'checkbox' || type == 'radio')
 		{
-			var checked = this.element.getAttribute('checked');
+			var checked = this.element.hasAttribute('checked');
 			this.fireEvent( 'yield', [ checked ] );
 		}
 	}

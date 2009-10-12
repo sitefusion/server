@@ -175,7 +175,16 @@ class XULMenuItem extends BranchNode
 	}
 	
 	public function checked( $state = NULL) {
-		return $this->attributeMethod( 'checked', $state );
+		if ($state === NULL)
+			return (isset($this->checked) ? $this->checked : NULL);
+		
+		$this->checked = (bool)$state;
+		if ($this->isRegistered) {
+			if ($this->checked)
+				$this->setAttribute("checked", "true");
+			else
+				$this->removeAttribute("checked");
+		}
 	}
 	
 	
