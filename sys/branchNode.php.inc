@@ -112,11 +112,11 @@ class BranchNode extends Node
 		
 		$index = array_search( $childnode, $this->children, TRUE );
 		array_splice( $this->children, $index, 0, array($node) );
-		$obj->isChild = TRUE;
-		$obj->parent = $this;
+		$node->isChild = TRUE;
+		$node->parent = $this;
 		
 		if( $this->isRegistered ) {
-			$obj->insertBefore = $childnode;
+			$node->insertBefore = $childnode;
 			
 			$this->rootApplication->registry->add( $this, $node );
 			

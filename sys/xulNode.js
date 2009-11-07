@@ -240,7 +240,7 @@ SiteFusion.Classes.Node = Class.create( {
 		this.element.appendChild( childSFNode.element );
 	},
 
-	directChildBefore: function( childSFNode, beforeSFNode ) {
+	directAddChildBefore: function( childSFNode, beforeSFNode ) {
 		this.element.insertBefore( childSFNode.element, beforeSFNode.element );
 	},
 
