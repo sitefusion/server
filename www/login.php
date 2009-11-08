@@ -39,11 +39,11 @@ if( ! (isset($_GET['app']) && isset($_GET['args']) && isset($_POST['username']) 
 
 try {
 	ob_start();
-	$socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+	$socket = @socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
 	if ($socket === false)
 	    throw new Exception( "socket_create() failed: reason: " . socket_strerror(socket_last_error()) );
 
-	$result = socket_connect($socket, $WEBCONFIG['address'], $WEBCONFIG['port'] );
+	$result = @socket_connect($socket, $WEBCONFIG['address'], $WEBCONFIG['port'] );
 	if ($result === false)
 	    throw new Exception( "socket_connect() failed.\nReason: ($result) " . socket_strerror(socket_last_error($socket)) );
 
