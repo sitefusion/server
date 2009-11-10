@@ -71,6 +71,7 @@ LoadClass( 'xulNode', 'sys' );
 LoadClass( 'branchNode', 'sys' );
 LoadClass( 'registry', 'sys' );
 LoadClass( 'comm', 'sys' );
+LoadClass( 'console', 'sys' );
 
 // User classes
 LoadClass( 'windows' );

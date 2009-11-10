@@ -97,6 +97,21 @@ class Comm
 		
 		return "R[".$obj->id."].".$method."($args);";
 	}
+	
+	public static function CallMethodDelayed( $obj, $method, $args = NULL, $delay = 10 ) {
+		if( ! $obj->isRegistered )
+			Error::CallerFatal( 'Need a registered node for Comm::CallMethodDelayed()' );
+
+		if( $obj->hostWindow->hasClosed )
+			return '';
+		
+		if( $args === NULL )
+			$args = '';
+		else
+			$args = Comm::EncodeArguments( $args );
+		
+		return "window.setTimeout( function() {R[".$obj->id."].".$method."($args);}, $delay);";
+	}
 
 	public static function SetProperty( $obj, $prop, $value ) {
 		if( ! $obj->isRegistered )

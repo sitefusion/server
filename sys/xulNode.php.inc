@@ -595,6 +595,25 @@ class Node
 		return $this;
 	}
 	
+	/**
+	 * Call a JavaScript method on the client-side node in a delayed fashion
+	 * 
+	 * @param string	$name		Name of the method (may also contain dots to traverse to properties containing other objects)
+	 * @param array		$args		Method call arguments (may contain references to nodes)
+	 * @param int		$delay		Delay of function call in ms
+	 * @return Node	Returns reference to self ($this) for easy chaining of method calls
+	*/
+	
+	public function callMethodDelayed( $name, $args = NULL, $delay = 10 ) {
+		if(! $this->isRegistered )
+			Error::CallerFatal( 'Can\'t call callMethod on unregistered node' );
+		
+		$this->rootApplication->sendCommand(
+			Comm::CallMethodDelayed( $this, $name, $args, $delay )
+		);
+		
+		return $this;
+	}
 	
 	/**
 	 * Set a JavaScript property on the client-side node
