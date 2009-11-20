@@ -604,7 +604,7 @@ class Node
 	 * @return Node	Returns reference to self ($this) for easy chaining of method calls
 	*/
 	
-	public function callMethodDelayed( $name, $args = NULL, $delay = 10 ) {
+	public function callMethodDelayed( $name, $args = NULL, $delay = 1 ) {
 		if(! $this->isRegistered )
 			Error::CallerFatal( 'Can\'t call callMethod on unregistered node' );
 		

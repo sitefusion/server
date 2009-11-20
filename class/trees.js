@@ -58,7 +58,7 @@ SiteFusion.Classes.Tree = Class.create( SiteFusion.Classes.Node, {
 
 	select: function( item ) {
 		var oThis = this;
-		DeferredCallbacks.push( function() { oThis.element.view.selection.select( oThis.element.view.getIndexOfItem( item.element ) ); } );
+		SiteFusion.Interface.DeferredCallbacks.push( function() { oThis.element.view.selection.select( oThis.element.view.getIndexOfItem( item.element ) ); } );
 	}
 } );
 
@@ -109,7 +109,6 @@ SiteFusion.Classes.TreeItem = Class.create( SiteFusion.Classes.Node, {
 		this.setEventHost();
 	}
 } );
-
 
 SiteFusion.Classes.TreeRow = Class.create( SiteFusion.Classes.Node, {
 	sfClassName: 'XULTreeRow',

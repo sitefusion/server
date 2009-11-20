@@ -24,9 +24,8 @@
 //
 // - - - - - - - - - - - - - - END LICENSE BLOCK - - - - - - - - - - - - -
 
-
-SiteFusion.Classes.LayoutEditor = Class.create( SiteFusion.Classes.Node, {
-	sfClassName: 'XULLayoutEditor',
+SiteFusion.Classes.Editor = Class.create( SiteFusion.Classes.Node, {
+	sfClassName: 'XULEditor',
 	
 	initialize: function( win ) {
 		this.element = win.createElement( 'editor' );
@@ -39,6 +38,7 @@ SiteFusion.Classes.LayoutEditor = Class.create( SiteFusion.Classes.Node, {
 			'before_initialize',
 			'after_loaddata',
 			'initialized',
+			'madeEditable',
 			'yield',
 			'document_state',
 			'state_bold',
@@ -67,6 +67,7 @@ SiteFusion.Classes.LayoutEditor = Class.create( SiteFusion.Classes.Node, {
 		] );
 	
 		this.eventHost.initialized.msgType = 0;
+		this.eventHost.madeEditable.msgType = 0;
 		this.eventHost.yield.msgType = 1;
 		this.eventHost.document_state.msgType = 0;
 	},
@@ -75,37 +76,22 @@ SiteFusion.Classes.LayoutEditor = Class.create( SiteFusion.Classes.Node, {
 		this.element.setAttribute( 'src', 'about:blank' );
 		this.fireEvent( 'initialized' );
 	},
-
-	loadLayoutHTML: function( html, frameid ) {
-		this.element.contentWindow.document.write( html );
-		
-		this.editorElement = this.element.contentDocument.getElementById( frameid );
 	
-		this.element.contentDocument.body.contentEditable = false;
-		this.editorElement.contentEditable = true;
+	setValue: function( html ) {
+		this.element.contentDocument.body.innerHTML = html;
 	},
-
-	loadBody: function( html ) {
-		if( ! this.editorElement ) {
-			this._loadBody = html;
-			return;
-		}
-		
-		this.editorElement.innerHTML = html;
-		
-		this.editorLoaded();
+	
+	makeEditable: function() {
+		this.element.contentDocument.designMode = "on";
+		this.fireEvent( 'madeEditable' );
 	},
-
-	yield: function() {
-		if(! this.editorElement )
-			return;
-		
-		this.fireEvent( 'yield', [ this.editorElement.innerHTML ] );
-	},
-
+	
 	editorLoaded: function() {
 		var oThis = this;
 		var func = function() { oThis.checkDocumentState(); };
+		
+		if (!this.editorElement)
+			this.editorElement = this.element;
 		
 		this.element.contentDocument.onmouseup = function() { window.setTimeout( func, 1 ); };
 		this.element.contentDocument.onkeyup = func;
@@ -116,13 +102,236 @@ SiteFusion.Classes.LayoutEditor = Class.create( SiteFusion.Classes.Node, {
 		this.htmlEditor.returnInParagraphCreatesNewParagraph = false;
 		
 		this.editorElement.focus();
-		this.textEditor.selection.collapse( this.editorElement, 1 );
+		if (this.editorElement == this.element)
+		{
+			var body = this.element.contentDocument.getElementsByTagName("body")[0];
+			this.textEditor.selection.collapse( body, 1 );
+		}
+		else this.textEditor.selection.collapse( this.editorElement, 1 );
+			
 		this.checkDocumentState();
 	
 		this.fireEvent( 'after_loaddata' );
 	},
+	
+	disableInput: function(state)
+	{
+		this.element.contentDocument.execCommand('contentReadOnly',false, state);
+	},
+	
+	yield: function() {
+		if(! this.editorElement )
+			return;
+		this.fireEvent( 'yield', [ this.editorElement.innerHTML ] );
+	},
+	
+	storeSelection: function() {
+		var sel = this.textEditor.selection;
+		this.storedSelection = [];
+		
+		for( var n = 0; n < sel.rangeCount; n++ ) {
+			this.storedSelection.push( sel.getRangeAt(n) );
+		}
+	},
 
+	restoreSelection: function() {
+		var sel = this.textEditor.selection;
+		sel.removeAllRanges();
+		
+		for( var n = 0; n < this.storedSelection.length; n++ ) {
+			sel.addRange( this.storedSelection[n] );
+		}
+	},
+
+	createLink: function( href, target, class ) {
+		this.restoreSelection();
+		
+		var a, newel = false;
+		
+		if(! (a = this.htmlEditor.getSelectedElement( 'href' )) ) {
+			a = this.element.contentDocument.createElement( 'a' );
+			newel = true;
+		}
+		
+		a.href = href;
+		a.target = target;
+		a.className = class;
+		
+		if( newel )
+			this.htmlEditor.insertLinkAroundSelection( a );
+	},
+
+	removeElement: function( tagName ) {
+		this.restoreSelection();
+		
+		var el;
+		
+		if(! (el = this.htmlEditor.getSelectedElement( tagName )) )
+			return;
+		
+		while( el.hasChildNodes() ) {
+			var c = el.removeChild( el.lastChild );
+			el.parentNode.insertBefore( c, el );
+		}
+		
+		el.parentNode.removeChild( el );
+	},
+
+	insertImage: function( src, width, height, align, alt ) {
+		this.restoreSelection();
+		
+		var img, newel = false;
+		
+		if(! (img = this.htmlEditor.getSelectedElement( 'IMG' )) ) {
+			var html = '<img src="'+src+'" border="0" style="width: '+width+'px; height: '+height+'px;"'+(align != null ? ' align="'+align+'"' : '')+' alt="'+(alt != null ? alt:'')+'">';
+			this.htmlEditor.insertHTML( html );
+		}
+		else {
+			if( src != null )
+				img.src = src;
+			if( width != null )
+				img.style.width = width + 'px';
+			if( height != null )
+				img.style.height = height + 'px';
+			if( align != null )
+				img.align = align;
+			if( alt != null )
+				img.alt = alt;
+		
+			img.setAttribute( 'border', '0' );
+		}
+		
+		var oThis = this;
+		window.setTimeout( function() { oThis.checkDocumentState(); }, 200 );
+	},
+
+	removeTableRow: function() {
+		this.restoreSelection();
+		
+		var currentRow = this.getNearestElement( 'TR' );
+		var table = this.getNearestElement( 'TABLE' );
+		table.deleteRow( currentRow.rowIndex );
+	},
+
+	insertTableRow: function() {
+		this.restoreSelection();
+		
+		var currentRow = this.getNearestElement( 'TR' );
+		var table = this.getNearestElement( 'TABLE' );
+		
+		var row = table.insertRow( currentRow.rowIndex );
+		var cell;
+		
+		for( var n = 0; n < currentRow.cells.length; n++ ) {
+			cell = row.insertCell(-1);
+			cell.innerHTML = '&nbsp;';
+		}
+	},
+
+	removeTable: function() {
+		this.restoreSelection();
+		
+		var table = this.getNearestElement( 'TABLE' );
+		table.parentNode.removeChild( table );
+	},
+
+	insertHTML: function( html ) {
+		this.restoreSelection();
+		
+		this.htmlEditor.insertHTML( html );
+	},
+
+	elementSetAttribute: function( element, attr, value ) {
+		var el;
+		
+		if(! (el = this.getNearestElement( element )) )
+			return;
+		
+		el.setAttribute( attr, value );
+	},
+
+	elementSetStyle: function( element, prop, value ) {
+		var el;
+		
+		if(! (el = this.getNearestElement( element )) )
+			return;
+		
+		el.style[prop] = value;
+	},
+
+	setTextClass: function( className ) {
+		var el = this.getNearestElement( 'SPAN' );
+		
+		if( className == '' ) {
+			if( (!el) || el.tagName != 'SPAN' )
+				return;
+			
+			while( el.hasChildNodes() ) {
+				var c = el.removeChild( el.lastChild );
+				el.parentNode.insertBefore( c, el );
+			}
+			
+			el.parentNode.removeChild( el );
+		}
+		else {
+			if( (!el) || el.tagName != 'SPAN' ) {
+				var content = this.textEditor.selection.toString();
+				if(! content.length )
+					return;
+				
+				el = this.element.contentDocument.createElement( 'SPAN' );
+				el.innerHTML = content;
+				this.htmlEditor.insertElementAtSelection( el, true );
+			}
+			
+			el.className = className;
+		}
+	},
+
+	getNearestElement: function( tag ) {
+		this.restoreSelection();
+		
+		tag = tag.toUpperCase();
+		var el;
+		
+		if(! (el = this.htmlEditor.getSelectedElement( tag )) ) {
+			el = this.htmlEditor.getSelectionContainer();
+			
+			while( el && el.tagName != 'BODY' ) {
+				if( el.tagName == tag )
+					break;
+				
+				el = el.parentNode;
+			}
+		}
+		
+		return el ? el : null;
+	},
+
+	elementIsEditable: function( el ) {
+		var found = false;
+		
+		while( el && el.tagName != "BODY" ) {
+			if( el == this.editorElement ) {
+				found = true;
+				break;
+			}
+			el = el.parentNode;
+		}
+		
+		return found;
+	},
+
+	elementSetClassname: function( tag, className ) {
+		var el = this.getNearestElement( tag );
+		
+		if(! el )
+			return;
+		
+		el.className = className;
+	},
 	checkDocumentState: function() {
+		return;
 		this.storeSelection();
 		
 		
@@ -344,211 +553,37 @@ SiteFusion.Classes.LayoutEditor = Class.create( SiteFusion.Classes.Node, {
 		this.documentState.tableCellElement = tableCellElement;
 		
 		SiteFusion.Comm.QueueFlush();
+	}
+});
+
+SiteFusion.Classes.LayoutEditor = Class.create( SiteFusion.Classes.Editor, {
+	sfClassName: 'XULLayoutEditor',
+
+	loadLayoutHTML: function( html, frameid ) {
+		this.element.contentWindow.document.write( html );	
+		this.editorElement = this.element.contentDocument.getElementById( frameid );
 	},
 
-	storeSelection: function() {
-		var sel = this.textEditor.selection;
-		this.storedSelection = [];
-		
-		for( var n = 0; n < sel.rangeCount; n++ ) {
-			this.storedSelection.push( sel.getRangeAt(n) );
-		}
-	},
-
-	restoreSelection: function() {
-		var sel = this.textEditor.selection;
-		sel.removeAllRanges();
-		
-		for( var n = 0; n < this.storedSelection.length; n++ ) {
-			sel.addRange( this.storedSelection[n] );
-		}
-	},
-
-	createLink: function( href, target, class ) {
-		this.restoreSelection();
-		
-		var a, newel = false;
-		
-		if(! (a = this.htmlEditor.getSelectedElement( 'href' )) ) {
-			a = this.element.contentDocument.createElement( 'a' );
-			newel = true;
-		}
-		
-		a.href = href;
-		a.target = target;
-		a.className = class;
-		
-		if( newel )
-			this.htmlEditor.insertLinkAroundSelection( a );
-	},
-
-	removeElement: function( tagName ) {
-		this.restoreSelection();
-		
-		var el;
-		
-		if(! (el = this.htmlEditor.getSelectedElement( tagName )) )
+	loadBody: function( html ) {
+		if( ! this.element ) {
+			this._loadBody = html;
 			return;
-		
-		while( el.hasChildNodes() ) {
-			var c = el.removeChild( el.lastChild );
-			el.parentNode.insertBefore( c, el );
 		}
 		
-		el.parentNode.removeChild( el );
+		this.editorElement.innerHTML = html;
+		
+		this.makeEditable();
 	},
 
-	insertImage: function( src, width, height, align, alt ) {
-		this.restoreSelection();
-		
-		var img, newel = false;
-		
-		if(! (img = this.htmlEditor.getSelectedElement( 'IMG' )) ) {
-			var html = '<img src="'+src+'" border="0" style="width: '+width+'px; height: '+height+'px;"'+(align != null ? ' align="'+align+'"' : '')+' alt="'+(alt != null ? alt:'')+'">';
-			this.htmlEditor.insertHTML( html );
-		}
-		else {
-			if( src != null )
-				img.src = src;
-			if( width != null )
-				img.style.width = width + 'px';
-			if( height != null )
-				img.style.height = height + 'px';
-			if( align != null )
-				img.align = align;
-			if( alt != null )
-				img.alt = alt;
-		
-			img.setAttribute( 'border', '0' );
-		}
-		
-		var oThis = this;
-		window.setTimeout( function() { oThis.checkDocumentState(); }, 200 );
+	makeEditable: function() {
+		this.element.contentDocument.body.contentEditable = false;
+		this.editorElement.contentEditable = true;
+		this.fireEvent( 'madeEditable' );
 	},
-
-	removeTableRow: function() {
-		this.restoreSelection();
-		
-		var currentRow = this.getNearestElement( 'TR' );
-		var table = this.getNearestElement( 'TABLE' );
-		table.deleteRow( currentRow.rowIndex );
-	},
-
-	insertTableRow: function() {
-		this.restoreSelection();
-		
-		var currentRow = this.getNearestElement( 'TR' );
-		var table = this.getNearestElement( 'TABLE' );
-		
-		var row = table.insertRow( currentRow.rowIndex );
-		var cell;
-		
-		for( var n = 0; n < currentRow.cells.length; n++ ) {
-			cell = row.insertCell(-1);
-			cell.innerHTML = '&nbsp;';
-		}
-	},
-
-	removeTable: function() {
-		this.restoreSelection();
-		
-		var table = this.getNearestElement( 'TABLE' );
-		table.parentNode.removeChild( table );
-	},
-
-	insertHTML: function( html ) {
-		this.restoreSelection();
-		
-		this.htmlEditor.insertHTML( ctrlUnHtml(html) );
-	},
-
-	elementSetAttribute: function( element, attr, value ) {
-		var el;
-		
-		if(! (el = this.getNearestElement( element )) )
-			return;
-		
-		el.setAttribute( attr, value );
-	},
-
-	elementSetStyle: function( element, prop, value ) {
-		var el;
-		
-		if(! (el = this.getNearestElement( element )) )
-			return;
-		
-		el.style[prop] = value;
-	},
-
-	setTextClass: function( className ) {
-		var el = this.getNearestElement( 'SPAN' );
-		
-		if( className == '' ) {
-			if( (!el) || el.tagName != 'SPAN' )
-				return;
-			
-			while( el.hasChildNodes() ) {
-				var c = el.removeChild( el.lastChild );
-				el.parentNode.insertBefore( c, el );
-			}
-			
-			el.parentNode.removeChild( el );
-		}
-		else {
-			if( (!el) || el.tagName != 'SPAN' ) {
-				var content = this.textEditor.selection.toString();
-				if(! content.length )
-					return;
-				
-				el = this.element.contentDocument.createElement( 'SPAN' );
-				el.innerHTML = content;
-				this.htmlEditor.insertElementAtSelection( el, true );
-			}
-			
-			el.className = className;
-		}
-	},
-
-	getNearestElement: function( tag ) {
-		this.restoreSelection();
-		
-		tag = tag.toUpperCase();
-		var el;
-		
-		if(! (el = this.htmlEditor.getSelectedElement( tag )) ) {
-			el = this.htmlEditor.getSelectionContainer();
-			
-			while( el && el.tagName != 'BODY' ) {
-				if( el.tagName == tag )
-					break;
-				
-				el = el.parentNode;
-			}
-		}
-		
-		return el ? el : null;
-	},
-
-	elementIsEditable: function( el ) {
-		var found = false;
-		
-		while( el && el.tagName != "BODY" ) {
-			if( el == this.editorElement ) {
-				found = true;
-				break;
-			}
-			el = el.parentNode;
-		}
-		
-		return found;
-	},
-
-	elementSetClassname: function( tag, className ) {
-		var el = this.getNearestElement( tag );
-		
-		if(! el )
-			return;
-		
-		el.className = className;
+	
+	
+	disableInput: function(state)
+	{
+		this.editorElement.contentEditable = !state;
 	}
 } );

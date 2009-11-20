@@ -31,17 +31,17 @@
  * @subpackage Editor
 */
 
-
-class XULLayoutEditor extends BranchNode
+class XULEditor extends BranchNode
 {
-	public $remoteConstructor = 'LayoutEditor';
+	public $remoteConstructor = 'Editor';
 	public $resultHTML = '';
-	
+	protected $editable = FALSE;
+	protected $value = "";
 	
 	/**
 	 * Dynamic Constructor
 	 *
-	 * @param string	$editortype
+	 * @param string	$html
 	 * @param int		$flex
 	 * @param mixed		$childNodes
 	*/
@@ -51,7 +51,7 @@ class XULLayoutEditor extends BranchNode
 			$args = func_get_args();
 			
 			if( count($args) && is_string($args[0]) )
-				$this->editortype( array_shift($args) );
+				$this->value = array_shift($args);
 			if( count($args) && is_int($args[0]) )
 				$this->flex( array_shift($args) );
 			
@@ -62,18 +62,52 @@ class XULLayoutEditor extends BranchNode
 
 		$this->setEventHandler( 'yield', $this, 'yieldCollect' );
 		$this->setEventHandler( 'onAfterAttach', $this, 'init' );
+		$this->setEventHandler( 'initialized', $this, 'afterInit' );
+		$this->setEventHandler( 'madeEditable', $this, 'afterMadeEditable' );
 	}
 	
 	public function init() {
 		$this->callMethod( 'init' );
 	}
 	
-	public function loadLayoutHTML( $html, $frameid ) {
-		$this->callMethod( 'loadLayoutHTML', array($html,$frameid) );
+	public function afterMadeEditable()
+	{
+		$this->callMethod( 'editorLoaded');
+		$this->editable = TRUE;
+		
+		$this->callMethod( 'setValue', $this->value);
 	}
+	
+	public function afterInit() 
+	{
+		$this->callMethod( 'makeEditable');
+	}
+	
+	public function value($value = NULL)
+	{
+		if ($value !== NULL)
+		{
+			$this->value = $value;
+		}
 
-	public function loadBody( $html ) {
-		$this->callMethod( 'loadBody', array( $html == '' ? '<br/>':$html ) );
+		if( $this->editable )
+		 $this->callMethod( 'setValue', $this->value );
+	
+		return $this->value;
+	}
+	
+	public function disabled($disabled = NULL)
+	{
+		if ($disabled !== NULL)
+		{
+			$this->disabled = (bool)$disabled;
+			
+			$this->setProperty( 'disabled', ($this->disabled ? true : false));
+			if( $this->editable )
+				 $this->callMethod( 'disableInput', $this->disabled );
+		}
+		
+		return $this->disabled;
 	}
 	
 	public function createLink( $href, $target = '', $class = '' ) {
@@ -121,6 +155,39 @@ class XULLayoutEditor extends BranchNode
 	}
 	
 	public function yieldCollect( $e, $val ) {
+
+		$this->resultHTML = $val;
+	}
+}
+
+class XULLayoutEditor extends XULEditor
+{
+	public $remoteConstructor = 'LayoutEditor';
+	public $resultHTML = '';
+	
+	public function afterInit() 
+	{
+
+	}
+	
+	public function afterMadeEditable()
+	{
+		$this->callMethod( 'editorLoaded');
+		$this->editable = TRUE;
+		
+	}
+	
+	public function loadLayoutHTML( $html, $frameid ) {
+		$this->callMethod( 'loadLayoutHTML', array($html,$frameid) );
+	}
+
+	public function loadBody( $html ) {
+		$this->callMethod( 'loadBody', array( $html == '' ? '<br/>':$html ) );
+	}
+	
+	
+	public function yieldCollect( $e, $val ) {
+
 		$source = $val;
 		$decodedStr = "";
 		$pos = 0;

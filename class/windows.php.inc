@@ -124,6 +124,11 @@ class XULWindow extends XULBasicWindow
 		$this->callMethod( 'windowObject.focus' );
 	}
 	
+	public function openUrlWindow($url, $options="chrome")
+	{
+		$this->callMethod( 'windowObject.open', array($url,'', $options) );
+	}
+	
 	public function close() {
 		$this->application->onWindowClose();
 		

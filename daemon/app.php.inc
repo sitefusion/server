@@ -277,7 +277,9 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 			$n = 0;
 			while( isset($post[++$n]) ) {
 				$data = json_decode( stripslashes($post[$n]) );
-				
+				if (!$data)
+					throw new SFException("Invalid JS data: ".stripslashes($post[$n]));
+					
 				self::ReconstructNodeReferences( $data );
 				
 				$id = array_shift( $data );

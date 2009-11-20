@@ -280,7 +280,6 @@ class XULTreeItem extends BranchNode
 	}
 }
 
-
 /**
  * Treerow element
  * 

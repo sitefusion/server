@@ -234,6 +234,8 @@ SiteFusion.Classes.ChildWindow = Class.create( SiteFusion.Classes.BasicWindow, {
 			win.addEventListener( 'dialogcancel', onDialogButton, true );
 			win.addEventListener( 'dialoghelp', onDialogButton, true );
 			win.addEventListener( 'dialogdisclosure', onDialogButton, true );
+			win.addEventListener( 'dialogextra1', onDialogButton, true );
+			win.addEventListener( 'dialogextra2', onDialogButton, true );
 		}
 		
 		this.initMenuBar();
@@ -280,7 +282,7 @@ SiteFusion.Classes.Dialog = Class.create( SiteFusion.Classes.ChildWindow, {
 		this.dialog = true;
 		this.resizable = false;
 		
-		this.setEventHost( [ 'initialized', 'accept', 'cancel', 'close', 'help', 'disclosure', 'hasClosed' ] );
+		this.setEventHost( [ 'initialized', 'accept', 'cancel', 'close', 'help', 'disclosure', 'extra1', 'extra2', 'hasClosed' ] );
 		
 		this.eventHost.initialized.msgType = 0;
 		this.eventHost.close.msgType = -1;
@@ -288,6 +290,8 @@ SiteFusion.Classes.Dialog = Class.create( SiteFusion.Classes.ChildWindow, {
 		this.eventHost.cancel.msgType = -1;
 		this.eventHost.help.msgType = 0;
 		this.eventHost.disclosure.msgType = 0;
+		this.eventHost.extra1.msgType = 0;
+		this.eventHost.extra2.msgType = 0;
 		this.eventHost.hasClosed.msgType = 0;
 	},
 	

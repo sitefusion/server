@@ -282,7 +282,8 @@ SiteFusion.Classes.MenuList = Class.create( SiteFusion.Classes.Node, {
 	
 	yield: function() {
 		var item, idx;
-		idx = typeof(this.element.selectedIndex) == 'undefined' ? 0 : this.element.selectedIndex;
+
+		idx = (typeof(this.element.selectedIndex) == 'undefined' || this.element.selectedIndex == -1)  ? 0 : this.element.selectedIndex;
 		item = this.element.childNodes[0].childNodes[idx].sfNode;
 		
 		this.fireEvent( 'yield', new Array( item ) );

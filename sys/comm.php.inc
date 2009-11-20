@@ -98,7 +98,7 @@ class Comm
 		return "R[".$obj->id."].".$method."($args);";
 	}
 	
-	public static function CallMethodDelayed( $obj, $method, $args = NULL, $delay = 10 ) {
+	public static function CallMethodDelayed( $obj, $method, $args = NULL, $delay = 1 ) {
 		if( ! $obj->isRegistered )
 			Error::CallerFatal( 'Need a registered node for Comm::CallMethodDelayed()' );
 

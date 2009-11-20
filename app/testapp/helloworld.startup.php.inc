@@ -16,5 +16,6 @@ class SFHelloWorld extends Application
       $this->window->addChild(
          new XULLabel("Hello World")
       );
+     
    }
 }
