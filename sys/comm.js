@@ -30,16 +30,14 @@ SiteFusion.Comm = {
 	MSG_SEND: 0,
 	MSG_QUEUE: 1,
 	
-	CommConnection: null,
-	RevCommConnection: null,
+	ShowProgressCursorDelay: 2000,
+	CommTransmission: null,
+	RevCommTransmission: null,
+	TransmissionQueue: [],
 	IdleHandlers: [],
 	BusyHandlers: [],
-	Buffer: [],
-	BufferSend: false,
-	UseBuffer: false,
-	Queue: '',
-	Timer: null,
-	CommandId: 1,
+	ProgressTimer: null,
+	Queue: [],
 	XULEvents: [
 		'blur', 'broadcast', 'change', 'click', 'command', 'commandupdate',
 		'contextmenu', 'dblclick', /*'dragdrop', 'dragenter', 'dragexit', 'draggesture',
@@ -48,159 +46,50 @@ SiteFusion.Comm = {
 		'popuphidden', 'popuphiding', 'popupshowing', 'popupshown', 'select',
 		'syncfrompreference', 'synctopreference', 'underflow', 'unload', 'sfdragstart', 'sfdragover', 'sfdragdrop'
 	],
-	EventReturnValue: null,
+	
 	
 	RevComm: function() {
-		var x = new XMLHttpRequest;
-		x.open( 'GET', SiteFusion.Address + '/revcomm.php?app=' + SiteFusion.Application + '&args=' + SiteFusion.Arguments + '&sid=' + SiteFusion.SID + '&ident=' + SiteFusion.Ident, true );
-		x.onreadystatechange = function( evt ) {
-			if( x.readyState == 4 ) {
-				if( x.status == 200 ) {
-					if( x.responseText != '' && x.responseText.substr( -16 ) != '"EXEC_COMPLETE";' ) {
-						SiteFusion.Error( x.responseText.replace( /<.+?>/g, '' ) );
-						return;
-					}
-					
-					SiteFusion.Execute( x.responseText );
-					SiteFusion.Interface.HandleDeferredChildAdditions();
-					SiteFusion.Comm.RevComm();
-				}
-			}
-		};
-		x.send( null );
-		SiteFusion.Comm.RevCommConnection = x;
-	},
-	
-	Idle: function() {
-		for( var n = 0; n < this.IdleHandlers.length; n++ ) {
-			if(! this.IdleHandlers[n] ) {
-				this.IdleHandlers.splice( n--, 1 );
-				continue;
-			}
-			this.IdleHandlers[n]();
-		}
-
-		if( this.Buffer.length ) {
-			for( var n = 0; n < this.Buffer.length; n++ ) {
-				var cmd = this.Buffer[n];
-				if( cmd[0] )
-					this.QueueCommand( cmd[1], cmd[2], cmd[3] );
-				else
-					this.SendCommand( cmd[1], cmd[2], cmd[3] );
-			}
-		}
-
-		this.UseBuffer = false;
-
-		this.Timer = setTimeout( this.Inactive, 4 * 60 * 1000 );
+		new SiteFusion.Comm.Transmission();
 	},
 
-	Inactive: function() {
-		SiteFusion.RootWindow.fireEvent( 'idle' );
+	SendCommand: function( sfNode, evt, args ) {
+		this.QueueCommand( sfNode, evt, args );
+		return this.QueueFlush( sfNode.eventHost[evt].blocking );
 	},
 
-	Busy: function() {
-		this.UseBuffer = true;
-
-		for( var n = 0; n < this.BusyHandlers.length; n++ ) {
-			if(! this.BusyHandlers[n] ) {
-				this.BusyHandlers.splice( n--, 1 );
-				continue;
-			}
-			this.BusyHandlers[n]();
-		}
-	},
-
-	BufferCommand: function( type, cid, evt, args ) {
-		this.Buffer.push( [ type, cid, evt, args ] );
-	},
-	
-	RawQueueCommand: function( cid, evt, args ) {
+	QueueCommand: function( sfNode, evt, args ) {
 		args.unshift( evt );
-		args.unshift( cid );
-		var data = args.toJSON();
+		args.unshift( sfNode.cid );
 		
-		this.Queue += (this.Queue == '' ? '':'&') + this.CommandId++ + '=' + data;
+		this.Queue.push( args.toJSON() );
 	},
-
-	SendCommand: function( cid, evt, args ) {
-		if( this.UseBuffer ) {
-			this.BufferCommand( 0, cid, evt, args );
-			return;
-		}
-
-		this.RawQueueCommand( cid, evt, args );
-
-		this.QueueFlush();
-	},
-
-	QueueCommand: function( cid, evt, args ) {
-		if( this.UseBuffer ) {
-			this.BufferCommand( 1, cid, evt, args );
-			return;
-		}
-
-		this.RawQueueCommand( cid, evt, args );
-	},
-
-	QueueFlush: function() {
-		if( this.Queue == '' ) return;
-
-		if( this.Timer )
-			clearTimeout( this.Timer );
-
-		this.UseBuffer = true;
-
-		for( var n = 0; n < this.BusyHandlers.length; n++ ) {
-			this.BusyHandlers[n]();
-		}
-
-
-		this.SendQueue();
-
-		while( this.Buffer.length ) {
-			var cmd = this.Buffer.shift();
-			this.RawQueueCommand( cmd[1], cmd[2], cmd[3] );
-			if( cmd[0] == 0 )
-				this.SendQueue();
-		}
-
-		for( var n = 0; n < this.IdleHandlers.length; n++ ) {
-			this.IdleHandlers[n]();
-		}
-
-		this.UseBuffer = false;
-
-		this.Timer = setTimeout( this.Inactive, 4 * 60 * 1000 );
-	},
-
-	SendQueue: function() {
+	
+	QueueFlush: function( blocking ) {
+		if( ! this.Queue.length ) return;
+		
 		var queue = this.Queue;
-		this.Queue = '';
-		this.CommandId = 1;
-
-		var x = new XMLHttpRequest;
-		x.open( 'POST', SiteFusion.Address + '/comm.php?app=' + SiteFusion.Application + '&args=' + SiteFusion.arguments + '&sid=' + SiteFusion.SID + '&ident=' + SiteFusion.Ident, false );
-		x.setRequestHeader( 'Content-Type', 'application/x-www-form-urlencoded' );
-		x.send( queue );
+		this.Queue = [];
 		
-		this.CommConnection = x;
-		
-		if( x.status != 200 ) {
-			var oThis = this;
-			setTimeout( function() { oThis.QueueFlush() }, 10000 );
-			return;
-		}
-
-		if( x.responseText.substr( -16 ) != '"EXEC_COMPLETE";' ) {
-			SiteFusion.Error( x.responseText.replace( /<.+?>/g, '' ) );
-			return;
-		}
-
-		SiteFusion.Execute( x.responseText );
-		SiteFusion.Interface.HandleDeferredChildAdditions();
+		return new SiteFusion.Comm.Transmission( blocking ? true:false, '['+queue.join(',')+']' );
 	},
-
+	
+	StartProgressTimer: function() {
+		if( ! this.ProgressTimer ) {
+			var oThis = this;
+			this.ProgressTimer = setTimeout( function() { oThis.ProgressTimer = null; SiteFusion.Interface.CursorBackground(); }, this.ShowProgressCursorDelay );
+		}
+	},
+	
+	StopProgressTimer: function() {
+		if( this.ProgressTimer ) {
+			clearTimeout( this.ProgressTimer );
+			this.ProgressTimer = null;
+		}
+		else {
+			SiteFusion.Interface.CursorIdle();
+		}
+	},
+	
 	AddToRegistry: function( id, node ) {
 		SiteFusion.Registry[parseInt(id)] = node;
 		node.cid = id;
@@ -216,7 +105,183 @@ SiteFusion.Comm = {
 	}
 };
 
+SiteFusion.Comm.Transmission = Class.create( {
+	STATE_NEW: 0,
+	STATE_PROCESSING: 1,
+	STATE_CONNECTED: 2,
+	STATE_FINISHED: 3,
+	
+	state: null,
+	blocking: null,
+	payload: null,
+	payloadEncoding: null,
+	reverseInitiative: false,
+	request: null,
+	onstatechange: null,
+	
+	initialize: function( blocking, payload ) {
+		if( typeof(payload) == 'undefined' )
+			this.reverseInitiative = true;
+		else
+			this.payload = payload;
+		
+		this.blocking = (blocking && !this.reverseInitiative) ? true:false;
+		
+		this.state = this.STATE_NEW;
+		if( typeof(this.onstatechange) == 'function' )
+			this.onstatechange();
+		
+		if( this.reverseInitiative ) {
+			SiteFusion.Comm.RevCommTransmission = this;
+			this.send();
+		}
+		else if( this.blocking || !SiteFusion.Comm.CommTransmission ) {
+			SiteFusion.Comm.CommTransmission = this;
+			this.send();
+		}
+		else
+			SiteFusion.Comm.TransmissionQueue.push( this );
+	},
+	
+	send: function() {
+		// RevComm connections can proceed right away
+		if( this.reverseInitiative ) {
+			this.openHttpRequest();
+			return;
+		}
+		
+		if( this.blocking ) {
+			for( var n = 0; n < SiteFusion.Comm.BusyHandlers.length; n++ ) {
+				SiteFusion.Comm.BusyHandlers[n]();
+			}
+		}
+		else SiteFusion.Comm.StartProgressTimer();
+		
+		// Compress payload if larger than 128 bytes and asynchronous
+		if( this.payload.length > 128 && !this.blocking ) {
+			this.payloadEncoding = 'application/x-gzip';
+			new SiteFusion.Comm.Transmission.Compressor( this );
+			this.state = this.STATE_PROCESSING;
+			if( typeof(this.onstatechange) == 'function' )
+				this.onstatechange();
+		}
+		else {
+			this.payloadEncoding = 'application/octet-stream';
+			this.openHttpRequest();
+		}
+	},
+	
+	openHttpRequest: function() {
+		this.request = new XMLHttpRequest;
+		
+		var aSync = (this.reverseInitiative || !this.blocking)
+		
+		this.state = this.STATE_CONNECTED;
+		if( typeof(this.onstatechange) == 'function' )
+			this.onstatechange();
+		
+		this.request.open( 'POST',
+			SiteFusion.Address + '/' + (this.reverseInitiative ? 'revcomm':'comm') + '.php'
+			+ '?app=' + SiteFusion.Application
+			+ '&args=' + SiteFusion.arguments
+			+ '&sid=' + SiteFusion.SID
+			+ '&ident=' + SiteFusion.Ident,
+			aSync
+		);
+		
+		if( this.payloadEncoding )
+			this.request.setRequestHeader( 'Content-Type', this.payloadEncoding );
+		
+		if( aSync ) {
+			var transmission = this;
+			this.request.onreadystatechange = function( event ) {
+				if( this.readyState == 4 )
+					transmission.handleResponse();
+			};
+		}
+		
+		this.request[this.payloadEncoding == 'application/x-gzip' ? 'sendAsBinary':'send']( this.payload );
+		
+		if( !aSync )
+			this.handleResponse();
+	},
+	
+	handleResponse: function() {
+		if( this.request.status != 200 && !this.reverseInitiative ) {
+			setTimeout( function() { this.openHttpRequest(); }, 1000 );
+			return;
+		}
+		
+		if( this.request.responseText != '' && this.request.responseText.substr( -16 ) != '"EXEC_COMPLETE";' ) {
+			SiteFusion.Error( this.request.responseText.replace( /<.+?>/g, '' ) );
+			return;
+		}
+		
+		SiteFusion.Execute( this.request.responseText );
+		SiteFusion.Interface.HandleDeferredChildAdditions();
+		
+		if( this.blocking ) {
+			for( var n = 0; n < SiteFusion.Comm.IdleHandlers.length; n++ ) {
+				SiteFusion.Comm.IdleHandlers[n]();
+			}
+		}
+		
+		if( this.reverseInitiative ) {
+			this.send();
+		}
+		else if( SiteFusion.Comm.TransmissionQueue.length ) {
+			SiteFusion.Comm.CommTransmission = SiteFusion.Comm.TransmissionQueue.shift();
+			SiteFusion.Comm.CommTransmission.send();
+		}
+		else {
+			SiteFusion.Comm.CommTransmission = null;
+			SiteFusion.Comm.StopProgressTimer();
+		}
+		
+		this.state = this.STATE_FINISHED;
+		if( typeof(this.onstatechange) == 'function' )
+			this.onstatechange();
+	},
+	
+	abort: function() {
+		if( this.state >= this.STATE_CONNECTED ) {
+			this.request.abort();
+			SiteFusion.Comm.StopProgressTimer();
+		}
+	}
+} );
 
-String.prototype.toJSON = function() {
-	return '"'+encodeURIComponent(this).replace("%5C","%5C%5C%5C%5C%5C%5C%5C%5C").replace("%22","%5C%5C%5C%5C%5C%22")+'"';
-};
+SiteFusion.Comm.Transmission.Compressor = Class.create( {
+	buffer: '',
+	transmission: null,
+	
+	initialize: function( transmission ) {
+		this.transmission = transmission;
+		
+		var utfConv = Cc["@mozilla.org/intl/scriptableunicodeconverter"].createInstance(Ci.nsIScriptableUnicodeConverter);
+		utfConv.charset = "UTF-8";
+		
+		var utfStream = utfConv.convertToInputStream( this.transmission.payload );
+		
+		var scs = Cc["@mozilla.org/streamConverters;1"].getService( Ci.nsIStreamConverterService );
+		var compressor = scs.asyncConvertData( "uncompressed", "deflate", this, null );
+		
+		var pump = Cc["@mozilla.org/network/input-stream-pump;1"].createInstance( Ci.nsIInputStreamPump );
+		pump.init( utfStream, -1, -1, 0, 0, true );
+		pump.asyncRead( compressor, null );
+	},
+	
+	onStartRequest: function( request, context ) {},
+	
+	onStopRequest: function( request, context, statuscode ) {
+		this.transmission.payload = this.buffer;
+		this.transmission.openHttpRequest();
+	},
+	
+	onDataAvailable: function( request, context, inputStream, offset, count ) {
+		var stream = Cc["@mozilla.org/binaryinputstream;1"].createInstance( Ci.nsIBinaryInputStream );
+		stream.setInputStream( inputStream );
+		this.buffer += stream.readBytes( count );
+	}
+} );
+

@@ -70,7 +70,7 @@ class ServiceProcess extends ExtendedSiteFusionProcess
 		$path = $owner . ($owner == '' ? '':'/') . $service;
 		self::$ApplicationPath = $path;
 		
-		if( ereg( '[^a-zA-Z0-9_\-\/]', $path ) || (! file_exists(self::$Options['sitefusionPath'].'/app/' . $path . '.service.php.inc')) ) {
+		if( preg_match( '/[^a-zA-Z0-9_\-\/]/', $path ) || (! file_exists(self::$Options['sitefusionPath'].'/app/' . $path . '.service.php.inc')) ) {
 			self::Log( 'Service does not exist: '.$path );
 			exit();
 		}
@@ -78,7 +78,7 @@ class ServiceProcess extends ExtendedSiteFusionProcess
 		include_once( 'sys/service.php.inc' );
 		include_once( 'app/' . $path . '.service.php.inc' );
 
-		$class = getService();
+		$class = getService( $args );
 		
 		self::$Service = new $class;
 		self::$Service->init( $args );
@@ -225,7 +225,7 @@ class ServiceProcess extends ExtendedSiteFusionProcess
 			}
 		}
 		catch( SFException $ex ) {
-			self::Log( 'PollForClient: ' . $ex->getMessage() );
+			//self::Log( 'PollForClient: ' . $ex->getMessage() );
 			return FALSE;
 		}
 		return $client;

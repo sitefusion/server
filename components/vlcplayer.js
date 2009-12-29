@@ -25,6 +25,7 @@ SiteFusion.Classes.VlcPlayer = Class.create( SiteFusion.Classes.Node, {
 		this.element.setAttribute('version', 'VideoLAN.VLCPlugin.2');
 		this.win = win;
 		this.url = url;
+		this.initialized = false;
 		this.setEventHost( [ 'stateChange'] );
 		this.eventHost.stateChange.msgType = 0;
 		
@@ -35,11 +36,12 @@ SiteFusion.Classes.VlcPlayer = Class.create( SiteFusion.Classes.Node, {
 		if (this.url)
 		{
 			this.add(this.url);
+			var oThis = this;
+			window.setTimeout(function () { oThis.play();}, 100);
 		}
 	},
 	play: function() {
 		this.element.playlist.play();
-		
 		if (this.prevState == -1)
 			this.cycleStatusCheck();
 	},
@@ -57,13 +59,18 @@ SiteFusion.Classes.VlcPlayer = Class.create( SiteFusion.Classes.Node, {
 	
 	cycleStatusCheck: function() {
 		var oThis = this;
+		if (this.win.isClosing) return;
 		
-		if (this.prevState != this.element.input.state)
-		{
-			this.prevState = this.element.input.state;
-			this.fireEvent("stateChange", [this.element.input.state]);
+		try {
+			if (this.prevState != this.element.input.state)
+			{
+				this.prevState = this.element.input.state;
+				this.fireEvent("stateChange", [this.element.input.state]);
+			}
+		
+			window.setTimeout(function () { oThis.cycleStatusCheck();}, 100);
 		}
-		window.setTimeout(function () { oThis.cycleStatusCheck();}, 100);
+		catch(e) {alert(e);}
 	},
 	
 	sizeToContent: function()	{

@@ -30,8 +30,20 @@
  * @package Webfrontend
 */
 
+if( substr_count($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') ) ob_start("ob_gzhandler");
 
 ignore_user_abort( TRUE );
+
+$input = fopen( 'php://input', 'r' );
+$content = '';
+while( strlen($content) < $_SERVER['CONTENT_LENGTH'] ) {
+	$content .= fread( $input, 8192 );
+}
+fclose( $input );
+
+if( $_SERVER['CONTENT_TYPE'] == 'application/x-gzip' )
+	$content = gzuncompress($content);
+
 
 include( '../conf/webfrontend.conf' );
 include( 'functions.php' );
@@ -62,11 +74,7 @@ $result = socket_connect($socket, $WEBCONFIG['address'], $port );
 if ($result === false)
     die( "socket_connect() failed.\nReason: ($result) " . socket_strerror(socket_last_error($socket)) );
 
-for( $n = 1; isset($_POST[(string)$n]); $n++ ) {
-	$_POST[(string)$n] = stripslashes($_POST[(string)$n]);
-}
-
-WriteCommand( $socket, 'COMM', NULL, http_build_query($_POST) );
+WriteCommand( $socket, 'COMM', NULL, $content );
 
 $cmd = ReadCommand( $socket );
 socket_close($socket);

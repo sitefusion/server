@@ -28,7 +28,7 @@ class XULVlcPlayer extends Node
 	public function add($src)
 	{
 		$this->items[] = $src;
-		$this->callMethodDelayed('addSrc', array($src));
+		$this->callMethodDelayed('add', array($src));
 	}
 	
 	public function sizeToContent()

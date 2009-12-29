@@ -153,10 +153,9 @@ class XULEditor extends BranchNode
 	public function deleteElement( $tagName ) {
 		$this->callMethod( 'removeElement', array($tagName) );
 	}
-	
-	public function yieldCollect( $e, $val ) {
 
-		$this->resultHTML = $val;
+	public function yieldCollect( $e, $val = NULL ) {
+		$this->value = $val;
 	}
 }
 
@@ -170,11 +169,9 @@ class XULLayoutEditor extends XULEditor
 
 	}
 	
-	public function afterMadeEditable()
-	{
+	public function afterMadeEditable() {
 		$this->callMethod( 'editorLoaded');
 		$this->editable = TRUE;
-		
 	}
 	
 	public function loadLayoutHTML( $html, $frameid ) {
@@ -185,37 +182,7 @@ class XULLayoutEditor extends XULEditor
 		$this->callMethod( 'loadBody', array( $html == '' ? '<br/>':$html ) );
 	}
 	
-	
-	public function yieldCollect( $e, $val ) {
-
-		$source = $val;
-		$decodedStr = "";
-		$pos = 0;
-		$len = strlen ($source);
-		while ($pos < $len) {
-			$charAt = substr ($source, $pos, 1);
-			if ($charAt == '%' && substr($source,$pos+1,1) == 'u') {
-				$pos += 2;
-				$unicodeHexVal = substr ($source, $pos, 4);
-				$unicode = hexdec ($unicodeHexVal);
-				$entity = "&#". $unicode . ';';
-				$decodedStr .= utf8_encode ($entity);
-				$pos += 4;
-			}
-			else {
-				$decodedStr .= $charAt;
-				$pos++;
-			}
-		}
-		
-		$val = $decodedStr;
-
-		foreach ( WPEditorSymbolTable::$Symbols as $code ) {
-			$val = str_replace( html_entity_decode($code,ENT_QUOTES,'ISO-8859-1'), $code, $val );
-		}
-		
-		$val = str_replace( '&nbsp;', ' ', $val );	// FIX ME
-		
+	public function yieldCollect( $e, $val = NULL ) {
 		$this->resultHTML = $val;
 	}
 }

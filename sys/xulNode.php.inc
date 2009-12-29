@@ -307,6 +307,24 @@ class Node
 	
 	
 	/**
+	 * Sets whether the event should block (be synchronous)
+	 * 
+	 * @param string		$event		Event name
+	 * @param bool			$blocking	Blocking
+	 * @return Node	Returns reference to self ($this) for easy chaining of method calls
+	*/
+	
+	public function setEventBlocking( $event, $blocking ) {
+		if( ! $this->isRegistered )
+			Error::CallerFatal( 'Can`t set event blocking because the hosting node is not registered' );
+		
+		$this->callMethod( 'setEventBlocking', array($event,$blocking) );
+		
+		return $this;
+	}
+	
+	
+	/**
 	 * Sets a reflex for a certain event
 	 * 
 	 * A reflex is a piece of JavaScript that gets executed immediately upon firing an event,

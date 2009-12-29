@@ -62,6 +62,7 @@ SiteFusion.Classes.Node = Class.create( {
 		this.eventHost[evt] = new Array();
 		this.eventHost[evt].msgType = type;
 		this.eventHost[evt].reflex = null;
+		this.eventHost[evt].blocking = false;
 	},
 	
 	setEventListener: function( evt ) {
@@ -84,6 +85,13 @@ SiteFusion.Classes.Node = Class.create( {
 
 		var oThis = this;
 		SiteFusion.Interface.DeferredCallbacks.push( function() { oThis.setEventListener( evt ); } );
+	},
+	
+	setEventBlocking: function( evt, blocking ) {
+		if( this.eventHost[evt] == null )
+			SiteFusion.Error( 'Widget ' + this.sfClassName + ' does not support event ' + evt );
+		
+		this.eventHost[evt].blocking = blocking;
 	},
 	
 	eventHandler: function ( event ) {
@@ -110,7 +118,7 @@ SiteFusion.Classes.Node = Class.create( {
 			this._dummy = sfEvent.reflex;
 			var ret = this._dummy( eventName, args, event );
 			delete this._dummy;
-			if( !ret ) return false;
+			if( ret === false ) return false;
 		}
 
 		for( var n = 0; n < sfEvent.length; n++ ) {
@@ -119,9 +127,9 @@ SiteFusion.Classes.Node = Class.create( {
 		}
 
 		if( sfEvent.msgType == 0 )
-			SiteFusion.Comm.SendCommand( this.cid, eventName, args );
+			return SiteFusion.Comm.SendCommand( this, eventName, args );
 		else if( sfEvent.msgType == 1 )
-			SiteFusion.Comm.QueueCommand( this.cid, eventName, args );
+			SiteFusion.Comm.QueueCommand( this, eventName, args );
 
 		return true;
 	},
@@ -161,8 +169,9 @@ SiteFusion.Classes.Node = Class.create( {
 	addReflex: function( e, code ) {
 		if( this.eventHost[e] == null )
 			SiteFusion.Error( 'Widget ' + this.sfClassName + ' does not support event ' + e );
-
+		
 		var func;
+		
 		try {
 			eval( "func = function( eventName, eventArguments, eventObject ) { " + code + " }" );
 		}
@@ -309,12 +318,7 @@ SiteFusion.Classes.Node = Class.create( {
 	},
 
 	src: function( text ) {
-		if( text.substr(0,1) == '/' ) {
-			var d = new Date();
-			text = SiteFusion.Address + '/appimage.php?name=' + text.substr(1) + '&app=' + SiteFusion.Application + '&args=' + SiteFusion.Arguments + '&sid=' + SiteFusion.SID + '&ident=' + SiteFusion.Ident + '&cycle=' + d.getTime();
-		}
-		
-		this.element.setAttribute( 'src', text );
+		this.element.setAttribute( 'src', this.parseImageURL(text) );
 	},
 
 	accessKey: function( key ) {
@@ -322,12 +326,7 @@ SiteFusion.Classes.Node = Class.create( {
 	},
 
 	image: function( text ) {
-		if( text.substr(0,1) == '/' ) {
-			var d = new Date();
-			text = SiteFusion.Address + '/appimage.php?name=' + text.substr(1) + '&app=' + SiteFusion.Application + '&args=' + SiteFusion.Arguments + '&sid=' + SiteFusion.SID + '&ident=' + SiteFusion.Ident + '&cycle=' + d.getTime();
-		}
-		
-		this.element.setAttribute( 'image', text );
+		this.element.setAttribute( 'image', this.parseImageURL(text) );
 	},
 	
 	value: function( val ) {
@@ -342,6 +341,14 @@ SiteFusion.Classes.Node = Class.create( {
 	blur: function() {
 		var oThis = this;
 		SiteFusion.Interface.DeferredCallbacks.push( function() { oThis.element.blur(); } );
+	},
+	
+	parseImageURL: function( text ) {
+		if( text.substr(0,1) == '/' ) {
+			var d = new Date();
+			text = SiteFusion.Address + '/appimage.php?name=' + text.substr(1) + '&app=' + SiteFusion.Application + '&args=' + SiteFusion.Arguments + '&sid=' + SiteFusion.SID + '&ident=' + SiteFusion.Ident + '&cycle=' + d.getTime();
+		}
+		return text;
 	},
 
 	setDraggable: function() {

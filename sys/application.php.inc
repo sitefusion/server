@@ -72,6 +72,7 @@ LoadClass( 'branchNode', 'sys' );
 LoadClass( 'registry', 'sys' );
 LoadClass( 'comm', 'sys' );
 LoadClass( 'console', 'sys' );
+LoadClass( 'updater', 'sys' );
 
 // User classes
 LoadClass( 'windows' );
@@ -91,6 +92,7 @@ if( !(defined('SF_AUTOLOAD_CLASSES') && SF_AUTOLOAD_CLASSES === FALSE) ) {
 	LoadClass( 'fileHandling' );
 	LoadClass( 'scripting' );
 	LoadClass( 'layoutEditor' );
+	LoadClass( 'codeEditor' );
 }
 
 
@@ -432,5 +434,13 @@ class Application
 	
 	public function onWindowClose() {
 		ApplicationProcess::Shutdown();
+	}
+	
+	/**
+	 * Checks for updates using the given preferences
+	*/
+	
+	public function checkForUpdates() {
+		ApplicationProcess::$Application->sendCommand('SiteFusion.Updates.openUpdates();');
 	}
 }

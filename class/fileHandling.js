@@ -142,8 +142,10 @@ SiteFusion.Classes.FileUploader = Class.create( SiteFusion.Classes.Node, {
 			this.chunkSize = 10240;
 		else if( this.fileSize < 500000 )
 			this.chunkSize = 51200;
-		else
+		else if( this.fileSize < 1000000 )
 			this.chunkSize = 102400;
+		else
+			this.chunkSize = 512000;
 		
 		this.cycle = 0;
 		
@@ -155,7 +157,7 @@ SiteFusion.Classes.FileUploader = Class.create( SiteFusion.Classes.Node, {
 			function() {
 				oThis._uploadCycle();
 			},
-		1000 );
+		100 );
 	},
 
 	_uploadCycle: function() {
@@ -178,15 +180,15 @@ SiteFusion.Classes.FileUploader = Class.create( SiteFusion.Classes.Node, {
 		else
 			len = this.chunkSize;
 	
-		data = this.binary.readBytes(len);
+		data = btoa(this.binary.readBytes(len));
 		this.progress += len;
 		this.cycle++;
 		
-		this.fireEvent( 'cycle', [ this.fileSize, this.progress, this.cycle, data ] );
+		var transmission = this.fireEvent( 'cycle', [ this.fileSize, this.progress, this.cycle, data ] );
 		
 		if( this.binary.available() ) {
 			var oThis = this;
-			this.timer = window.setTimeout( function() { oThis._uploadCycle(); }, 1 );
+			transmission.onstatechange = function() { if( this.state == this.STATE_FINISHED ) oThis._uploadCycle(); };
 		}
 		else {
 			this.binary.close();

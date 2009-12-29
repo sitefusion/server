@@ -58,6 +58,7 @@ try {
 	);
 
 	$cmd = ReadCommand( $socket );
+	
 	ob_end_clean();
 }
 catch ( Exception $ex ) {

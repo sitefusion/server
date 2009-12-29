@@ -146,30 +146,27 @@ SiteFusion.Interface = {
 		this.DeferredCallbacks = [];
 	},
 	
-	CursorBusy: function() {
-		document.documentElement.style.cursor = 'wait';
+	SetCursor: function( cursor ) {
+		setCursor( cursor );
 		
 		for( var n = 0; n < SiteFusion.Interface.ChildWindows.length; n++ ) {
-			if( SiteFusion.Interface.ChildWindows[n] ) {
-				if( SiteFusion.Interface.ChildWindows[n].document ) {
-					if( SiteFusion.Interface.ChildWindows[n].document.documentElement )
-						SiteFusion.Interface.ChildWindows[n].document.documentElement.style.cursor = 'wait';
-				}
+			try {
+				SiteFusion.Interface.ChildWindows[n].setCursor( cursor );
 			}
+			catch( ex ) {}
 		}
+	},
+	
+	CursorBusy: function() {
+		SiteFusion.Interface.SetCursor( 'wait' );
+	},
+
+	CursorBackground: function() {
+		SiteFusion.Interface.SetCursor( 'progress' );
 	},
 
 	CursorIdle: function() {
-		document.documentElement.style.cursor = '';
-
-		for( var n = 0; n < SiteFusion.Interface.ChildWindows.length; n++ ) {
-			if( SiteFusion.Interface.ChildWindows[n] ) {
-				if( SiteFusion.Interface.ChildWindows[n].document ) {
-					if( SiteFusion.Interface.ChildWindows[n].document.documentElement )
-						SiteFusion.Interface.ChildWindows[n].document.documentElement.style.cursor = '';
-				}
-			}
-		}
+		SiteFusion.Interface.SetCursor( 'auto' );
 	},
 	
 	RegisterChildWindow: function( win ) {

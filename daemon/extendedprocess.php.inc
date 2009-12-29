@@ -356,7 +356,7 @@ class SiteFusionTimer
 		$this->function = $func;
 		$this->interval = $interval;
 		
-		ApplicationProcess::StoreTimer( $this );
+		ExtendedSiteFusionProcess::StoreTimer( $this );
 	}
 	
 	public function timeout() {
@@ -370,11 +370,11 @@ class SiteFusionTimer
 			call_user_func_array( array($this->object,$this->function), array($this) );
 		
 		if( $this->interval && ! $this->cancelled )
-			ApplicationProcess::StoreTimer( $this );
+			ExtendedSiteFusionProcess::StoreTimer( $this );
 	}
 	
 	public function cancel() {
-		ApplicationProcess::RemoveTimer( $this );
+		ExtendedSiteFusionProcess::RemoveTimer( $this );
 		$this->cancelled = TRUE;
 	}
 }

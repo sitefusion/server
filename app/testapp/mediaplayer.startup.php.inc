@@ -1,5 +1,5 @@
 <?php
-LoadClass( 'vlcplayer' );
+LoadClass( 'vlcplayer', 'components' );
 
 function authorizeLogin( $args, $user, $pass ) {
    return ($user == 'user' && $pass == 'password');

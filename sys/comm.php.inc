@@ -161,6 +161,9 @@ class Comm
 		if(! is_array($args) )
 			$args = array($args);
 		
+		if (!count($args))
+			return json_encode($args);
+			
 		for( $n = 0; $n < count($args); $n++ ) {
 			if( is_array($args[$n]) ) {
 				$args[$n] = self::EncodeArguments( $args[$n] );

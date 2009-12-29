@@ -44,7 +44,7 @@ SiteFusion.Classes.ProgressMeter = Class.create( SiteFusion.Classes.Node, {
 		this.element = win.createElement( 'progressmeter' );
 		this.element.sfNode = this;
 		
-		this.value = this.setNumericValue;
+		this.value = this.numericValue;
 		this.mode( mode );
 		
 		this.setEventHost();
@@ -244,7 +244,7 @@ SiteFusion.Classes.RadioGroup = Class.create( SiteFusion.Classes.Node, {
 	yield: function() {
 		var sel = this.element.selectedItem;
 		if( sel != null )
-			sel = sel.widgetObj;
+			sel = sel.sfNode;
 		
 		this.fireEvent( 'yield', [ sel ] );
 	},

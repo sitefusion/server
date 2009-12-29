@@ -90,6 +90,16 @@ class XULBasicWindow extends BranchNode
 	public function openLink( $url ) {
 		$this->callMethod( 'openLink', array($url) );
 	}
+	
+	public function openUrlWindow($url, $options="chrome")
+	{
+		$this->callMethod( 'openUrlWindow', array($url, $options) );
+	}
+	
+	public function openUrlDialog($url, $options="chrome")
+	{
+		$this->callMethod( 'openUrlDialog', array($url, $options) );
+	}
 }
 
 
@@ -122,11 +132,6 @@ class XULWindow extends XULBasicWindow
 	
 	public function open() {
 		$this->callMethod( 'windowObject.focus' );
-	}
-	
-	public function openUrlWindow($url, $options="chrome")
-	{
-		$this->callMethod( 'windowObject.open', array($url,'', $options) );
 	}
 	
 	public function close() {
@@ -205,13 +210,15 @@ class XULChildWindow extends XULBasicWindow
 		$this->setProperty( 'parentHostWindow', $this->parent->hostWindow );
 		$this->callMethod( 'open' );
 		
-		$this->rootApplication->sendCommand( "R[".$this->parent->id."].addChildSilent(R[".$this->id."]);" );
+		//$this->rootApplication->sendCommand( "R[".$this->parent->id."].addChildSilent(R[".$this->id."]);" );
+		$this->parent->callMethod( 'addChildSilent', array($this) );
 		
 		$this->setEventHandler( 'initialized', $this, 'initWindow' );
 	}
 	
 	public function detach() {
-		$this->rootApplication->sendCommand( "R[".$this->parent->id."].removeChildSilent(R[".$this->id."]);" );
+		//$this->rootApplication->sendCommand( "R[".$this->parent->id."].removeChildSilent(R[".$this->id."]);" );
+		$this->parent->callMethod( 'removeChildSilent', array($this) );
 		$this->unRegister();
 	}
 	

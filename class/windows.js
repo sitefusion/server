@@ -97,6 +97,18 @@ SiteFusion.Classes.BasicWindow = Class.create( SiteFusion.Classes.Node, {
 			menubar.parentNode.removeChild( menubar );
 			this.systemMenuBar = null;
 		}
+	},
+	
+	openUrlWindow: function(url, options) {
+		var win = this.windowObject.open(url,'', options);
+		SiteFusion.Interface.RegisterChildWindow(win);
+		win.onclose = function() {SiteFusion.Interface.UnregisterChildWindow(win); };
+	},
+	
+	openUrlDialog: function(url, options) {
+		var win = this.windowObject.openDialog(url,'', options);
+		SiteFusion.Interface.RegisterChildWindow(win);
+		win.onclose = function() {SiteFusion.Interface.UnregisterChildWindow(win); };
 	}
 } );
 
@@ -114,11 +126,12 @@ SiteFusion.Classes.Window = Class.create( SiteFusion.Classes.BasicWindow, {
 		winobj.sfNode = this;
 		winobj.sfRootWindow = this;
 		
-		this.setEventHost( [ 'initialized', 'idle', 'close' ] );
+		this.setEventHost( [ 'initialized', 'close' ] );
 		
-		this.eventHost.idle.msgType = SiteFusion.Comm.MSG_SEND;
 		this.eventHost.initialized.msgType = SiteFusion.Comm.MSG_SEND;
+		this.eventHost.initialized.blocking = true;
 		this.eventHost.close.msgType = SiteFusion.Comm.MSG_SEND;
+		this.eventHost.close.blocking = true;
 		
 		var oThis = this;
 		var onClose = function(event) { oThis.onClose(event); };
@@ -133,7 +146,7 @@ SiteFusion.Classes.Window = Class.create( SiteFusion.Classes.BasicWindow, {
 		
 		this.initMenuBar();
 
-		SiteFusion.Comm.RevComm();		
+		SiteFusion.Comm.RevComm();
 	},
 	
 	onClose: function( event ) {
@@ -147,9 +160,9 @@ SiteFusion.Classes.Window = Class.create( SiteFusion.Classes.BasicWindow, {
 			return false;
 		}
 		
-		if( SiteFusion.Comm.RevCommConnection ) {
+		if( SiteFusion.Comm.RevCommTransmission ) {
 			try {
-				SiteFusion.Comm.RevCommConnection.abort();
+				SiteFusion.Comm.RevCommTransmission.abort();
 			}
 			catch ( ex ) {}
 		}
@@ -185,9 +198,14 @@ SiteFusion.Classes.ChildWindow = Class.create( SiteFusion.Classes.BasicWindow, {
 		this.dialog = true;
 		this.resizable = false;
 		
+		this.isClosing = false;
+		
 		this.setEventHost( [ 'initialized', 'close', 'hasClosed' ] );
 		
 		this.eventHost.initialized.msgType = 0;
+		this.eventHost.initialized.blocking = true;
+		this.eventHost.close.msgType = 0;
+		this.eventHost.close.blocking = true;
 		this.eventHost.hasClosed.msgType = 0;
 	},
 
@@ -258,8 +276,9 @@ SiteFusion.Classes.ChildWindow = Class.create( SiteFusion.Classes.BasicWindow, {
 			return false;
 		}
 		
+		this.isClosing = true;
 		this.fireEvent( 'hasClosed' );
-
+		
 		SiteFusion.Interface.UnregisterChildWindow( this.windowObject );
 
 		return true;
@@ -282,16 +301,22 @@ SiteFusion.Classes.Dialog = Class.create( SiteFusion.Classes.ChildWindow, {
 		this.dialog = true;
 		this.resizable = false;
 		
+		this.isClosing = false;
+		
 		this.setEventHost( [ 'initialized', 'accept', 'cancel', 'close', 'help', 'disclosure', 'extra1', 'extra2', 'hasClosed' ] );
 		
 		this.eventHost.initialized.msgType = 0;
+		this.eventHost.initialized.blocking = true;
 		this.eventHost.close.msgType = -1;
 		this.eventHost.accept.msgType = 0;
+		this.eventHost.accept.blocking = true;
 		this.eventHost.cancel.msgType = -1;
 		this.eventHost.help.msgType = 0;
 		this.eventHost.disclosure.msgType = 0;
 		this.eventHost.extra1.msgType = 0;
 		this.eventHost.extra2.msgType = 0;
+		this.eventHost.close.msgType = 0;
+		this.eventHost.close.blocking = true;
 		this.eventHost.hasClosed.msgType = 0;
 	},
 	

@@ -181,7 +181,7 @@ class FileUploader extends Node
 			@unlink( $fullpath );
 		
 		$file = fopen( $fullpath, 'a' );
-		fwrite( $file, $data );
+		fwrite( $file, base64_decode($data) );
 		fclose( $file );
 		
 		$this->uploadedPath = $fullpath;
@@ -238,10 +238,8 @@ class FileDownloader extends Node
 	}
 	
 	public function outputStream() {
-		if( class_exists('ApplicationProcess') )
-			ApplicationProcess::Header( 'Content-Type: application/octet-stream' );
-		else
-			header( 'Content-Type: application/octet-stream' );
+		ApplicationProcess::Header( 'Content-Type: application/octet-stream' );
+		
 		readfile($this->filePath);
 		
 		if( $this->removeAfterTransfer )

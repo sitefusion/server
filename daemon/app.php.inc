@@ -269,24 +269,19 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 		try {
 			ob_start();
 			
-			$post = array();
-			parse_str( $cmd->data, $post );
-		
+			$post = json_decode( $cmd->data );
 			$app = self::$Application;
-		
-			$n = 0;
-			while( isset($post[++$n]) ) {
-				$data = json_decode( stripslashes($post[$n]) );
-				if (!$data)
-					throw new SFException("Invalid JS data: ".stripslashes($post[$n]));
-					
-				self::ReconstructNodeReferences( $data );
+			if(!$post)
+				throw new SFException("Invalid JS data: ".$cmd->data);
+			
+			foreach ( $post as $event ) {
+				self::ReconstructNodeReferences( $event );
 				
-				$id = array_shift( $data );
-				$func = array_shift( $data );
+				$id = array_shift( $event );
+				$func = array_shift( $event );
 
 				if( isset($app->registry->all[$id]) )
-					$app->registry->all[$id]->commandHandler( $func, $data );
+					$app->registry->all[$id]->commandHandler( $func, $event );
 			}
 			
 			ob_end_clean();

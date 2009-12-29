@@ -474,9 +474,7 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
 
 	this.getImageSrc = function( idx, col ) {
 		if( col.primary && this.visibleData[idx].primaryImage ) {
-			var url = this.visibleData[idx].primaryImage;
-			if( url.substr(0,1) == '/' ) url = SiteFusionBaseURI + url;
-			return url;
+			return this.sfTree.parseImageURL( this.visibleData[idx].primaryImage );
 		}
 		else return null;
 	};

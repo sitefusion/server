@@ -54,9 +54,9 @@ function WriteCommand( $socket, $cmd, $param = NULL, $data = NULL ) {
 }
 
 function ReadCommand( $socket ) {
-	$cmddata = socket_read( $socket, 4096, PHP_NORMAL_READ );
+	$cmddata = @socket_read( $socket, 4096, PHP_NORMAL_READ );
 	if( $cmddata === FALSE )
-		die( 'ReadCommand: socket_read() failed: '.socket_strerror(socket_last_error($socket)) );
+		throw new Exception( 'ReadCommand: socket_read() failed: '.socket_strerror(socket_last_error($socket)) );
 
 	$data = NULL;
 	$cmd = explode( ' ', rtrim($cmddata) );
@@ -74,7 +74,7 @@ function ReadCommand( $socket ) {
 	
 		$data = '';
 		while( strlen($data) < $dl ) {
-			$sbuf = socket_read( $socket, 2048, PHP_BINARY_READ );
+			$sbuf = @socket_read( $socket, 2048, PHP_BINARY_READ );
 			if( $sbuf === FALSE ) {
 				if( socket_last_error($socket) != 35 )
 					throw new SFException( 'ReadCommand: socket_read() failed: '.socket_strerror(socket_last_error($socket)) );

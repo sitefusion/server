@@ -38,13 +38,13 @@ SiteFusion.Classes.ListBox = Class.create( SiteFusion.Classes.Node, {
 	},
 	
 	yield: function() {
-		var items = this.element.selectedItem ? new Array( this.element.selectedItem.widgetObj ) : new Array( null );
+		var items = this.element.selectedItem ? new Array( this.element.selectedItem.sfNode ) : new Array( null );
 		
 		if( this.element.selectedItem ) {
 			var selectedItems = this.element.selectedItems;
 			
 			for( var t = 0; t < selectedItems.length; t++ ) {
-				items.push( selectedItems[t].widgetObj );
+				items.push( selectedItems[t].sfNode );
 			}
 		}
 		

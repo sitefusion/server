@@ -28,7 +28,7 @@ SiteFusion.Classes.Editor = Class.create( SiteFusion.Classes.Node, {
 	sfClassName: 'XULEditor',
 	
 	initialize: function( win ) {
-		this.element = win.createElement( 'editor' );
+		this.element = win.createElement( 'sourceeditor' );
 		this.element.sfNode = this;
 		
 		this.hostWindow = win;
@@ -95,6 +95,7 @@ SiteFusion.Classes.Editor = Class.create( SiteFusion.Classes.Node, {
 		
 		this.element.contentDocument.onmouseup = function() { window.setTimeout( func, 1 ); };
 		this.element.contentDocument.onkeyup = func;
+		this.element.contentDocument.onpaste = this.pasteHandler;
 		
 		this.htmlEditor = this.element.getHTMLEditor( this.element.contentWindow );
 		this.textEditor = this.element.getEditor( this.element.contentWindow );
@@ -122,7 +123,8 @@ SiteFusion.Classes.Editor = Class.create( SiteFusion.Classes.Node, {
 	yield: function() {
 		if(! this.editorElement )
 			return;
-		this.fireEvent( 'yield', [ this.editorElement.innerHTML ] );
+		alert( this.element.contentDocument.body.innerHTML + '' );
+		this.fireEvent( 'yield', [ this.element.contentDocument.body.innerHTML + '' ] );
 	},
 	
 	storeSelection: function() {
@@ -330,10 +332,9 @@ SiteFusion.Classes.Editor = Class.create( SiteFusion.Classes.Node, {
 		
 		el.className = className;
 	},
+	
 	checkDocumentState: function() {
-		return;
 		this.storeSelection();
-		
 		
 		if( ! this.documentState ) {
 			this.documentState = {
@@ -553,6 +554,176 @@ SiteFusion.Classes.Editor = Class.create( SiteFusion.Classes.Node, {
 		this.documentState.tableCellElement = tableCellElement;
 		
 		SiteFusion.Comm.QueueFlush();
+	},
+	
+	pasteHandler: function (e) {
+		dump('init paste!\n');
+
+		var xferableplain = Components.classes["@mozilla.org/widget/transferable;1"].createInstance(Components.interfaces.nsITransferable);
+		var xferablehtml = Components.classes["@mozilla.org/widget/transferable;1"].createInstance(Components.interfaces.nsITransferable);
+		var xferablemshtml = Components.classes["@mozilla.org/widget/transferable;1"].createInstance(Components.interfaces.nsITransferable);
+		
+		var unicodestring = Components.classes["@mozilla.org/supports-string;1"].createInstance(Components.interfaces.nsISupportsString);
+		var clipboard = Components.classes["@mozilla.org/widget/clipboard;1"].getService(Components.interfaces.nsIClipboard);
+
+		var str       = new Object();
+		var strLength = new Object();
+		var strHtml       = new Object();
+		var strHtmlLength = new Object();
+		var strMSHtml       = new Object();
+		var strMSHtmlLength = new Object();
+				
+		var pastetext = "";
+		var pastehtml = "";
+		var selectedHtml = "";
+		
+		var hasText = true;
+		var hasMicrosoftHtml = true;
+		var hasHtml = true;
+		var htmlIsOfficeHtml = false;
+		
+		//get text
+		xferableplain.addDataFlavor("text/unicode");
+		clipboard.getData(xferableplain, Components.interfaces.nsIClipboard.kGlobalClipboard);
+		
+		//get html
+		xferablehtml.addDataFlavor("text/html");
+		clipboard.getData(xferablehtml, Components.interfaces.nsIClipboard.kGlobalClipboard);
+		
+		//get microsoft html (windows only)
+		xferablemshtml.addDataFlavor("application/x-moz-nativehtml");
+		clipboard.getData(xferablemshtml, Components.interfaces.nsIClipboard.kGlobalClipboard);
+
+		try {
+			xferablemshtml.getTransferData("application/x-moz-nativehtml", strMSHtml, strMSHtmlLength);
+			dump("parsing Microsoft XML...\n");
+		}
+		catch(e)
+		{
+			dump("Microsoft XML not found on clipboard\n");
+			hasMicrosoftHtml = false;
+		}
+		
+		try {
+			xferablehtml.getTransferData("text/html", strHtml, strHtmlLength);
+			dump("parsing html...\n");
+		}
+		catch(e)
+		{
+			dump("html not found on clipboard\n");
+			hasHtml = false;
+		}
+		
+		
+		try {
+			xferableplain.getTransferData("text/unicode", str, strLength);
+			dump("parsing plaintext...\n");
+		}
+		catch(e)
+		{
+			dump("plaintext not found on clipboard\n");
+			hasText = false;
+		}
+		
+	    if (str && hasText) {
+	    	str = str.value.QueryInterface(Components.interfaces.nsISupportsString);
+	    	pastetext = str.data.substring(0, strLength.value / 2);
+	    }
+
+	    if (strHtml && hasHtml) {
+	    	strHtml = strHtml.value.QueryInterface(Components.interfaces.nsISupportsString);
+	    	pastehtml = strHtml.data.substring(0, strHtmlLength.value / 2);
+	    	
+				//office 2004 mac
+	    	htmlIsOfficeHtml = ((pastehtml.indexOf("Version:1.0") != -1) && (pastehtml.indexOf("StartHTML:") != -1) && (pastehtml.indexOf("EndHTML:") != -1));
+				//office 2008 mac
+			if (!htmlIsOfficeHtml) htmlIsOfficeHtml = (pastehtml.indexOf("urn:schemas-microsoft-com:office:office") != -1);
+	    }
+	
+		if (strMSHtml && strMSHtmlLength && strMSHtml.value && !hasHtml) {
+			
+			try {
+				
+			strMSHtml = new String(strMSHtml.value.QueryInterface(Components.interfaces.nsISupportsCString));
+			
+			//alert (utfConv.ConvertToUnicode(strMSHtml));
+			//var utfStream = utfConv.convertToInputStream( strMSHtml );
+			
+			//var avb = utfStream.available();
+			//var str = utfStream.read(avb);
+			//alert(str);
+			/*
+			var scs = Components.classes["@mozilla.org/streamConverters;1"].getService( Components.interfaces.nsIStreamConverterService );
+			var compressor = scs.asynComponents.classesonvertData( "uncompressed", "deflate", this, null );
+			
+			var pump = Components.classes["@mozilla.org/network/input-stream-pump;1"].createInstance( Components.interfaces.nsIInputStreamPump );
+			pump.init( utfStream, -1, -1, 0, 0, true );
+			pump.asyncRead( compressor, null );
+			*/
+			
+			//strMSHtml = utfConv.ConvertToUnicode(strMSHtml);
+			}
+			catch(e) {alert(e); }
+			
+	    	var tempmshtml = strMSHtml;
+	    	
+	    	if (tempmshtml.indexOf("urn:schemas-microsoft-com:office:office") == -1) {
+		    	var input = tempmshtml.split( /\r?\n/ );
+		    	var data = {};
+		    	while( input[0].match( /[a-z]\:.+/i ) ) {
+		    		var part = input[0].split( ':' );
+		    		data[part[0]] = part[1];
+		    		input.shift();
+		    	}
+		    	if (data.StartFragment && data.EndFragment)
+		    	{
+		    		var selStart = parseInt(data.StartFragment.replace(/^0+/,''));
+		    		var selEnd = parseInt(data.EndFragment.replace(/^0+/,''));
+		    	
+		   	 		var utfConv = Components.classes["@mozilla.org/intl/scriptableunicodeconverter"].createInstance(Components.interfaces.nsIScriptableUnicodeConverter);
+						utfConv.charset = "UTF-8";
+		    		selectedHtml = utfConv.ConvertToUnicode(tempmshtml.substr( selStart, selEnd-selStart ));
+		    	}
+		    }
+		}
+
+		if (selectedHtml) {
+			//check for incomplete table structure
+		    if (selectedHtml.substr(0,3).toLowerCase() == "<tr" && selectedHtml.substr(selectedHtml.length - 5, 5).toLowerCase() == "</tr>")
+		    	var processedHtml = "<table>" + selectedHtml + "</table>";
+		    else
+		    	var processedHtml = selectedHtml;
+	    	
+			unicodestring.data = processedHtml;
+			alert(processedHtml);
+			xferablehtml.setTransferData("text/html", unicodestring, processedHtml.length * 2);
+
+			clipboard.setData(xferablehtml, null, Components.interfaces.nsIClipboard.kGlobalClipboard);
+			dump ("setData() mshtml: " + unicodestring + "\n");
+		}
+		else if (strHtml && hasHtml && !htmlIsOfficeHtml)
+		{
+			//check for incomplete table structure
+		    if (pastehtml.substr(0,3).toLowerCase() == "<tr" && pastehtml.substr(pastehtml.length - 5, 5).toLowerCase() == "</tr>")
+		    	var processedHtml = "<table>" + pastehtml + "</table>";
+		    else
+		    	var processedHtml = pastehtml;
+	    	
+			unicodestring.data = processedHtml;
+			xferablehtml.setTransferData("text/html", unicodestring, processedHtml.length * 2);
+
+			clipboard.setData(xferablehtml, null, Components.interfaces.nsIClipboard.kGlobalClipboard);
+			dump ("setData() html: " + processedHtml + "\n");
+		}
+		else
+		{
+			//pastetext = pastetext.replace(new RegExp("([^a-zA-Z0-9\t\n\v\f\r \x21\x22\x23\x24\x25\x27\x28\x29\x2a\x2b\x2c\x2d\x2e\x2f\x3a\x3b\x3d\x3f\x40\x5b\x5c\x5d\x5e\x5f\x60\x7b\x7c\x7d\x7e])", "g"), this.editorObj.convertHelper);
+			unicodestring.data = pastetext;
+			xferableplain.setTransferData("text/unicode ", unicodestring, pastetext.length * 2);
+			clipboard.setData(xferableplain, null, Components.interfaces.nsIClipboard.kGlobalClipboard);
+			dump ("setData() plaintext\n");
+		}
+		dump("End of clipboard parsing!\n");
 	}
 });
 
@@ -581,9 +752,14 @@ SiteFusion.Classes.LayoutEditor = Class.create( SiteFusion.Classes.Editor, {
 		this.fireEvent( 'madeEditable' );
 	},
 	
-	
 	disableInput: function(state)
 	{
 		this.editorElement.contentEditable = !state;
+	},
+	
+	yield: function() {
+		if(! this.editorElement )
+			return;
+		this.fireEvent( 'yield', [ this.editorElement.innerHTML + '' ] );
 	}
 } );
