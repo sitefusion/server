@@ -100,7 +100,6 @@ SiteFusion.Classes.MenuItem = Class.create( SiteFusion.Classes.Node, {
 	initialize: function( win ) {
 		this.element = win.createElement( 'menuitem' );
 		this.element.sfNode = this;
-		
 		this.setEventHost([ 'yield' ]);
 	},
 	

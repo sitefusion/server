@@ -166,7 +166,7 @@ class Comm
 			
 		for( $n = 0; $n < count($args); $n++ ) {
 			if( is_array($args[$n]) ) {
-				$args[$n] = self::EncodeArguments( $args[$n] );
+				$args[$n] = '['.self::EncodeArguments( $args[$n] ).']';
 				continue;
 			}
 			if( $args[$n] instanceof Node )

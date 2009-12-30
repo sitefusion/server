@@ -274,10 +274,36 @@ SiteFusion.Classes.MenuList = Class.create( SiteFusion.Classes.Node, {
 	initialize: function( win ) {
 		this.element = win.createElement( 'menulist' );
 		this.element.sfNode = this;
+		this.hostWindow = win;
 		
 		this.setEventHost( [ 'yield' ] );
 		
 		this.eventHost.yield.msgType = 1;
+		
+		var oThis = this;
+		//setTimeout( function() { oThis.element.style.MozBinding = "url(chrome://global/content/bindings/menulist.xml#menulist-compact)"; oThis.element.setInitialSelection(); }, 5000 );
+		//setTimeout( function() { oThis.checkElement(); }, 1000 );
+	},
+	
+	checkElement: function() {
+		if( typeof(this.element.itemCount) == 'undefined' ) {
+			SiteFusion.consoleMessage( 'menulist opgefokt' );
+			var par = this.element.parentNode;
+			var before = this.element.nextSibling;
+			par.removeChild( this.element );
+			
+			var popup = this.element.removeChild( this.element.childNodes[0] );
+			this.element = this.hostWindow.createElement( 'menulist' );
+			this.element.appendChild( popup );
+			
+			if( before )
+				par.insertBefore( this.element, before );
+			else
+				par.appendChild( this.element );
+			
+			var oThis = this;
+			setTimeout( function() { oThis.checkElement(); }, 1000 );
+		}
 	},
 	
 	yield: function() {

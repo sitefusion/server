@@ -448,6 +448,9 @@ class Node
 		if(! $this->isRegistered )
 			Error::CallerFatal( 'Unregistered node cannot fire a ClientEvent' );
 		
+		if( ! is_array($args) )
+			$args = array($args);
+		
 		$this->rootApplication->sendCommand(
 			Comm::CallMethod( $this, 'fireEvent', array($event,$args) )
 		);

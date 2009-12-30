@@ -46,10 +46,6 @@ class SFImageLib extends Node
 	
 	public function attach() {
 		$this->createRemoteObject( array( $this->hostWindow ) );
-
-		//$this->createClientEvent( 'createTempPath' );
-		//$this->createClientEvent( 'setImageDetails' );
-		//$this->createClientEvent ( 'SFImageError' );
 		
  		$this->setEvent( 'createTempPath', MSG_SEND, $this, 'createTempPath' );
  		$this->setEvent( 'setImageDetails', MSG_SEND, $this, 'setImageDetails' );
@@ -144,80 +140,83 @@ class SFImageLib extends Node
 	
 }
 
-class WPDialogClientImageSizer extends XULDialog
+class WPDialogClientImageSizerPane extends XULHBox
 {
-	public $modal = TRUE;
+	public function __construct($initialSfimageObj = NULL) {
+		$this->initialSfimageObj = $initialSfimageObj;
+		$this->setEventHandler("onAfterAttach", $this, "init");
+	}
 	
-	public function __construct() {
-		$this->title = WPLanguage::$ImageEditor_ResizeDialog_Title;
+	public function init() {
 		
 		$this->addChild(
-				new XULHBox(
-				new XULVBox('center',
-						$this->imagePreview = new XULImage()
+			new XULHBox(
+			new XULVBox('center',
+					$this->imagePreview = new XULImage()
+				),
+			new XULVBox(
+			new XULGroupBox(
+			new XULCaption( WPLanguage::$ImageEditor_ResizeDialog_CurrentSize, 'bold' ),
+				new XULGrid(
+					new XULColumns(
+						new XULColumn,
+						new XULColumn(1)
 					),
-				new XULVBox(
+					new XULRows(
+						new XULRow(
+							new XULLabel( WPLanguage::$ImageEditor_ResizeDialog_Width ),
+							$this->lblWidth = new XULLabel()
+						),
+						new XULRow(
+							new XULLabel( WPLanguage::$ImageEditor_ResizeDialog_Height ),
+							$this->lblHeight = new XULLabel()
+						)
+					)
+					)
+				),
 				new XULGroupBox(
-				new XULCaption( WPLanguage::$ImageEditor_ResizeDialog_CurrentSize, 'bold' ),
+					new XULCaption( WPLanguage::$ImageEditor_ResizeDialog_NewSize, 'bold' ),
+					
 					new XULGrid(
 						new XULColumns(
 							new XULColumn,
-							new XULColumn(1)
+							new XULColumn,
+							new XULColumn
 						),
 						new XULRows(
-							new XULRow(
+							new XULRow( 'center',
 								new XULLabel( WPLanguage::$ImageEditor_ResizeDialog_Width ),
-								$this->lblWidth = new XULLabel()
+								$this->wInp = new XULTextBox( (string) "", FALSE, 50 ),
+								$this->wUnit = new XULMenuList(
+									new XULMenuPopup(
+										new XULMenuItem( WPLanguage::$ImageEditor_ResizeDialog_Pixels, 'px' ),
+										new XULMenuItem( WPLanguage::$ImageEditor_ResizeDialog_Percent, '%' )
+									)
+								)
 							),
-							new XULRow(
+							new XULRow( 'center',
 								new XULLabel( WPLanguage::$ImageEditor_ResizeDialog_Height ),
-								$this->lblHeight = new XULLabel()
-							)
-						)
-						)
-					),
-					new XULGroupBox(
-						new XULCaption( WPLanguage::$ImageEditor_ResizeDialog_NewSize, 'bold' ),
-						
-						new XULGrid(
-							new XULColumns(
-								new XULColumn,
-								new XULColumn,
-								new XULColumn
+								$this->hInp = new XULTextBox( (string) "", FALSE, 50 ),
+								$this->hUnit = new XULMenuList(
+									new XULMenuPopup(
+										new XULMenuItem( WPLanguage::$ImageEditor_ResizeDialog_Pixels, 'px' ),
+										new XULMenuItem( WPLanguage::$ImageEditor_ResizeDialog_Percent, '%' )
+									)
+								)
 							),
-							new XULRows(
-								new XULRow( 'center',
-									new XULLabel( WPLanguage::$ImageEditor_ResizeDialog_Width ),
-									$this->wInp = new XULTextBox( (string) "", FALSE, 50 ),
-									$this->wUnit = new XULMenuList(
-										new XULMenuPopup(
-											new XULMenuItem( WPLanguage::$ImageEditor_ResizeDialog_Pixels, 'px' ),
-											new XULMenuItem( WPLanguage::$ImageEditor_ResizeDialog_Percent, '%' )
-										)
-									)
-								),
-								new XULRow( 'center',
-									new XULLabel( WPLanguage::$ImageEditor_ResizeDialog_Height ),
-									$this->hInp = new XULTextBox( (string) "", FALSE, 50 ),
-									$this->hUnit = new XULMenuList(
-										new XULMenuPopup(
-											new XULMenuItem( WPLanguage::$ImageEditor_ResizeDialog_Pixels, 'px' ),
-											new XULMenuItem( WPLanguage::$ImageEditor_ResizeDialog_Percent, '%' )
-										)
-									)
-								),
-								$this->ckProportions = new XULCheckBox( WPLanguage::$ImageEditor_ResizeDialog_MaintainProportions, TRUE )
-							)
+							$this->ckProportions = new XULCheckBox( WPLanguage::$ImageEditor_ResizeDialog_MaintainProportions, TRUE )
 						)
 					)
 				)
 			)
+		)
 		);
 		
 		$this->wInp->type( 'number' )->setAttribute( 'min', '1' )->setAttribute( 'max', '4000' );
 		$this->hInp->type( 'number' )->setAttribute( 'min', '1' )->setAttribute( 'max', '4000' );
 		
-		$this->setEvent( 'accept', MSG_SEND, $this, 'accept', array( $this->wInp, $this->hInp, $this->wUnit, $this->hUnit ) );
+		if ($this->initialSfimageObj)
+			$this->loadImage($this->initialSfimageObj);
 	}
 	
 	public function setReflexes($sfimageObj)
@@ -263,24 +262,9 @@ class WPDialogClientImageSizer extends XULDialog
 		);	
 	}
 	
-	public function accept( $e ) {
-		$w = $this->wInp->value();
-		$h = $this->hInp->value();
-		
-		if( $this->wUnit->selectedValue == '%' ) {
-			$w = (int) ($this->image->getWidth() * ($w / 100));
-			$h = (int) ($this->image->getHeight() * ($h / 100));
-		}
-		
-		$this->fireLocalEvent( 'sizeAccepted', array( $w, $h ) );
-	}
-	
-	public function init() {
-		
-	}
-	
 	public function loadImage($sfimageObj)
 	{
+		$this->setReflexes($sfimageObj);
 		$maxDimension = max($sfimageObj->getWidth(), $sfimageObj->getHeight());
 		$targetmax = 300;
 		
@@ -295,17 +279,105 @@ class WPDialogClientImageSizer extends XULDialog
 		if ($maxDimension > $targetmax)
 		{
 			$factor = $targetmax / $maxDimension;
-			$image->width(intval($factor * $sfimageObj->getWidth()));
-			$image->height(intval($factor * $sfimageObj->getHeight()));
+			$this->imagePreview->width(intval($factor * $sfimageObj->getWidth()));
+			$this->imagePreview->height(intval($factor * $sfimageObj->getHeight()));
 		}
+		
+	}
+}
+class WPDialogClientImageSizer extends XULDialog
+{
+	public $modal = FALSE;
+	private $isInitialized = FALSE;
+	private $initialSfimageObjs = array();
+	
+	public function __construct($mediaBrowser, $initialSfimageObj = NULL) {
+		$this->mediaBrowser = $mediaBrowser;
+		$this->title = WPLanguage::$ImageEditor_ResizeDialog_Title;
+		
+		if ($initialSfimageObj)
+			$this->initialSfimageObjs[] = $initialSfimageObj;
+	}
+	
+	public function init() {
+		
+		$this->addChild(
+			$this->tabBox = new XULTabBox(1,    
+				$this->tabs = new XULTabs(
+					new XULToolbarButton("<<")			  
+				),
+				$this->panelDeck = new XULTabPanels()
+			)
+		);		
+		$this->createClientEvent("addPanelDelayed", MSG_SEND);
+		
+		foreach ($this->initialSfimageObjs as $initialSfimageObj)
+		{
+			$basename = preg_replace( '/^.+[\\\\\\/]/', '', $initialSfimageObj->path );
+				
+			$this->tabs->addChild(
+				$this->tabContent = new XULTab( $basename)
+			);
+			$this->panelDeck->addChild(
+				new XULTabPanel(new WPDialogClientImageSizerPane($initialSfimageObj))
+			);
+		}
+		$this->initialSfimageObjs = array();
+		$this->setEventHandler( 'hasClosed', $this, 'onBeforeClose' );
+		$this->setEventHandler( 'addPanelDelayed', $this, 'addPanelDelayed' );
+		
+		$this->sizeToContent();
+		$this->isInitialized = TRUE;
+		//$this->setEvent( 'accept', MSG_SEND, $this, 'accept', array( $this->wInp, $this->hInp, $this->wUnit, $this->hUnit ) );
+	}
+	
+	public function addPane($sfimageObj)
+	{
+		if ($this->isInitialized)
+		{
+			$basename = preg_replace( '/^.+[\\\\\\/]/', '', $sfimageObj->path );
+			$this->tabs->addChild(
+				$this->tabContent = new XULTab( $basename)		      
+			 );
+			
+			$this->fireClientEvent("addPanelDelayed", array($sfimageObj));
+		}
+		else $this->initialSfimageObjs[] = $sfimageObj;
+			
+	}
+	
+	public function addPanelDelayed($e, $sfimageObj)
+	{
+		$this->panelDeck->addChild(
+			new XULTabPanel(new WPDialogClientImageSizerPane($sfimageObj))
+		);
+	}
+	
+	public function accept( $e ) {
+		/*
+		$w = $this->wInp->value();
+		$h = $this->hInp->value();
+		
+		if( $this->wUnit->selectedValue == '%' ) {
+			$w = (int) ($this->image->getWidth() * ($w / 100));
+			$h = (int) ($this->image->getHeight() * ($h / 100));
+		}
+		
+		$this->fireLocalEvent( 'sizeAccepted', array( $w, $h ) );
+		*/
+	}
+	
+	public function onBeforeClose() {
+		unset($this->mediaBrowser->clientImageSizer);
 	}
 	
 	static public function Open( $mediaBrowser, $sfimageObj ) {
-		if( ! isset($app->codeEditor) ) {
-			$mediaBrowser->clientImageSizer = new self;
+		if( ! isset($mediaBrowser->clientImageSizer) ) {
+			$mediaBrowser->clientImageSizer = new self($mediaBrowser,$sfimageObj);
 			$mediaBrowser->addChild( $mediaBrowser->clientImageSizer );
 		}
-		
-		$mediaBrowser->clientImageSizer->loadImage( $sfimageObj);
+		else
+			$mediaBrowser->clientImageSizer->addPane($sfimageObj);
+			
 	}
 }
