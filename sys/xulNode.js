@@ -99,7 +99,8 @@ SiteFusion.Classes.Node = Class.create( {
 
 		if( ! obj.sfNode ) return;
 		
-		return obj.sfNode.fireEvent( event );
+		var tr = obj.sfNode.fireEvent( event );
+		return tr;
 	},
 
 	fireEvent: function( e, args ) {

@@ -362,6 +362,7 @@ class SiteFusionProcessTreeItem extends XULTreeItem
 class SiteFusionAdminMessageDialog extends XULDialog
 {
 	public $title = 'Send Message';
+	public $modal = TRUE;
 	
 	public function __construct( $to = NULL ) {
 		$this->to = $to;
@@ -386,6 +387,7 @@ class SiteFusionAdminJobScheduleDialog extends XULDialog
 {
 	public $title = 'Edit Job Schedule';
 	public $resizable = TRUE;
+	public $modal = TRUE;
 	
 	public function init() {
 		$this->addChild(
@@ -562,6 +564,7 @@ class SiteFusionAdminServiceListDialog extends XULDialog
 {
 	public $title = 'Edit Service List';
 	public $resizable = TRUE;
+	public $modal = TRUE;
 	
 	public function init() {
 		$this->addChild(

@@ -70,7 +70,8 @@ SiteFusion.Comm = {
 		var queue = this.Queue;
 		this.Queue = [];
 		
-		return new SiteFusion.Comm.Transmission( blocking ? true:false, '['+queue.join(',')+']' );
+		var tr = new SiteFusion.Comm.Transmission( blocking ? true:false, '['+queue.join(',')+']' );
+		return tr;
 	},
 	
 	StartProgressTimer: function() {
@@ -183,7 +184,7 @@ SiteFusion.Comm.Transmission = Class.create( {
 		this.request.open( 'POST',
 			SiteFusion.Address + '/' + (this.reverseInitiative ? 'revcomm':'comm') + '.php'
 			+ '?app=' + SiteFusion.Application
-			+ '&args=' + SiteFusion.arguments
+			+ '&args=' + SiteFusion.Arguments
 			+ '&sid=' + SiteFusion.SID
 			+ '&ident=' + SiteFusion.Ident,
 			aSync

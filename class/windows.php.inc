@@ -42,7 +42,7 @@
 class XULBasicWindow extends BranchNode
 {
 	public function preventClose( $bool = TRUE ) {
-		$this->setProperty( 'windowObject.preventClose', (bool) $bool );
+		$this->setProperty( 'preventClose', (bool) $bool );
 	}
 
 	public function size( $width, $height ) {
@@ -240,10 +240,10 @@ class XULChildWindow extends XULBasicWindow
 		
 		$this->sizeToContent();
 		
-	/*	if( $this->dependent && $this->centerscreen )
+		if( $this->dependent && $this->centerscreen )
 			$this->callMethod( 'windowObject.moveToAlertPosition' );
 		elseif( $this->centerscreen )
-			$this->callMethod( 'windowObject.centerWindowOnScreen' ); */
+			$this->callMethod( 'windowObject.centerWindowOnScreen' );
 	}
 
 	public function closeWindow() {
@@ -284,7 +284,7 @@ class XULDialog extends XULChildWindow
 
 	public $buttons		= 'accept,cancel';
 	public $remoteConstructor = 'Dialog';
-	public $initAttributes = array( 'buttonlabelaccept', 'buttonlabelcancel', 'buttonlabelhelp', 'buttonlabeldisclosure', 'buttonlabelextra1', 'buttonlabelextra2' );
+	public $initAttributes = array( 'buttonlabelaccept', 'buttonlabelcancel', 'buttonlabelhelp', 'buttonlabeldisclosure' );
 	
 	
 	public function initWindow() {
@@ -338,30 +338,6 @@ class XULDialog extends XULChildWindow
 		
 		if( $this->isRegistered )
 			$this->setProperty( 'element.getButton("disclosure").label', $label );
-		
-		return $this;
-	}
-	
-	public function buttonlabelextra1( $label = NULL ) {
-		if( $label === NULL )
-			return $this->buttonlabelextra1;
-		
-		$this->buttonlabelextra1 = $label;
-		
-		if( $this->isRegistered )
-			$this->setProperty( 'element.getButton("extra1").label', $label );
-		
-		return $this;
-	}
-	
-	public function buttonlabelextra2( $label = NULL ) {
-		if( $label === NULL )
-			return $this->buttonlabelextra2;
-		
-		$this->buttonlabelextra2 = $label;
-		
-		if( $this->isRegistered )
-			$this->setProperty( 'element.getButton("extra2").label', $label );
 		
 		return $this;
 	}
@@ -465,6 +441,34 @@ class PromptService extends Node
 		$this->handlerMethod = $handlerMethod;
 		$this->carryValue = $carryValue;
 		$this->callMethod( 'confirmCheck', array($title,$text,$checkMsg,$checkState) );
+	}
+	
+	
+	/**
+	 * Shows a custom confirm box with up to three buttons and a checkbox
+	 *
+	 * @param string	$title			Title of the dialog box
+	 * @param string	$text			Body text
+	 * @param int		$buttonFlags	Button flags
+	 * @param string	$button0Title	Optional custom title for button 0
+	 * @param string	$button1Title	Optional custom title for button 1
+	 * @param string	$button2Title	Optional custom title for button 2
+	 * @param string	$checkMsg		Label text of the checkbox
+	 * @param bool		$checkState		Initial state of the checkbox
+	 * @param object	$handlerObj		Object to call the callback function on
+	 * @param string	$handlerMethod	Method to call on the handler object
+	 * @param mixed		$carryValue		Arbitrary value to pass on to the handler function
+	 * 
+	 * @link https://developer.mozilla.org/en/nsIPromptService#confirmEx example
+	 */
+	
+	public function confirmEx( $title, $text, $buttonFlags, $button0Title, $button1Title, $button2Title, $checkMsg, $checkState, $handlerObj, $handlerMethod, $carryValue = NULL ) {
+		if( $this->promptInProgress ) Error::CallerFatal( 'PromptService: a prompt is already in progress' );
+		$this->promptInProgress = TRUE;
+		$this->handlerObj = $handlerObj;
+		$this->handlerMethod = $handlerMethod;
+		$this->carryValue = $carryValue;
+		$this->callMethod( 'confirmEx', array($title,$text,$buttonFlags,$button0Title,$button1Title,$button2Title,$checkMsg,$checkState) );
 	}
 	
 	

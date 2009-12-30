@@ -156,9 +156,10 @@ class XULMenuItem extends BranchNode
 		else parent::__construct();
 	}
 	
-		public function attach() {
+	public function attach() {
 		parent::attach();
 		$this->setEvent( 'yield', MSG_QUEUE, $this, 'yieldCollect' );
+		
 	}
 	
 	public function yieldCollect( $e, $val ) {

@@ -55,7 +55,6 @@ class Node
 	public $isRegistered		= FALSE;
 	public $isChild			= FALSE;
 	public $rootWindow;
-	public $hostWindow;
 	public $rootApplication;
 	public $eventHandler		= array();
 	public $eventYielder		= array();

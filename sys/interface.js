@@ -104,6 +104,8 @@ SiteFusion.Interface = {
 	},
 
 	HandleDeferredChildAdditionsRecursive: function( node ) {
+		if( ! node ) return;
+		
 		node.isPainted = true;
 		
 		for( var n = 0; n < node.deferredSFChildren.length; n++ ) {

@@ -150,11 +150,11 @@ SiteFusion.Classes.Window = Class.create( SiteFusion.Classes.BasicWindow, {
 	},
 	
 	onClose: function( event ) {
-		this.windowObject.preventClose = false;
+		this.preventClose = false;
 
 		this.fireEvent( 'close' );
 
-		if( this.windowObject.preventClose ) {
+		if( this.preventClose ) {
 			event.preventDefault();
 			event.stopPropagation();
 			return false;
@@ -240,7 +240,6 @@ SiteFusion.Classes.ChildWindow = Class.create( SiteFusion.Classes.BasicWindow, {
 		this.element = win.document.getElementById( 'sitefusion-dialog' );
 		this.element.sfNode = this;
 		win.sfRootWindow = SiteFusion.RootWindow;
-		win.preventClose = false;
 		
 		var oThis = this;
 		var onClose = function(event) { oThis.onClose(event); };
@@ -266,11 +265,11 @@ SiteFusion.Classes.ChildWindow = Class.create( SiteFusion.Classes.BasicWindow, {
 	},
 
 	onClose: function( event ) {
-		this.windowObject.preventClose = false;
-
+		this.preventClose = false;
+		
 		this.fireEvent( 'close' );
-
-		if( this.windowObject.preventClose ) {
+		
+		if( this.preventClose ) {
 			event.preventDefault();
 			event.stopPropagation();
 			return false;
@@ -324,13 +323,13 @@ SiteFusion.Classes.Dialog = Class.create( SiteFusion.Classes.ChildWindow, {
 		var ename = event.type.substr(6);
 
 		if( ename == 'help' || ename == 'disclosure' )
-			this.windowObject.preventClose = true;
+			this.preventClose = true;
 		else
-			this.windowObject.preventClose = false;
+			this.preventClose = false;
 
 		this.fireEvent( ename );
 
-		if( this.windowObject.preventClose ) {
+		if( this.preventClose ) {
 			event.preventDefault();
 			event.stopPropagation();
 			return false;
@@ -375,6 +374,12 @@ SiteFusion.Classes.PromptService = Class.create( SiteFusion.Classes.Node, {
 	confirmCheck: function( title, text, checkMsg, checkState ) {
 		checkState = { value: checkState };
 		var result = this.promptService.confirmCheck( this.hostWindow.windowObject, title+'', text+'', checkMsg+'', checkState );
+		this.fireEvent( 'yield', [ result, checkState.value, null, null, null ] );
+	},
+	
+	confirmEx: function( title, text, buttonFlags, button0Title, button1Title, button2Title, checkMsg, checkState ) {
+		checkState = { value: checkState };
+		var result = this.promptService.confirmCheck( this.hostWindow.windowObject, title+'', text+'', buttonFlags, button0Title, button1Title, button2Title, checkMsg, checkState );
 		this.fireEvent( 'yield', [ result, checkState.value, null, null, null ] );
 	},
 	

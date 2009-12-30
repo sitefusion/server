@@ -607,7 +607,7 @@ class XULMenuList extends BranchNode
 			$this->selectedValue = $this->selectedItem->value();
 
 			if( $this->isRegistered )
-				$this->callMethod( 'selectedItem', $val );
+				$this->callMethod( 'selectedItem', $val);
 		}
 		elseif( $val instanceof XULMenuItem ) {
 			$n = -1;
@@ -619,7 +619,7 @@ class XULMenuList extends BranchNode
 					$this->selectedValue = $item->value();
 
 					if( $this->isRegistered )
-						$this->callMethod( 'selectedItem', $n );
+						$this->callMethod( 'selectedItem', $n);
 
 					break;
 				}
@@ -632,7 +632,7 @@ class XULMenuList extends BranchNode
 				}
 			}
 			
-			//Error::CallerFatal( 'selectItem: Invalid item: ' . $val );
+			Error::CallerFatal( 'selectItem: Invalid item: ' . $val );
 		}
 		
 		return $this;

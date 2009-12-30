@@ -297,7 +297,7 @@ SiteFusion.Classes.MenuList = Class.create( SiteFusion.Classes.Node, {
 			}
 		);
 	},
-
+	
 	addItem: function( item, index ) {
 		var oThis = this;
 		SiteFusion.Interface.DeferredCallbacks.push(
