@@ -281,14 +281,25 @@ SiteFusion.Classes.MenuList = Class.create( SiteFusion.Classes.Node, {
 		this.eventHost.yield.msgType = 1;
 		
 		var oThis = this;
-		//setTimeout( function() { oThis.element.style.MozBinding = "url(chrome://global/content/bindings/menulist.xml#menulist-compact)"; oThis.element.setInitialSelection(); }, 5000 );
-		setTimeout( function() { oThis.checkElement(); }, 1000 );
+		
+		// FIXME:
+		// This is the dirtiest workaround ever, but it seems to be the only way to
+		// get the menulist to function properly in situations where it is constructed
+		// while not yet visible. Problems include:
+		// - fails to show first menuitem
+		// - always one selection behind, selectedIndex indicates the last selected item
+		//   instead of the currently selected one
+		// - fails to programmatically preselect an item
+		// - can only be constructed properly when it has become visible, hence the timer
+		//   because there is no event to indicate the control became visible.
+		setTimeout( function() { oThis._fixElement(); }, 1000 );
+		// /FIXME: end of workaround timer call
 	},
 	
-	checkElement: function() {
+	// FIXME:
+	// This workaround function needs to be removed when Mozilla fixes the menulist bindings
+	_fixElement: function() {
 		if( typeof(this.element.itemCount) == 'undefined' ) {
-			SiteFusion.consoleMessage( 'menulist opgefokt' );
-			
 			var par = this.element.parentNode;
 			var before = this.element.nextSibling;
 			par.removeChild( this.element );
@@ -306,37 +317,57 @@ SiteFusion.Classes.MenuList = Class.create( SiteFusion.Classes.Node, {
 			
 			for( var n = 0; n < popup.childNodes.length; n++ ) {
 				var item = popup.childNodes[n];
+				if( typeof(item._menulistHandlerSet) != 'undefined' )
+					continue;
+				
 				var oThis = this;
 				var func = function() {
 					for( var c = 0; c < this.parentNode.childNodes.length; c++ ) {
 						if( this.parentNode.childNodes[c] == this ) {
-							SiteFusion.consoleMessage( this.label + ': click' );
 							oThis.selectedIndex = c;
 							break;
 						}
 					}
 				};
-			//	item.addEventListener( 'click', func, true );
+				
+				item._menulistHandlerSet = true;
 				item.addEventListener( 'DOMMenuItemActive', func, true );
-			}
-			
-			for( var n = 0; n < SiteFusion.Comm.XULEvents.length; n++ ) {
-				this.setEventListener( SiteFusion.Comm.XULEvents[n] );
+				
+				if( typeof(this.selectedIndex) != 'undefined' && this.selectedIndex == n )
+					item.setAttribute( 'selected', 'true' );
 			}
 			
 			var oThis = this;
 			
 			var setFunc = function() {
-				SiteFusion.consoleMessage( 'Setting: ' + oThis.selectedIndex );
 				oThis.element.selectedIndex = oThis.selectedIndex;
 				delete oThis.selectedIndex;
 			};
-
-			this.element.oncommand = setFunc;
+			var keyFunc = function(event) {
+				if( oThis.element.childNodes[0].state == 'closed' && event.keyCode == 38 || event.keyCode == 40 ) {
+					var currentIndex = oThis.element.selectedIndex;
+					if( currentIndex == 0 && event.keyCode == 38 )
+						currentIndex = oThis.element.itemCount - 1;
+					else if( currentIndex == oThis.element.itemCount - 1 && event.keyCode == 40 )
+						currentIndex = 0;
+					else
+						currentIndex += (event.keyCode == 38 ? -1:1);
+					
+					oThis.selectedIndex = currentIndex;
+				}
+			};
 			
-			setTimeout( function() { oThis.checkElement(); }, 1000 );
+			this.element.addEventListener( 'command', setFunc, true );
+			this.element.addEventListener( 'keypress', keyFunc, true );
+			
+			for( var n = 0; n < SiteFusion.Comm.XULEvents.length; n++ ) {
+				this.setEventListener( SiteFusion.Comm.XULEvents[n] );
+			}
+			
+			setTimeout( function() { oThis._fixElement(); }, 1000 );
 		}
 	},
+	// /FIXME: end of workaround function
 	
 	yield: function() {
 		var item, idx;
@@ -348,6 +379,10 @@ SiteFusion.Classes.MenuList = Class.create( SiteFusion.Classes.Node, {
 	},
 
 	selectedItem: function( item ) {
+		// FIXME: this property becomes obsolete when the workaround is removed
+		this.selectedIndex = item;
+		// /FIXME: end of workaround property
+		
 		var oThis = this;
 		SiteFusion.Interface.DeferredCallbacks.push(
 			function() {

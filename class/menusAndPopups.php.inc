@@ -159,6 +159,16 @@ class XULMenuItem extends BranchNode
 	public function attach() {
 		parent::attach();
 		$this->setEvent( 'yield', MSG_QUEUE, $this, 'yieldCollect' );
+		
+		// FIXME:
+		// This is nescessary to fix situations where menulists that have no
+		// explicit selection right after construction are drawed empty instead
+		// of showing the first menuitem as the selected item.
+		// Remove when Mozilla fixes implicit initial selection on menulists
+		if( $this->parent->parent instanceof XULMenuList && count($this->parent->children) == 1 ) {
+			$this->parent->parent->selectItem(0);
+		}
+		// /FIXME: end of workaround code
 	}
 	
 	public function yieldCollect( $e, $val ) {
