@@ -282,33 +282,65 @@ SiteFusion.Classes.MenuList = Class.create( SiteFusion.Classes.Node, {
 		
 		var oThis = this;
 		//setTimeout( function() { oThis.element.style.MozBinding = "url(chrome://global/content/bindings/menulist.xml#menulist-compact)"; oThis.element.setInitialSelection(); }, 5000 );
-		//setTimeout( function() { oThis.checkElement(); }, 1000 );
+		setTimeout( function() { oThis.checkElement(); }, 1000 );
 	},
 	
 	checkElement: function() {
 		if( typeof(this.element.itemCount) == 'undefined' ) {
 			SiteFusion.consoleMessage( 'menulist opgefokt' );
+			
 			var par = this.element.parentNode;
 			var before = this.element.nextSibling;
 			par.removeChild( this.element );
 			
 			var popup = this.element.removeChild( this.element.childNodes[0] );
+			var oldElement = this.element;
 			this.element = this.hostWindow.createElement( 'menulist' );
 			this.element.appendChild( popup );
+			this.element.sfNode = this;
 			
 			if( before )
 				par.insertBefore( this.element, before );
 			else
 				par.appendChild( this.element );
 			
+			for( var n = 0; n < popup.childNodes.length; n++ ) {
+				var item = popup.childNodes[n];
+				var oThis = this;
+				var func = function() {
+					for( var c = 0; c < this.parentNode.childNodes.length; c++ ) {
+						if( this.parentNode.childNodes[c] == this ) {
+							SiteFusion.consoleMessage( this.label + ': click' );
+							oThis.selectedIndex = c;
+							break;
+						}
+					}
+				};
+			//	item.addEventListener( 'click', func, true );
+				item.addEventListener( 'DOMMenuItemActive', func, true );
+			}
+			
+			for( var n = 0; n < SiteFusion.Comm.XULEvents.length; n++ ) {
+				this.setEventListener( SiteFusion.Comm.XULEvents[n] );
+			}
+			
 			var oThis = this;
+			
+			var setFunc = function() {
+				SiteFusion.consoleMessage( 'Setting: ' + oThis.selectedIndex );
+				oThis.element.selectedIndex = oThis.selectedIndex;
+				delete oThis.selectedIndex;
+			};
+
+			this.element.oncommand = setFunc;
+			
 			setTimeout( function() { oThis.checkElement(); }, 1000 );
 		}
 	},
 	
 	yield: function() {
 		var item, idx;
-
+		
 		idx = (typeof(this.element.selectedIndex) == 'undefined' || this.element.selectedIndex == -1)  ? 0 : this.element.selectedIndex;
 		item = this.element.childNodes[0].childNodes[idx].sfNode;
 		
