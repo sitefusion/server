@@ -305,7 +305,6 @@ SiteFusion.Classes.MenuList = Class.create( SiteFusion.Classes.Node, {
 			par.removeChild( this.element );
 			
 			var popup = this.element.removeChild( this.element.childNodes[0] );
-			var oldElement = this.element;
 			this.element = this.hostWindow.createElement( 'menulist' );
 			this.element.appendChild( popup );
 			this.element.sfNode = this;
