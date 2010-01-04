@@ -42,6 +42,7 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 	static public $Application;
 	static public $JSLibraries = array();
 	static public $IncludePath = NULL;
+	static public $ClientID = NULL;
 	static private $LastContact;
 	static private $Headers;
 	static private $RevCommSocket = NULL;
@@ -50,13 +51,14 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 	static private $ConnectedServices = array();
 	static private $DebugWindows = array();
 	
-	static public function StartServer( $client, $parentSocket, $loginCmd, $port ) {
+	static public function StartServer( $client, $parentSocket, $loginCmd, $port, $clientid ) {
 		if( self::$ApplicationStarted || self::$ProcessType )
 			return;
 		
 		self::$ParentSocket = $parentSocket;
 		self::$ProcessType = 'app';
 		self::$ApplicationStarted = TRUE;
+		self::$ClientID = $clientid;
 
 		if( self::$Options['debug'] )
 			self::$DebugSocket = self::OpenUnixSocket( self::$Options['runtimeDirectory'] . '/' . 'debug'.posix_getpid().'.sock' );
@@ -247,7 +249,7 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 			}
 		}
 		catch( SFException $ex ) {
-			self::Log( 'PollForClient: ' . $ex->getMessage() );
+			//self::Log( 'PollForClient: ' . $ex->getMessage() );
 			return FALSE;
 		}
 		return $client;

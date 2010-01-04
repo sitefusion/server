@@ -42,6 +42,7 @@ class DaemonProcess extends SiteFusionProcess
 	static private $Restart = FALSE;
 	static private $Graceful = FALSE;
 	static private $Children = array();
+	static private $DeadChildren = array();
 	static private $UsedPorts = array();
 	static private $SleepingPorts = array();
 	
@@ -88,10 +89,10 @@ class DaemonProcess extends SiteFusionProcess
 			self::Log( 'Setting up signal handlers...' );
 			self::SetSignalHandlers();
 			
-			if( self::$Options['daemonize'] ) {
-				self::Log( 'Daemonizing...' );
-				self::Daemonize();
-			}
+		//	if( self::$Options['daemonize'] ) {
+		//		self::Log( 'Daemonizing...' );
+		//		self::Daemonize();
+		//	}
 			
 			$currentUser = posix_getpwuid(posix_getuid());
 			if( self::$Options['changeIdentity'] && $currentUser['name'] == self::$Options['systemUser'] )
@@ -169,12 +170,11 @@ class DaemonProcess extends SiteFusionProcess
 		
 		if( self::$Restart ) {
 			self::Log( 'Restarting...' );
-			$cmd = join( ' ', $_SERVER['argv'] );
-			system( $cmd );
-			exit();
+			exit(2);
 		}
 		else {
 			self::Log( 'Shutting down...' );
+			exit(0);
 		}
 	}
 	
@@ -231,6 +231,8 @@ class DaemonProcess extends SiteFusionProcess
 			case 'app':
 				if( self::$Children[$pid]->loggedIn )
 					self::ChildEnded( self::$Children[$pid] );
+				if( isset(self::$Children[$pid]->error) )
+					self::$DeadChildren[] = self::$Children[$pid];
 				
 				self::$SleepingPorts[ self::$Children[$pid]->port ] = time();
 				try { socket_close( self::$Children[$pid]->socket ); } catch ( SFException $ex ) {}
@@ -319,13 +321,18 @@ class DaemonProcess extends SiteFusionProcess
 			if( count(self::$Children) )
 				self::ListenToChildren();
 			
+			for( $n = 0; $n < count(self::$DeadChildren); $n++ ) {
+				if( time() - self::$DeadChildren[$n]->errorTimestamp > 60 )
+					array_splice( self::$DeadChildren, $n--, 1 );
+			}
+			
 			foreach ( self::$Children as $pid => $child ) {
 				if( $child->type == 'app' && time() - $child->lastKeepalive > self::$Options['childTimeout'] )
 					self::KillChild( $pid );
 			}
 			
 			if( $client = self::PollForClient() ) {
-				self::StartApplication( $client );
+				self::HandleClient( $client );
 			}
 			//else usleep( self::$Options['daemonCycleInterval'] );
 		}
@@ -477,8 +484,33 @@ class DaemonProcess extends SiteFusionProcess
 		return TRUE;
 	}
 	
+	static private function HandleClient( $client ) {
+		$cmd = self::ReadCommand( $client );
+		
+		switch( $cmd->command ) {
+			case 'STARTAPP':
+				self::StartApplication( $client, $cmd->clientid );
+				break;
+			
+			case 'GETERROR':
+				self::HandleGetError( $client, $cmd->clientid );
+				break;
+		}
+	}
+	
 	static private function HandleChildCmdKeepalive( $child ) {
 		$child->lastKeepalive = time();
+	}
+	
+	static private function HandleGetError( $client, $clientid ) {
+		foreach ( array_merge( self::$Children, self::$DeadChildren ) as $child ) {
+			if( $child->clientId == $clientid && isset($child->error) ) {
+				$error = $child->error;
+				break;
+			}
+		}
+		
+		self::WriteCommand( $client, 'ERROR', array( 'found' => isset($error) ), (isset($error) ? $error:NULL) );
 	}
 	
 	static private function HandleEvent( $sourceChild, $cmd ) {
@@ -721,7 +753,7 @@ class DaemonProcess extends SiteFusionProcess
 		return $dat[0];
 	}
 	
-	static private function StartApplication( $client ) {
+	static private function StartApplication( $client, $clientid ) {
 		$port = self::GetFreePort();
 		list($parent,$child) = self::GetSocketPair();
 		$pid = self::ForkChild();
@@ -735,6 +767,7 @@ class DaemonProcess extends SiteFusionProcess
 			$childObj->socket = $parent;
 			$childObj->started = time();
 			$childObj->lastKeepalive = time();
+			$childObj->clientId = $clientid;
 			self::$Children[$pid] = $childObj;
 			self::$UsedPorts[] = $port;
 			self::ResetDatabase();
@@ -758,7 +791,7 @@ class DaemonProcess extends SiteFusionProcess
 			}
 			
 			include_once( 'app.php.inc' );
-			ApplicationProcess::StartServer( $client, $child, $loginCmd, $port );
+			ApplicationProcess::StartServer( $client, $child, $loginCmd, $port, $clientid );
 		}
 	}
 	
@@ -913,7 +946,7 @@ class DaemonProcess extends SiteFusionProcess
 			}
 		}
 		catch( SFException $ex ) {
-			self::Log( 'PollForClient: ' . $ex->getMessage() );
+			//self::Log( 'PollForClient: ' . $ex->getMessage() );
 			return FALSE;
 		}
 		return $client;
@@ -942,6 +975,39 @@ class DaemonProcess extends SiteFusionProcess
 			throw new SFException( "socket_create_pair() failed: reason: ".socket_strerror(socket_last_error()) );
 		}
 		return $sockets;
+	}
+	
+	static protected function SetSignalHandlers() {
+		pcntl_signal( SIGHUP, array( 'DaemonProcess', 'SignalHandler' ) );
+		pcntl_signal( SIGTERM, array( 'DaemonProcess', 'SignalHandler' ) );
+		pcntl_signal( SIGINT, array( 'DaemonProcess', 'SignalHandler' ) );
+		pcntl_signal( SIGCHLD, array( 'DaemonProcess', 'SignalHandler' ) );
+	}
+	
+	static public function SignalHandler( $signo ) {
+		switch ( $signo ) {
+			case SIGHUP:
+				break;
+			
+			case SIGINT:
+			case SIGTERM:
+				self::$Shutdown = TRUE;
+				break;
+			
+			case SIGCHLD:
+				$pid = pcntl_waitpid(-1, $status);
+				
+				if( $pid > 0 && pcntl_wifexited($status) && pcntl_wexitstatus($status) > 0 ) {
+					$read = array(STDIN);
+					$write = NULL;
+					$except = NULL;
+					if( stream_select( $read, $write, $except, 0, 10000 ) > 0 ) {
+						self::$Children[$pid]->error = fread( $read[0], 8192 );
+						self::$Children[$pid]->errorTimestamp = time();
+					}
+				}
+				break;
+		}
 	}
 }
 
@@ -1199,4 +1265,8 @@ class DaemonChild
 	public $ip;
 	public $app;
 	public $args;
+	
+	public $clientId;
+	public $error;
+	public $errorTimestamp;
 }
