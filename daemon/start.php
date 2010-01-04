@@ -1,5 +1,7 @@
 <?php
 
+ini_set( 'display_errors', 'stderr' );
+
 declare( ticks = 1 );
 
 include_once( 'conf/daemon.conf' );

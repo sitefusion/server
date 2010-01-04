@@ -82,7 +82,7 @@ try {
 		throw new Exception( "socket_connect() failed.\nReason: ($result) " . socket_strerror(socket_last_error($socket)) );
 }
 catch ( Exception $ex ) {
-	ReturnError( 'server_offline' );
+	ReturnError( 'server_offline', $ex->getMessage() );
 }
 
 try {
@@ -113,9 +113,12 @@ catch ( Exception $ex ) {
 			ReturnError( 'empty_error' );
 	}
 	catch ( Exception $ex ) {
-		ReturnError( 'unspecified_error' );
+		ReturnError( 'unspecified_error', $ex->getMessage() );
 	}
 }
+
+if( substr($cmd->data,-16) != '"EXEC_COMPLETE";' )
+	ReturnError( 'php_error', $cmd->data );
 
 header( 'Content-Type: application/x-javascript; charset=utf-8' );
 echo $cmd->data;

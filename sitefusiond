@@ -1,6 +1,12 @@
 #!/usr/bin/php
 <?php
 
+$requiredVersion = '5.2.4';
+if( version_compare( PHP_VERSION, $requiredVersion ) == -1 ) {
+	echo "Your PHP version is too old, you need at least PHP $requiredVersion\n";
+	exit(1);
+}
+
 chdir( dirname(__FILE__) );
 
 include_once( 'conf/daemon.conf' );

@@ -37,8 +37,6 @@ include( 'functions.php' );
 if( ! (isset($_GET['app']) && isset($_GET['args']) && isset($_GET['clientid']) && isset($_POST['username']) && isset($_POST['password'])) )
 	die();
 
-ob_start();
-
 try {
 	$socket = @socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
 	if ($socket === false)
@@ -49,12 +47,7 @@ try {
 	    throw new Exception( "socket_connect() failed.\nReason: ($result) " . socket_strerror(socket_last_error($socket)) );
 }
 catch ( Exception $ex ) {
-	ob_end_clean();
-	echo json_encode( array(
-		"success" => FALSE,
-		"error" => 'server_offline'
-	) );
-	exit();
+	ReturnError( 'server_offline' );
 }
 
 try {	
@@ -70,14 +63,16 @@ try {
 	);
 
 	$cmd = ReadCommand( $socket );
-	
-	ob_end_clean();
-
 	$cmd->success = ($cmd->success ? TRUE:FALSE);
-
-	echo json_encode($cmd);
-
+	
 	socket_close($socket);
+	
+	if( $cmd->success ) {
+		echo json_encode($cmd);
+	}
+	else {
+		ReturnError( $cmd->error );
+	}
 }
 catch ( Exception $ex ) {
 	// Give the daemon some time to collect error output
@@ -95,21 +90,13 @@ catch ( Exception $ex ) {
 		WriteCommand( $socket, 'GETERROR', array( 'clientid' => $_GET['clientid'] ) );
 		$cmd = ReadCommand( $socket );
 		
-		if( $cmd->found ) {
-			ob_end_clean();
-			echo json_encode( array(
-				"success" => FALSE,
-				"error" => 'php_error',
-				"text" => $cmd->data
-			) );
-		}
+		if( $cmd->found )
+			ReturnError( 'php_error', $cmd->data );
+		else
+			ReturnError( 'empty_error' );
 	}
 	catch ( Exception $ex ) {
-		ob_end_clean();
-		echo json_encode( array(
-			"success" => FALSE,
-			"error" => 'unspecified_error'
-		) );
+		ReturnError( 'unspecified_error' );
 	}
 }
 

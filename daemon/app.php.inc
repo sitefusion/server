@@ -292,7 +292,7 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 			if( self::$ConnectedDebugger )
 				throw $ex;
 			
-			self::$NextCommOutput = $ex->getMessage() . ' in file ' . $ex->getFile() . ' at line ' . $ex->getLine() . "\n\n" . $ex->getTraceAsString();
+			self::$NextCommOutput = $ex->getMessage() . ' in ' . $ex->getFile() . ' on line ' . $ex->getLine() . "\n\n" . $ex->getTraceAsString();
 		}
 		
 		$output = (self::$NextCommOutput ? self::$NextCommOutput : implode("\n",self::$Application->commandBuffer)."\"EXEC_COMPLETE\";");
@@ -333,7 +333,7 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 			if( self::$ConnectedDebugger )
 				throw $ex;
 			
-			$content = $ex->getMessage() . ' in file ' . $ex->getFile() . ' at line ' . $ex->getLine() . "\n\n" . $ex->getTraceAsString();
+			$content = $ex->getMessage() . ' in ' . $ex->getFile() . ' on line ' . $ex->getLine() . "\n\n" . $ex->getTraceAsString();
 		}
 		
 		$contentType = 'application/octet-stream';
@@ -485,7 +485,7 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 				if( self::$ConnectedDebugger )
 					throw $ex;
 				
-				self::$NextCommOutput = $ex->getMessage() . ' in file ' . $ex->getFile() . ' at line ' . $ex->getLine() . "\n\n" . $ex->getTraceAsString();
+				self::$NextCommOutput = $ex->getMessage() . ' in ' . $ex->getFile() . ' on line ' . $ex->getLine() . "\n\n" . $ex->getTraceAsString();
 			}
 		}
 	}

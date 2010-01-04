@@ -997,7 +997,7 @@ class DaemonProcess extends SiteFusionProcess
 			case SIGCHLD:
 				$pid = pcntl_waitpid(-1, $status);
 				
-				if( $pid > 0 && pcntl_wifexited($status) && pcntl_wexitstatus($status) > 0 ) {
+				if( $pid > 0 && pcntl_wifexited($status) && pcntl_wexitstatus($status) ) {
 					$read = array(STDIN);
 					$write = NULL;
 					$except = NULL;

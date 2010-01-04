@@ -214,8 +214,16 @@ SiteFusion.Comm.Transmission = Class.create( {
 			return;
 		}
 		
-		if( this.request.responseText != '' && this.request.responseText.substr( -16 ) != '"EXEC_COMPLETE";' ) {
-			SiteFusion.Error( this.request.responseText.replace( /<.+?>/g, '' ) );
+		var contentType = this.request.getResponseHeader( 'Content-type' );
+		
+		if( contentType.match( /sitefusion\/error/ ) ) {
+			try {
+				var error = eval( '('+this.request.responseText+')' );
+				SiteFusion.HandleError( error );
+			}
+			catch ( ex ) {
+				SiteFusion.HandleError( { 'type': null, 'message': this.request.responseText.replace( /<.+?>/g, '' ) } );
+			}
 			return;
 		}
 		

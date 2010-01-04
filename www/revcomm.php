@@ -30,61 +30,99 @@
  * @package Webfrontend
 */
 
-
-if( substr_count($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') ) ob_start("ob_gzhandler");
-
 ignore_user_abort( TRUE );
-
 include( '../conf/webfrontend.conf' );
 include( 'functions.php' );
 
-header( 'Content-Type: application/x-javascript; charset=utf-8' );
+try {
+	if( substr_count($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') ) ob_start("ob_gzhandler");
 
-$db = mysql_connect( $WEBCONFIG['databaseHost'], $WEBCONFIG['databaseUsername'], $WEBCONFIG['databasePassword'] );
-mysql_select_db( 'sitefusion' );
-$res = mysql_query( "SELECT * FROM `processes` WHERE `id` = '".mysql_escape_string($_GET['sid'])."'" );
-if(! $res )
-	die( mysql_error() );
-
-if( ! mysql_num_rows($res) )
-	die( 'No session' );
-
-$dbSession = mysql_fetch_assoc( $res );
-
-if( $dbSession['ident'] != $_GET['ident'] )
-	die( 'Not authorized' );
-
-$port = (int) $dbSession['port'];
-
-$socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
-if ($socket === false)
-    die( "socket_create() failed: reason: " . socket_strerror(socket_last_error()) );
-
-$result = socket_connect($socket, $WEBCONFIG['address'], $port );
-if ($result === false)
-    die( "socket_connect() failed.\nReason: ($result) " . socket_strerror(socket_last_error($socket)) );
-
-WriteCommand( $socket, 'REVCOMM' );
-
-$timeout = $WEBCONFIG['revCommTimeout'];
-$startTime = time();
-
-while( (time() - $startTime) < $timeout ) {
+	$db = mysql_connect( $WEBCONFIG['databaseHost'], $WEBCONFIG['databaseUsername'], $WEBCONFIG['databasePassword'] );
+	mysql_select_db( 'sitefusion' );
+	$res = mysql_query( "SELECT * FROM `processes` WHERE `id` = '".mysql_escape_string($_GET['sid'])."'" );
+	if(! $res )
+		throw new Exception( mysql_error() );
 	
-	$read = array( $socket );
-	$write = NULL;
-	$except = NULL;
+	if( ! mysql_num_rows($res) )
+		throw new Exception( 'No session' );
 	
-	if( socket_select( $read, $write, $except, 0 ) > 0 ) {
-		$cmd = ReadCommand( $socket );
-		echo $cmd->data;
-		break;
-	}
+	$dbSession = mysql_fetch_assoc( $res );
 	
-	if( connection_status() != 0 )
-		break;
-	
-	usleep( 100000 );
+	if( $dbSession['ident'] != $_GET['ident'] )
+		throw new Exception( 'Not authorized' );
+
+	$port = (int) $dbSession['port'];
+}
+catch ( Exception $ex ) {
+	ReturnError( 'session_error', $ex->getMessage() );
 }
 
-socket_close($socket);
+try {
+	$socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+	if ($socket === false)
+	    throw new Exception( "socket_create() failed: reason: " . socket_strerror(socket_last_error()) );
+	
+	$result = socket_connect($socket, $WEBCONFIG['address'], $port );
+	if ($result === false)
+	    throw new Exception( "socket_connect() failed.\nReason: ($result) " . socket_strerror(socket_last_error($socket)) );
+}
+catch ( Exception $ex ) {
+	ReturnError( 'server_offline', $ex->getMessage() );
+}
+
+try {
+	WriteCommand( $socket, 'REVCOMM' );
+	
+	$timeout = $WEBCONFIG['revCommTimeout'];
+	$startTime = time();
+	
+	while( (time() - $startTime) < $timeout ) {
+		
+		$read = array( $socket );
+		$write = NULL;
+		$except = NULL;
+		
+		if( socket_select( $read, $write, $except, 0 ) > 0 ) {
+			$cmd = ReadCommand( $socket );
+			
+			if( substr($cmd->data,-16) != '"EXEC_COMPLETE";' )
+				ReturnError( 'php_error', $cmd->data );
+			
+			header( 'Content-Type: application/x-javascript; charset=utf-8' );
+			echo $cmd->data;
+			break;
+		}
+		
+		if( connection_status() != 0 )
+			break;
+		
+		usleep( 100000 );
+	}
+	
+	socket_close($socket);
+}
+catch ( Exception $ex ) {
+	// Give the daemon some time to collect error output
+	usleep( 500000 );
+	
+	try {
+		$socket = @socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+		if ($socket === false)
+		    throw new Exception( "socket_create() failed: reason: " . socket_strerror(socket_last_error()) );
+
+		$result = @socket_connect($socket, $WEBCONFIG['address'], $WEBCONFIG['port'] );
+		if ($result === false)
+		    throw new Exception( "socket_connect() failed.\nReason: ($result) " . socket_strerror(socket_last_error($socket)) );
+		
+		WriteCommand( $socket, 'GETERROR', array( 'clientid' => $_GET['clientid'] ) );
+		$cmd = ReadCommand( $socket );
+		
+		if( $cmd->found )
+			ReturnError( 'php_error', $cmd->data );
+		else
+			ReturnError( 'empty_error' );
+	}
+	catch ( Exception $ex ) {
+		ReturnError( 'unspecified_error', $ex->getMessage() );
+	}
+}
