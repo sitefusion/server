@@ -30,53 +30,92 @@
  * @package Webfrontend
 */
 
-if( substr_count($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') ) ob_start("ob_gzhandler");
-
 ignore_user_abort( TRUE );
-
-$input = fopen( 'php://input', 'r' );
-$content = '';
-while( strlen($content) < $_SERVER['CONTENT_LENGTH'] ) {
-	$content .= fread( $input, 8192 );
-}
-fclose( $input );
-
-if( $_SERVER['CONTENT_TYPE'] == 'application/x-gzip' )
-	$content = gzuncompress($content);
-
-
 include( '../conf/webfrontend.conf' );
 include( 'functions.php' );
 
+try {
+	if( substr_count($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') ) ob_start("ob_gzhandler");
+
+	$input = fopen( 'php://input', 'r' );
+	$content = '';
+	while( strlen($content) < $_SERVER['CONTENT_LENGTH'] ) {
+		$content .= fread( $input, 8192 );
+	}
+	fclose( $input );
+
+	if( $_SERVER['CONTENT_TYPE'] == 'application/x-gzip' )
+		$content = gzuncompress($content);
+}
+catch ( Exception $ex ) {
+	ReturnError( 'input_error', $ex->getMessage() );
+}
+
+try {
+	$db = mysql_connect( $WEBCONFIG['databaseHost'], $WEBCONFIG['databaseUsername'], $WEBCONFIG['databasePassword'] );
+	mysql_select_db( 'sitefusion' );
+	$res = mysql_query( "SELECT * FROM `processes` WHERE `id` = '".mysql_escape_string($_GET['sid'])."'" );
+	if(! $res )
+		die( mysql_error() );
+
+	if( ! mysql_num_rows($res) )
+		throw new Exception( 'No session' );
+
+	$dbSession = mysql_fetch_assoc( $res );
+
+	if( $dbSession['ident'] != $_GET['ident'] )
+		throw new Exception( 'Not authorized' );
+
+	$port = (int) $dbSession['port'];
+}
+catch ( Exception $ex ) {
+	ReturnError( 'session_error', $ex->getMessage() );
+}
+
+try {
+	$socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+	if ($socket === false)
+		throw new Exception( "socket_create() failed: reason: " . socket_strerror(socket_last_error()) );
+
+	$result = socket_connect($socket, $WEBCONFIG['address'], $port );
+	if ($result === false)
+		throw new Exception( "socket_connect() failed.\nReason: ($result) " . socket_strerror(socket_last_error($socket)) );
+}
+catch ( Exception $ex ) {
+	ReturnError( 'server_offline' );
+}
+
+try {
+	WriteCommand( $socket, 'COMM', NULL, $content );
+
+	$cmd = ReadCommand( $socket );
+	socket_close($socket);
+}
+catch ( Exception $ex ) {
+	// Give the daemon some time to collect error output
+	usleep( 500000 );
+	
+	try {
+		$socket = @socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+		if ($socket === false)
+		    throw new Exception( "socket_create() failed: reason: " . socket_strerror(socket_last_error()) );
+
+		$result = @socket_connect($socket, $WEBCONFIG['address'], $WEBCONFIG['port'] );
+		if ($result === false)
+		    throw new Exception( "socket_connect() failed.\nReason: ($result) " . socket_strerror(socket_last_error($socket)) );
+		
+		WriteCommand( $socket, 'GETERROR', array( 'clientid' => $_GET['clientid'] ) );
+		$cmd = ReadCommand( $socket );
+		
+		if( $cmd->found )
+			ReturnError( 'php_error', $cmd->data );
+		else
+			ReturnError( 'empty_error' );
+	}
+	catch ( Exception $ex ) {
+		ReturnError( 'unspecified_error' );
+	}
+}
+
 header( 'Content-Type: application/x-javascript; charset=utf-8' );
-
-$db = mysql_connect( $WEBCONFIG['databaseHost'], $WEBCONFIG['databaseUsername'], $WEBCONFIG['databasePassword'] );
-mysql_select_db( 'sitefusion' );
-$res = mysql_query( "SELECT * FROM `processes` WHERE `id` = '".mysql_escape_string($_GET['sid'])."'" );
-if(! $res )
-	die( mysql_error() );
-
-if( ! mysql_num_rows($res) )
-	die( 'No session' );
-
-$dbSession = mysql_fetch_assoc( $res );
-
-if( $dbSession['ident'] != $_GET['ident'] )
-	die( 'Not authorized' );
-
-$port = (int) $dbSession['port'];
-
-$socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
-if ($socket === false)
-    die( "socket_create() failed: reason: " . socket_strerror(socket_last_error()) );
-
-$result = socket_connect($socket, $WEBCONFIG['address'], $port );
-if ($result === false)
-    die( "socket_connect() failed.\nReason: ($result) " . socket_strerror(socket_last_error($socket)) );
-
-WriteCommand( $socket, 'COMM', NULL, $content );
-
-$cmd = ReadCommand( $socket );
-socket_close($socket);
-
 echo $cmd->data;

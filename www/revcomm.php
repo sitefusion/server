@@ -38,7 +38,7 @@ ignore_user_abort( TRUE );
 include( '../conf/webfrontend.conf' );
 include( 'functions.php' );
 
-header( 'Content-Type: text/html; charset=utf-8' );
+header( 'Content-Type: application/x-javascript; charset=utf-8' );
 
 $db = mysql_connect( $WEBCONFIG['databaseHost'], $WEBCONFIG['databaseUsername'], $WEBCONFIG['databasePassword'] );
 mysql_select_db( 'sitefusion' );

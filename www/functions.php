@@ -88,4 +88,14 @@ function ReadCommand( $socket ) {
 	return $ret;
 }
 
+function ReturnError( $type, $message = NULL ) {
+	header( 'Content-Type: sitefusion/error; charset=utf-8' );
+	echo json_encode( array(
+		'error' => true,
+		'type' => $type,
+		'message' => $message
+	) );
+	exit;
+}
+
 ?>
