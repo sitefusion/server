@@ -98,7 +98,7 @@ class SiteFusionStarter {
 			case SIGHUP:
 				if( self::$Process ) {
 					self::$Restart = TRUE;
-					posix_kill( $self::$SiteFusionPID, SIGTERM );
+					posix_kill( self::$SiteFusionPID, SIGTERM );
 				}
 				break;
 				
@@ -107,7 +107,7 @@ class SiteFusionStarter {
 				if( ! self::$Process )
 					exit;
 				else
-					posix_kill( $self::$SiteFusionPID, $signo );
+					posix_kill( self::$SiteFusionPID, $signo );
 				break;
 		}
 	}
