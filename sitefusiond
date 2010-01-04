@@ -1,6 +1,123 @@
 #!/usr/bin/php
 <?php
 
+chdir( dirname(__FILE__) );
+
+include_once( 'conf/daemon.conf' );
+
+while( 1 ) {
+	SiteFusionStarter::Init();
+	SiteFusionStarter::Loop();
+}
+
+class SiteFusionStarter {
+	static public $Process = NULL;
+	static public $Restart = FALSE;
+	static public $Pipes = array();
+	static public $Daemonized = FALSE;
+	static public $SiteFusionPID = NULL;
+	
+	static public function Init() {
+		global $SFCONFIG;
+		
+		pcntl_signal( SIGHUP, array( 'SiteFusionStarter', 'SignalHandler' ) );
+		pcntl_signal( SIGTERM, array( 'SiteFusionStarter', 'SignalHandler' ) );
+		pcntl_signal( SIGINT, array( 'SiteFusionStarter', 'SignalHandler' ) );
+		
+		$descriptorspec = array(
+			0 => array("pipe", "r"),
+			1 => array("pipe", "w"),
+			2 => array("pipe", "w")
+		);
+
+		self::$Process = proc_open( 'php '.$SFCONFIG['sitefusionPath'].'/daemon/start.php '.implode(' ',array_slice($_SERVER['argv'],1)), $descriptorspec, self::$Pipes );
+		if( !self::$Process ) {
+			echo "Daemon start failed, can't open daemon/start.php\n";
+		}
+		
+		$status = proc_get_status(self::$Process);
+		self::$SiteFusionPID = $status['pid'];
+		
+		$opt = array_merge( array( 'daemonize' => $SFCONFIG['daemonize'] ), self::GetCommandLineOptions() );
+		if( $opt['daemonize'] )
+			self::Daemonize();
+	}
+	
+	static public function Loop() {
+		$status = proc_get_status(self::$Process);
+		while( $status['running'] ) {
+			$read = array( self::$Pipes[1], self::$Pipes[2] );
+			$write = NULL;
+			$except = NULL;
+			
+			if( @stream_select( $read, $write, $except, 1 ) > 0 ) {
+				foreach ( $read as $fh ) {
+					$str = fread( $fh, 8192 );
+					if( $fh == self::$Pipes[2] ) // Write STDERR back to the daemon's STDIN
+						fwrite( self::$Pipes[0], $str );
+					elseif( ! self::$Daemonized )
+						echo $str;
+				}
+			}
+			
+			$status = proc_get_status(self::$Process);
+		}
+		
+		if( self::$Restart || $status['exitcode'] == 2 ) {
+			fclose( self::$Pipes[0] );
+			fclose( self::$Pipes[1] );
+			fclose( self::$Pipes[2] );
+			proc_close( self::$Process );
+		}
+		else exit();
+	}
+	
+	static private function Daemonize() {
+		$pid = pcntl_fork();
+		
+		if( $pid == -1 )
+			die( "Could not fork" );
+		else if( $pid )
+			exit();
+		
+		posix_setsid();
+		
+		self::$Daemonized = TRUE;
+	}
+	
+	static private function GetCommandLineOptions() {
+		$ret = array();
+		if( in_array('-f',$_SERVER['argv']) ) $ret['daemonize'] = FALSE;
+		if( in_array('-d',$_SERVER['argv']) ) $ret['debug'] = TRUE;
+		return $ret;
+	}
+	
+	static public function SignalHandler( $signo ) {
+		
+		switch ( $signo ) {
+			case SIGHUP:
+				if( self::$Process ) {
+					self::$Restart = TRUE;
+					posix_kill( $self::$SiteFusionPID, SIGTERM );
+				}
+				break;
+				
+			case SIGINT:
+			case SIGTERM:
+				if( ! self::$Process )
+					exit;
+				else
+					posix_kill( $self::$SiteFusionPID, $signo );
+				break;
+		}
+	}
+}
+
+
+
+
+
+/*
 declare( ticks = 1 );
 
 include_once( 'conf/daemon.conf' );
@@ -8,5 +125,4 @@ include_once( 'daemon/error.php.inc' );
 include_once( 'daemon/daemon.php.inc' );
 
 DaemonProcess::StartServer( $SFCONFIG );
-
-?>
+*/
