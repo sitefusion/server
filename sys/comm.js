@@ -186,7 +186,8 @@ SiteFusion.Comm.Transmission = Class.create( {
 			+ '?app=' + SiteFusion.Application
 			+ '&args=' + SiteFusion.Arguments
 			+ '&sid=' + SiteFusion.SID
-			+ '&ident=' + SiteFusion.Ident,
+			+ '&ident=' + SiteFusion.Ident
+			+ '&clientid=' + SiteFusion.ClientID,
 			aSync
 		);
 		

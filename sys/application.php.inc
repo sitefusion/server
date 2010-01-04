@@ -436,6 +436,24 @@ class Application
 		ApplicationProcess::Shutdown();
 	}
 	
+	
+	
+	public function openAbout() {
+		$this->window->openUrlWindow("chrome://branding/content/about.xhtml", 'chrome,centerscreen');
+	}
+	
+	public function openAboutMemory() {
+		$this->window->openUrlWindow("chrome://global/content/aboutMemory.xhtml", 'chrome,centerscreen');
+	}
+	
+	public function openExtensions() {
+		$this->window->openUrlDialog("chrome://mozapps/content/extensions/extensions.xul",  "chrome,menubar,extra-chrome,toolbar,dialog=no,resizable");
+	}
+	
+	public function openErrorConsole() {
+		$this->window->openUrlDialog("chrome://global/content/console.xul", "chrome,menubar,extra-chrome,toolbar,dialog=no,resizable");
+	}
+	
 	/**
 	 * Checks for updates using the given preferences
 	*/
