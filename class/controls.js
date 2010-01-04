@@ -280,8 +280,6 @@ SiteFusion.Classes.MenuList = Class.create( SiteFusion.Classes.Node, {
 		
 		this.eventHost.yield.msgType = 1;
 		
-		var oThis = this;
-		
 		// FIXME:
 		// This is the dirtiest workaround ever, but it seems to be the only way to
 		// get the menulist to function properly in situations where it is constructed
@@ -292,6 +290,7 @@ SiteFusion.Classes.MenuList = Class.create( SiteFusion.Classes.Node, {
 		// - fails to programmatically preselect an item
 		// - can only be constructed properly when it has become visible, hence the timer
 		//   because there is no event to indicate the control became visible.
+		var oThis = this;
 		setTimeout( function() { oThis._fixElement(); }, 1000 );
 		// /FIXME: end of workaround timer call
 	},
@@ -300,10 +299,13 @@ SiteFusion.Classes.MenuList = Class.create( SiteFusion.Classes.Node, {
 	// This workaround function needs to be removed when Mozilla fixes the menulist bindings
 	_fixElement: function() {
 		if( typeof(this.element.itemCount) == 'undefined' ) {
+			// If itemCount is undefined, the menulist is broken
 			var par = this.element.parentNode;
+			if(! par ) return;	// element has been removed before timer hit
+			
+			// Replacing the menulist element with a new one is nescessary to rearm the bindings
 			var before = this.element.nextSibling;
 			par.removeChild( this.element );
-			
 			var popup = this.element.removeChild( this.element.childNodes[0] );
 			this.element = this.hostWindow.createElement( 'menulist' );
 			this.element.appendChild( popup );
@@ -314,12 +316,15 @@ SiteFusion.Classes.MenuList = Class.create( SiteFusion.Classes.Node, {
 			else
 				par.appendChild( this.element );
 			
+			var oThis = this;
+			
+			// Hook up all menuitems with an event handler for DOMMenuItemActive to manually
+			// keep track of selected items
 			for( var n = 0; n < popup.childNodes.length; n++ ) {
 				var item = popup.childNodes[n];
 				if( typeof(item._menulistHandlerSet) != 'undefined' )
 					continue;
 				
-				var oThis = this;
 				var func = function() {
 					for( var c = 0; c < this.parentNode.childNodes.length; c++ ) {
 						if( this.parentNode.childNodes[c] == this ) {
@@ -332,16 +337,20 @@ SiteFusion.Classes.MenuList = Class.create( SiteFusion.Classes.Node, {
 				item._menulistHandlerSet = true;
 				item.addEventListener( 'DOMMenuItemActive', func, true );
 				
+				// Use the 'selected' attribute to preset the initial selection because
+				// setting selectedIndex on the menulist here will still break it
 				if( typeof(this.selectedIndex) != 'undefined' && this.selectedIndex == n )
 					item.setAttribute( 'selected', 'true' );
 			}
 			
-			var oThis = this;
-			
+			// Hook a function on the command event to set the element.selectedIndex to
+			// the actual index in this.selectedIndex
 			var setFunc = function() {
 				oThis.element.selectedIndex = oThis.selectedIndex;
 				delete oThis.selectedIndex;
 			};
+			// Hook a function to the keypress event to handle the up and down keys changing
+			// the selected item when the popup is closed but the menulist has focus (windows only)
 			var keyFunc = function(event) {
 				if( oThis.element.childNodes[0].state == 'closed' && event.keyCode == 38 || event.keyCode == 40 ) {
 					var currentIndex = oThis.element.selectedIndex;
@@ -359,10 +368,12 @@ SiteFusion.Classes.MenuList = Class.create( SiteFusion.Classes.Node, {
 			this.element.addEventListener( 'command', setFunc, true );
 			this.element.addEventListener( 'keypress', keyFunc, true );
 			
+			// Restore SiteFusion event listeners that were previously set on the discarded element
 			for( var n = 0; n < SiteFusion.Comm.XULEvents.length; n++ ) {
 				this.setEventListener( SiteFusion.Comm.XULEvents[n] );
 			}
 			
+			// Repeat if this iteration didn't execute after the menulist became visible
 			setTimeout( function() { oThis._fixElement(); }, 1000 );
 		}
 	},

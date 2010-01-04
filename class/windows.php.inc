@@ -143,16 +143,6 @@ class XULWindow extends XULBasicWindow
 	public function title( $title ) {
 		$this->callMethod( 'setTitle', array($title) );
 	}
-	
-	public function setStatusBarComponent( $obj ) {
-		if(! $obj instanceof StatusBarComponent )
-			Error::CallerFatal( 'Object is not a StatusBarComponent' );
-		
-		$this->statusBarComponent = $obj;
-		
-		if( $this->isRegistered )
-			$this->setProperty( 'statusBarComponent', $obj );
-	}
 }
 
 
@@ -345,6 +335,86 @@ class XULDialog extends XULChildWindow
 
 
 /**
+ * PrefWindow element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/prefwindow
+*/
+
+class XULPrefWindow extends XULDialog
+{
+	public $remoteConstructor = 'PrefWindow';
+	
+	
+	/**
+	 * Makes the given pane active in the prefwindow
+	 *
+	 * @param XULPrefPane	$pane	Pane to activate
+	 */
+	
+	public function showPane( $pane ) {
+		if( ! $this->isRegistered )
+			throw new SFException( "Can't call showPane() on unregistered PrefWindow" );
+		
+		$this->callMethod( 'showPane', array($pane) );
+	}
+}
+
+
+/**
+ * PrefPane element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/prefpane
+*/
+
+class XULPrefPane extends BranchNode
+{
+	public $remoteConstructor = 'PrefPane';
+	public $initAttributes = array( 'helpURI', 'label', 'image' );
+
+	
+	/**
+	 * Dynamic Constructor
+	 *
+	 * @param string	$label
+	 * @param string	$image
+	 * @param mixed		$childNodes
+	*/
+	
+	public function __construct() {
+		if( func_num_args() ) {
+			$args = func_get_args();
+			
+			if( count($args) && is_string($args[0]) )
+				$this->label( array_shift($args) );
+			if( count($args) && is_string($args[0]) )
+				$this->image( array_shift($args) );
+			
+			parent::__construct( $args );
+		}
+		else parent::__construct();
+	}
+	
+	
+	public function helpURI( $href = NULL ) {
+		return $this->attributeMethod( 'helpURI', (string) $href );
+	}
+	
+
+	public function image( $src = NULL ) {
+		if( $src === NULL )
+			return (isset($this->image) ? $this->image : NULL);
+		
+		$this->image = $src;
+		
+		if( $this->isRegistered )
+			$this->callMethod( 'image', $this->image );
+		
+		return $this;
+	}
+}
+
+
+/**
  * OS-native prompt service object
  *
  * @property bool	$result		Whether the dialog was accepted by the user (e.g. clicked OK)
@@ -370,7 +440,7 @@ class PromptService extends Node
 	
 	
 	/**
-	 * Shows a simple alert box with an OK button
+	 * Shows a alert box with an OK button
 	 *
 	 * @param string	$title	Title of the dialog box
 	 * @param string	$text	Body text
@@ -382,13 +452,13 @@ class PromptService extends Node
 	
 	
 	/**
-	 * Shows a simple alert box with an OK button and a checkbox
+	 * Shows an alert box with an OK button and a checkbox
 	 *
 	 * @param string	$title			Title of the dialog box
 	 * @param string	$text			Body text
 	 * @param string	$checkMsg		Label text of the checkbox
 	 * @param bool		$checkState		Initial state of the checkbox
-	 * @param object	$handlerObj		Object to call the callback function on
+	 * @param object	$handlerObj		Object to call the handler method on
 	 * @param string	$handlerMethod	Method to call on the handler object
 	 * @param mixed		$carryValue		Arbitrary value to pass on to the handler function
 	 */
@@ -404,11 +474,11 @@ class PromptService extends Node
 	
 	
 	/**
-	 * Shows a simple confirm box with OK and Cancel buttons
+	 * Shows a confirm box with OK and Cancel buttons
 	 *
 	 * @param string	$title			Title of the dialog box
 	 * @param string	$text			Body text
-	 * @param object	$handlerObj		Object to call the callback function on
+	 * @param object	$handlerObj		Object to call the handler method on
 	 * @param string	$handlerMethod	Method to call on the handler object
 	 * @param mixed		$carryValue		Arbitrary value to pass on to the handler function
 	 */
@@ -423,13 +493,13 @@ class PromptService extends Node
 	}
 	
 	/**
-	 * Shows a simple confirm box with OK and Cancel buttons and a checkbox
+	 * Shows a confirm box with OK and Cancel buttons and a checkbox
 	 *
 	 * @param string	$title			Title of the dialog box
 	 * @param string	$text			Body text
 	 * @param string	$checkMsg		Label text of the checkbox
 	 * @param bool		$checkState		Initial state of the checkbox
-	 * @param object	$handlerObj		Object to call the callback function on
+	 * @param object	$handlerObj		Object to call the handler method on
 	 * @param string	$handlerMethod	Method to call on the handler object
 	 * @param mixed		$carryValue		Arbitrary value to pass on to the handler function
 	 */
@@ -455,7 +525,7 @@ class PromptService extends Node
 	 * @param string	$button2Title	Optional custom title for button 2
 	 * @param string	$checkMsg		Label text of the checkbox
 	 * @param bool		$checkState		Initial state of the checkbox
-	 * @param object	$handlerObj		Object to call the callback function on
+	 * @param object	$handlerObj		Object to call the handler method on
 	 * @param string	$handlerMethod	Method to call on the handler object
 	 * @param mixed		$carryValue		Arbitrary value to pass on to the handler function
 	 * 
@@ -473,12 +543,12 @@ class PromptService extends Node
 	
 	
 	/**
-	 * Shows a simple prompt box with a textinput and OK and Cancel buttons
+	 * Shows a prompt box with a textinput and OK and Cancel buttons
 	 *
 	 * @param string	$title			Title of the dialog box
 	 * @param string	$text			Body text
 	 * @param string	$textValue		Initial value of the textinput
-	 * @param object	$handlerObj		Object to call the callback function on
+	 * @param object	$handlerObj		Object to call the handler method on
 	 * @param string	$handlerMethod	Method to call on the handler object
 	 * @param mixed		$carryValue		Arbitrary value to pass on to the handler function
 	 */
@@ -494,14 +564,14 @@ class PromptService extends Node
 	
 	
 	/**
-	 * Shows a simple prompt box with a textinput, a checkbox and OK and Cancel buttons
+	 * Shows a prompt box with a textinput, a checkbox and OK and Cancel buttons
 	 *
 	 * @param string	$title			Title of the dialog box
 	 * @param string	$text			Body text
 	 * @param string	$textValue		Initial value of the textinput
 	 * @param string	$checkMsg		Label text of the checkbox
 	 * @param bool		$checkState		Initial state of the checkbox
-	 * @param object	$handlerObj		Object to call the callback function on
+	 * @param object	$handlerObj		Object to call the handler method on
 	 * @param string	$handlerMethod	Method to call on the handler object
 	 * @param mixed		$carryValue		Arbitrary value to pass on to the handler function
 	 */
@@ -517,13 +587,13 @@ class PromptService extends Node
 	
 	
 	/**
-	 * Shows a simple prompt box with username and password textinputs and OK and Cancel buttons
+	 * Shows a prompt box with username and password textinputs and OK and Cancel buttons
 	 *
 	 * @param string	$title			Title of the dialog box
 	 * @param string	$text			Body text
 	 * @param string	$username		Initial value of the username textinput
 	 * @param string	$password		Initial value of the password textinput
-	 * @param object	$handlerObj		Object to call the callback function on
+	 * @param object	$handlerObj		Object to call the handler method on
 	 * @param string	$handlerMethod	Method to call on the handler object
 	 * @param mixed		$carryValue		Arbitrary value to pass on to the handler function
 	 */
@@ -539,7 +609,7 @@ class PromptService extends Node
 	
 	
 	/**
-	 * Shows a simple prompt box with username and password textinputs, a checkbox and OK and Cancel buttons
+	 * Shows a prompt box with username and password textinputs, a checkbox and OK and Cancel buttons
 	 *
 	 * @param string	$title			Title of the dialog box
 	 * @param string	$text			Body text
@@ -547,7 +617,7 @@ class PromptService extends Node
 	 * @param string	$password		Initial value of the password textinput
 	 * @param string	$checkMsg		Label text of the checkbox
 	 * @param bool		$checkState		Initial state of the checkbox
-	 * @param object	$handlerObj		Object to call the callback function on
+	 * @param object	$handlerObj		Object to call the handler method on
 	 * @param string	$handlerMethod	Method to call on the handler object
 	 * @param mixed		$carryValue		Arbitrary value to pass on to the handler function
 	 */
@@ -563,12 +633,12 @@ class PromptService extends Node
 	
 	
 	/**
-	 * Shows a simple prompt box with a password textinput and OK and Cancel buttons
+	 * Shows a prompt box with a password textinput and OK and Cancel buttons
 	 *
 	 * @param string	$title			Title of the dialog box
 	 * @param string	$text			Body text
 	 * @param string	$password		Initial value of the password textinput
-	 * @param object	$handlerObj		Object to call the callback function on
+	 * @param object	$handlerObj		Object to call the handler method on
 	 * @param string	$handlerMethod	Method to call on the handler object
 	 * @param mixed		$carryValue		Arbitrary value to pass on to the handler function
 	 */
@@ -584,14 +654,14 @@ class PromptService extends Node
 	
 	
 	/**
-	 * Shows a simple prompt box with a password textinput, a checkbox and OK and Cancel buttons
+	 * Shows a prompt box with a password textinput, a checkbox and OK and Cancel buttons
 	 *
 	 * @param string	$title			Title of the dialog box
 	 * @param string	$text			Body text
 	 * @param string	$password		Initial value of the password textinput
 	 * @param string	$checkMsg		Label text of the checkbox
 	 * @param bool		$checkState		Initial state of the checkbox
-	 * @param object	$handlerObj		Object to call the callback function on
+	 * @param object	$handlerObj		Object to call the handler method on
 	 * @param string	$handlerMethod	Method to call on the handler object
 	 * @param mixed		$carryValue		Arbitrary value to pass on to the handler function
 	 */
@@ -607,13 +677,13 @@ class PromptService extends Node
 	
 	
 	/**
-	 * Shows a simple prompt box with a dropdown box and OK and Cancel buttons
+	 * Shows a prompt box with a dropdown box and OK and Cancel buttons
 	 *
 	 * @param string	$title			Title of the dialog box
 	 * @param string	$text			Body text
 	 * @param array		$list			Array of options (strings)
 	 * @param int		$selectedIndex	Initial index to select (broken)
-	 * @param object	$handlerObj		Object to call the callback function on
+	 * @param object	$handlerObj		Object to call the handler method on
 	 * @param string	$handlerMethod	Method to call on the handler object
 	 * @param mixed		$carryValue		Arbitrary value to pass on to the handler function
 	 */

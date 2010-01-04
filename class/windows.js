@@ -226,11 +226,14 @@ SiteFusion.Classes.ChildWindow = Class.create( SiteFusion.Classes.BasicWindow, {
 			feat += ',dialog';
 		if( this.resizable )
 			feat += ',resizable';
-
-		if( this.sfClassName == 'XULDialog' )
-			this.parentHostWindow.windowObject.openDialog( "chrome://sitefusion/content/dialog.xul?" + this.cid, "", feat );
-		else
-			this.parentHostWindow.windowObject.open( "chrome://sitefusion/content/childwindow.xul?" + this.cid, "", feat );
+		
+		this.features = feat;
+		
+		this.openWindow();
+	},
+	
+	openWindow: function() {
+		this.parentHostWindow.windowObject.open( "chrome://sitefusion/content/childwindow.xul?" + this.cid, "", this.features );
 	},
 	
 	initWindow: function( win ) {
@@ -241,23 +244,17 @@ SiteFusion.Classes.ChildWindow = Class.create( SiteFusion.Classes.BasicWindow, {
 		this.element.sfNode = this;
 		win.sfRootWindow = SiteFusion.RootWindow;
 		
-		var oThis = this;
-		var onClose = function(event) { oThis.onClose(event); };
-		win.addEventListener( 'close', onClose, true );
-		
-		if( this.sfClassName == 'XULDialog' ) {
-			var onDialogButton = function(event) { oThis.onDialogButton(event); };
-			win.addEventListener( 'dialogaccept', onDialogButton, true );
-			win.addEventListener( 'dialogcancel', onDialogButton, true );
-			win.addEventListener( 'dialoghelp', onDialogButton, true );
-			win.addEventListener( 'dialogdisclosure', onDialogButton, true );
-			win.addEventListener( 'dialogextra1', onDialogButton, true );
-			win.addEventListener( 'dialogextra2', onDialogButton, true );
-		}
+		this.attachEvents();
 		
 		this.initMenuBar();
 		
 		this.fireEvent( 'initialized' );
+	},
+	
+	attachEvents: function() {
+		var oThis = this;
+		var onClose = function(event) { oThis.onClose(event); };
+		this.windowObject.addEventListener( 'close', onClose, true );
 	},
 
 	close: function() {
@@ -319,6 +316,24 @@ SiteFusion.Classes.Dialog = Class.create( SiteFusion.Classes.ChildWindow, {
 		this.eventHost.hasClosed.msgType = 0;
 	},
 	
+	openWindow: function() {
+		this.parentHostWindow.windowObject.openDialog( "chrome://sitefusion/content/dialog.xul?" + this.cid, "", this.features );
+	},
+	
+	attachEvents: function() {
+		var oThis = this;
+		var onClose = function(event) { oThis.onClose(event); };
+		this.windowObject.addEventListener( 'close', onClose, true );
+		
+		var onDialogButton = function(event) { oThis.onDialogButton(event); };
+		this.windowObject.addEventListener( 'dialogaccept', onDialogButton, true );
+		this.windowObject.addEventListener( 'dialogcancel', onDialogButton, true );
+		this.windowObject.addEventListener( 'dialoghelp', onDialogButton, true );
+		this.windowObject.addEventListener( 'dialogdisclosure', onDialogButton, true );
+		this.windowObject.addEventListener( 'dialogextra1', onDialogButton, true );
+		this.windowObject.addEventListener( 'dialogextra2', onDialogButton, true );
+	},
+	
 	onDialogButton: function( event ) {
 		var ename = event.type.substr(6);
 
@@ -338,6 +353,31 @@ SiteFusion.Classes.Dialog = Class.create( SiteFusion.Classes.ChildWindow, {
 		this.fireEvent( 'hasClosed' );
 
 		this.windowObject.close();
+	}
+} );
+
+
+SiteFusion.Classes.PrefWindow = Class.create( SiteFusion.Classes.Dialog, {
+	sfClassName: 'XULPrefWindow',
+	
+	openWindow: function() {
+		this.parentHostWindow.windowObject.openDialog( "chrome://sitefusion/content/prefwindow.xul?" + this.cid, "", this.features );
+	},
+	
+	showPane: function( pane ) {
+		this.element.showPane( pane.element );
+	}
+} );
+
+
+SiteFusion.Classes.PrefPane = Class.create( SiteFusion.Classes.Node, {
+	sfClassName: 'XULPrefPane',
+	
+	initialize: function( win ) {
+		this.element = win.createElement( 'prefpane' );
+		this.element.sfNode = this;
+		
+		this.setEventHost();
 	}
 } );
 
