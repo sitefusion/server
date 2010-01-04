@@ -232,7 +232,7 @@ class DaemonProcess extends SiteFusionProcess
 				if( self::$Children[$pid]->loggedIn )
 					self::ChildEnded( self::$Children[$pid] );
 				if( isset(self::$Children[$pid]->error) )
-					self::$DeadChildren[] = self::$Children[$pid];
+					self::$DeadChildren[$pid] = self::$Children[$pid];
 				
 				self::$SleepingPorts[ self::$Children[$pid]->port ] = time();
 				try { socket_close( self::$Children[$pid]->socket ); } catch ( SFException $ex ) {}
@@ -321,9 +321,9 @@ class DaemonProcess extends SiteFusionProcess
 			if( count(self::$Children) )
 				self::ListenToChildren();
 			
-			for( $n = 0; $n < count(self::$DeadChildren); $n++ ) {
-				if( time() - self::$DeadChildren[$n]->errorTimestamp > 60 )
-					array_splice( self::$DeadChildren, $n--, 1 );
+			foreach( array_keys(self::$DeadChildren) as $pid ) {
+				if( time() - self::$DeadChildren[$pid]->errorTimestamp > 60 )
+					unset(self::$DeadChildren[$pid]);
 			}
 			
 			foreach ( self::$Children as $pid => $child ) {
@@ -503,10 +503,19 @@ class DaemonProcess extends SiteFusionProcess
 	}
 	
 	static private function HandleGetError( $client, $clientid ) {
-		foreach ( array_merge( self::$Children, self::$DeadChildren ) as $child ) {
-			if( $child->clientId == $clientid && isset($child->error) ) {
-				$error = $child->error;
+		foreach ( array_keys(self::$DeadChildren) as $pid ) {
+			if( self::$DeadChildren[$pid]->clientId == $clientid && isset(self::$DeadChildren[$pid]->error) ) {
+				$error = self::$DeadChildren[$pid]->error;
+				unset( self::$DeadChildren[$pid] );
 				break;
+			}
+		}
+		if( ! isset($error) ) {
+			foreach ( array_keys(self::$Children) as $pid ) {
+				if( self::$Children[$pid]->clientId == $clientid && isset(self::$Children[$pid]->error) ) {
+					$error = self::$Children[$pid]->error;
+					break;
+				}
 			}
 		}
 		
