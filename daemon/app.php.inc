@@ -323,27 +323,32 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 		
 		try {
 			$app = self::$Application;
-			$id = $cmd->cid;
+			$transferable = $app->registry->all[$cmd->cid];
 			
-			ob_start();
-			$app->registry->all[$id]->outputStream();
-			$content = ob_get_clean();
+			switch( $cmd->action ) {
+				case 'start':
+					$descr = $transferable->transferStart();
+					self::WriteCommand( $client, 'FILE', array( 'contentType' => $descr[0], 'size' => $descr[1] ) );
+					break;
+				
+				case 'data':
+					ob_start();
+					$transferable->transferGetData();
+					$content = ob_get_clean();
+					self::WriteCommand( $client, 'FILE', NULL, $content );
+					break;
+				
+				case 'end':
+					$transferable->transferEnd();
+					break;
+			}
 		}
 		catch ( SFException $ex ) {
 			if( self::$ConnectedDebugger )
 				throw $ex;
 			
-			$content = $ex->getMessage() . ' in ' . $ex->getFile() . ' on line ' . $ex->getLine() . "\n\n" . $ex->getTraceAsString();
+			self::$NextCommOutput = $ex->getMessage() . ' in ' . $ex->getFile() . ' on line ' . $ex->getLine() . "\n\n" . $ex->getTraceAsString();
 		}
-		
-		$contentType = 'application/octet-stream';
-		
-		foreach ( self::$Headers as $h ) {
-			if( preg_match('/^Content-type: (\S+)/i',$h,$match) )
-				$contentType = $match[1];
-		}
-		
-		self::WriteCommand( $client, 'FILE', array('contentType' => $contentType), $content );
 		
 		socket_close( $client );
 		
