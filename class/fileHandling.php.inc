@@ -212,6 +212,10 @@ class FileDownloader extends Node
 	public $remoteConstructor = 'FileDownloader';
 	public $removeAfterTransfer = FALSE;
 	
+	private $transferStarted = FALSE;
+	private $transferSize = NULL;
+	private $transferFile = NULL;
+	
 	public function __construct( $filePath = NULL, $destPath = NULL ) {
 		if( $filePath ) $this->filePath = $filePath;
 		if( $destPath ) $this->destPath = $destPath;
@@ -237,10 +241,51 @@ class FileDownloader extends Node
 		$this->callMethod( 'startDownload', array( $this->destPath ) );
 	}
 	
-	public function outputStream() {
-		ApplicationProcess::Header( 'Content-Type: application/octet-stream' );
+	
+	/**
+	 * [INTERNAL FUNCTION]
+	 * This function is called by the daemon to start a transfer. It returns an array
+	 * of two elements, first is a string with the MIME content-type of the data, and
+	 * second is a integer number containing the size in bytes of the transfer.
+	 * 
+	 * @return array	Transfer descriptives
+	*/
+	
+	public function transferStart() {
+		$this->transferStarted = TRUE;
+		$this->transferSize = filesize($this->filePath);
+		$this->transferFile = fopen( $this->filePath, 'r' );
 		
-		readfile($this->filePath);
+		return array( 'application/octet-stream', $this->transferSize );
+	}
+	
+	
+	/**
+	 * [INTERNAL FUNCTION]
+	 * This function is called by the daemon to get (a piece of) data of a transfer.
+	 * It should output this data to the output buffer, which will be intercepted
+	 * by the daemon.
+	*/
+	
+	public function transferGetData() {
+		if( !$this->transferStarted )
+			throw new SFException( "File transfer not started!" );
+		
+		echo fread( $this->transferFile, 8192 );
+	}
+	
+	
+	/**
+	 * [INTERNAL FUNCTION]
+	 * This function is called by the daemon when all data has been transferred.
+	 * It is used to close open filehandles and clean up.
+	*/
+	
+	public function transferEnd() {
+		fclose( $this->transferFile );
+		$this->transferStarted = FALSE;
+		$this->transferSize = NULL;
+		$this->transferFile = NULL;
 		
 		if( $this->removeAfterTransfer )
 			unlink( $this->filePath );

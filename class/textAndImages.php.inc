@@ -119,7 +119,8 @@ class XULImage extends Node
  * Direct GD image display element
  * 
  * Supply this element with an image type ('jpg', 'gif' or 'png') through the method setImageType($type)
- * and call cacheStream( $gdImage ) in which $gdImage is a valid GD image resource.
+ * and call cacheStream( $gdImage ) in which $gdImage is a valid GD image resource. Call recycle() to
+ * show the cached image stream in the client.
  * 
  * @link https://developer.mozilla.org/en/XUL/image
 */
@@ -130,8 +131,11 @@ class XULDirectImage extends Node
 	public $width = NULL;
 	public $height = NULL;
 	private $imageType = 'jpg';
-	public $imageStreamData = NULL;
+	private $tempImagePath = NULL;
 	public $jpgQuality = 75;
+	
+	private $transferStarted = FALSE;
+	private $transferSize = NULL;
 	
 	public function __construct( $width = NULL, $height = NULL ) {
 		if( $width !== NULL )
@@ -164,28 +168,64 @@ class XULDirectImage extends Node
 			case 'gif': imagegif($image,$path); break;
 		}
 		
-		$this->imageStreamData = $path;
+		$this->tempImagePath = $path;
 	}
 	
 	public function recycle() {
 		$this->callMethod( 'recycle' );
 	}
 	
-	public function getSrc() {
-		return $this->callMethod( 'getSrc' );
-	}
 	
-	public function outputStream() {
+	/**
+	 * [INTERNAL FUNCTION]
+	 * This function is called by the daemon to start a transfer. It returns an array
+	 * of two elements, first is a string with the MIME content-type of the data, and
+	 * second is a integer number containing the size in bytes of the transfer.
+	 * 
+	 * @return array	Transfer descriptives
+	*/
+	
+	public function transferStart() {
+		$this->transferStarted = TRUE;
+		$this->transferSize = filesize($this->tempImagePath);
+		
 		switch ( $this->imageType ) {
 			case 'jpg': $contentType = 'image/jpeg'; break;
 			case 'png': $contentType = 'image/png'; break;
 			case 'gif': $contentType = 'image/gif'; break;
 		}
 		
-		ApplicationProcess::Header( 'Content-Type: ' . $contentType );
+		return array( 'application/octet-stream', $this->transferSize );
+	}
+	
+	
+	/**
+	 * [INTERNAL FUNCTION]
+	 * This function is called by the daemon to get (a piece of) the data of a transfer.
+	 * It should output this data to the output buffer, which will be intercepted
+	 * by the daemon.
+	*/
+	
+	public function transferGetData() {
+		if( !$this->transferStarted )
+			throw new SFException( "File transfer not started!" );
 		
-		readfile($this->imageStreamData);
-		unlink($this->imageStreamData);
+		readfile( $this->tempImagePath );
+	}
+	
+	
+	/**
+	 * [INTERNAL FUNCTION]
+	 * This function is called by the daemon when all data has been transferred.
+	 * It is used to close open filehandles and clean up.
+	*/
+	
+	public function transferEnd() {
+		$this->transferStarted = FALSE;
+		$this->transferSize = NULL;
+		
+		unlink( $this->tempImagePath );
+		$this->tempImagePath = NULL;
 	}
 }
 
@@ -205,8 +245,12 @@ class XULFileSystemImage extends Node
 	public $height = NULL;
 	public $imagePath = NULL;
 	
+	private $transferStarted = FALSE;
+	private $transferSize = NULL;
+
 	public function __construct( $path = NULL, $width = NULL, $height = NULL ) {
-		$this->imagePath = $path;
+		if( $path !== NULL )
+			$this->src( $path );
 		if( $width !== NULL )
 			$this->width( $width );
 		if( $height !== NULL )
@@ -223,12 +267,27 @@ class XULFileSystemImage extends Node
 			$this->callMethod( 'load' );
 	}
 
-	public function src($path)
-	{
+	public function src($path) {
 		$this->imagePath = $path;
-		$this->callMethod("load");
+		
+		if( $this->isRegistered )
+			$this->callMethod("load");
 	}
-	public function outputStream() {
+	
+	
+	/**
+	 * [INTERNAL FUNCTION]
+	 * This function is called by the daemon to start a transfer. It returns an array
+	 * of two elements, first is a string with the MIME content-type of the data, and
+	 * second is a integer number containing the size in bytes of the transfer.
+	 * 
+	 * @return array	Transfer descriptives
+	*/
+	
+	public function transferStart() {
+		$this->transferStarted = TRUE;
+		$this->transferSize = filesize($this->imagePath);
+		
 		switch ( strtolower(substr($this->imagePath,-3)) ) {
 			case 'jpg': $contentType = 'image/jpeg'; break;
 			case 'png': $contentType = 'image/png'; break;
@@ -236,9 +295,34 @@ class XULFileSystemImage extends Node
 			default: $contentType = 'application/octet-stream';
 		}
 		
-		ApplicationProcess::Header( 'Content-Type: ' . $contentType );
+		return array( 'application/octet-stream', $this->transferSize );
+	}
+	
+	
+	/**
+	 * [INTERNAL FUNCTION]
+	 * This function is called by the daemon to get (a piece of) data of a transfer.
+	 * It should output this data to the output buffer, which will be intercepted
+	 * by the daemon.
+	*/
+	
+	public function transferGetData() {
+		if( !$this->transferStarted )
+			throw new SFException( "File transfer not started!" );
 		
-		readfile($this->imagePath);
+		readfile( $this->imagePath );
+	}
+	
+	
+	/**
+	 * [INTERNAL FUNCTION]
+	 * This function is called by the daemon when all data has been transferred.
+	 * It is used to close open filehandles and clean up.
+	*/
+	
+	public function transferEnd() {
+		$this->transferStarted = FALSE;
+		$this->transferSize = NULL;
 	}
 }
 
