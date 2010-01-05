@@ -40,10 +40,7 @@
 
 class XULLabel extends Node
 {
-	protected $value = '';
-	protected $style = '';
 	public $remoteConstructor = 'Label';
-	
 	
 	public function __construct( $text = '', $style = NULL ) {
 		$this->value( $text );
@@ -59,14 +56,29 @@ class XULLabel extends Node
 
 class XULDescription extends BranchNode
 {
-	protected $value = '';
-	protected $style = '';
 	public $remoteConstructor = 'Description';
 	
 	
-	public function __construct( $text = '', $style = NULL ) {
-		$this->value( $text );
-		$this->textStyle( $style );
+	/**
+	 * Dynamic Constructor
+	 *
+	 * @param string	$value
+	 * @param string	$textStyle
+	 * @param mixed		$childNodes
+	*/
+	
+	public function __construct() {
+		if( func_num_args() ) {
+			$args = func_get_args();
+			
+			if( count($args) && is_string($args[0]) )
+				$this->value( array_shift($args) );
+			if( count($args) && is_string($args[0]) )
+				$this->textStyle( array_shift($args) );
+			
+			parent::__construct( $args );
+		}
+		else parent::__construct();
 	}
 }
 

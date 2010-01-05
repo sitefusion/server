@@ -102,3 +102,124 @@ class XULPrintBox extends XULHTMLBox
 	}
 }
 
+
+/**
+ * Statusbar element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/statusbar
+*/
+
+class XULStatusbar extends BranchNode
+{
+	public $remoteConstructor = 'Statusbar';
+}
+
+
+/**
+ * StatusbarPanel element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/statusbarpanel
+*/
+
+class XULStatusbarPanel extends BranchNode
+{
+	public $remoteConstructor = 'StatusbarPanel';
+	public $initAttributes = array( 'image' );
+	
+	
+	/**
+	 * Dynamic Constructor
+	 *
+	 * @param string	$label
+	 * @param string	$image
+	 * @param mixed		$childNodes
+	*/
+	
+	public function __construct() {
+		if( func_num_args() ) {
+			$args = func_get_args();
+			
+			if( count($args) && is_string($args[0]) )
+				$this->label( array_shift($args) );
+			if( count($args) && is_string($args[0]) )
+				$this->image( array_shift($args) );
+			
+			parent::__construct( $args );
+		}
+		else parent::__construct();
+	}
+	
+	public function label( $text = NULL ) {
+		$ret = parent::label( $text );
+		$this->setClass();
+		return $ret;
+	}
+	
+	private function setClass() {
+		if( (isset($this->className) && $this->className == 'statusbarpanel-menu-iconic') || !isset($this->image) )
+			return;
+		
+		if( isset($this->label) && $this->label != '' )
+			$this->className( 'statusbarpanel-iconic-text' );
+		else
+			$this->className( 'statusbarpanel-iconic' );
+	}
+	
+	public function image( $src = NULL ) {
+		if( $src === NULL )
+			return (isset($this->image) ? $this->image : NULL);
+		
+		$this->image = $src;
+		
+		if( $this->isRegistered ) {
+			$this->callMethod( 'image', $this->image );
+			$this->setClass();
+		}
+		
+		return $this;
+	}
+}
+
+
+/**
+ * Dialog header element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/dialogheader
+*/
+
+class XULDialogHeader extends BranchNode
+{
+	public $remoteConstructor = 'DialogHeader';
+	public $initAttributes = array( 'title', 'description' );
+	
+	
+	/**
+	 * Dynamic Constructor
+	 *
+	 * @param string	$title
+	 * @param string	$description
+	 * @param mixed		$childNodes
+	*/
+	
+	public function __construct() {
+		if( func_num_args() ) {
+			$args = func_get_args();
+			
+			if( count($args) && is_string($args[0]) )
+				$this->title( array_shift($args) );
+			if( count($args) && is_string($args[0]) )
+				$this->description( array_shift($args) );
+			
+			parent::__construct( $args );
+		}
+		else parent::__construct();
+	}
+	
+	public function title( $title = NULL ) {
+		return $this->attributeMethod( 'title', $title );
+	}
+	
+	public function description( $descr = NULL ) {
+		return $this->attributeMethod( 'description', $descr );
+	}
+}

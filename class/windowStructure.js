@@ -115,11 +115,11 @@ SiteFusion.Classes.PrintBox = Class.create( SiteFusion.Classes.Node, {
 			var gPrintSettingsAreGlobal = pref.getBoolPref("print.use_global_printsettings", false);
 			var gSavePrintSettings = pref.getBoolPref("print.save_print_settings", false);
 		}
-		var sys = new System;
+		
 		var printSettings;
 		try {
 			var printService = Cc["@mozilla.org/gfx/printsettings-service;1"].getService(Ci.nsIPrintSettingsService);
-			if (gPrintSettingsAreGlobal && sys.os == 'win32') {
+			if (gPrintSettingsAreGlobal && navigator.platform.match( /win32/i ) ) {
 				printSettings = printService.globalPrintSettings;
 				this.setPrinterDefaultsForSelectedPrinter(printService, printSettings);
 			} else {
@@ -131,4 +131,41 @@ SiteFusion.Classes.PrintBox = Class.create( SiteFusion.Classes.Node, {
 		return printSettings;
 	}
 } );
+
+
+SiteFusion.Classes.Statusbar = Class.create( SiteFusion.Classes.Node, {
+	sfClassName: 'XULStatusbar',
+	
+	initialize: function( win ) {
+		this.element = win.createElement( 'statusbar' );
+		this.element.sfNode = this;
+		
+		this.setEventHost();
+	}
+} );
+
+
+SiteFusion.Classes.StatusbarPanel = Class.create( SiteFusion.Classes.Node, {
+	sfClassName: 'XULStatusbarPanel',
+	
+	initialize: function( win ) {
+		this.element = win.createElement( 'statusbarpanel' );
+		this.element.sfNode = this;
+		
+		this.setEventHost();
+	}
+} );
+
+
+SiteFusion.Classes.DialogHeader = Class.create( SiteFusion.Classes.Node, {
+	sfClassName: 'XULDialogHeader',
+	
+	initialize: function( win ) {
+		this.element = win.createElement( 'dialogheader' );
+		this.element.sfNode = this;
+		
+		this.setEventHost();
+	}
+} );
+
 
