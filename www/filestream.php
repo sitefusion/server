@@ -30,49 +30,89 @@
  * @package Webfrontend
 */
 
-// GZIP compression for filestream seems to cause problems with images
-//if( substr_count($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') ) ob_start("ob_gzhandler");
-
 ignore_user_abort( TRUE );
-
 include( '../conf/webfrontend.conf' );
 include( 'functions.php' );
 
+try {
+	if( ! (isset($_GET['cid']) && isset($_GET['sid']) && isset($_GET['ident']) ) )
+		throw new Exception( 'No parameters' );
+	
+	$db = mysql_connect( $WEBCONFIG['databaseHost'], $WEBCONFIG['databaseUsername'], $WEBCONFIG['databasePassword'] );
+	mysql_select_db( 'sitefusion' );
+	$res = mysql_query( "SELECT * FROM `processes` WHERE `id` = '".mysql_escape_string($_GET['sid'])."'" );
+	if(! $res )
+		throw new Exception( mysql_error() );
+	
+	if( ! mysql_num_rows($res) )
+		throw new Exception( 'No session' );
+	
+	$dbSession = mysql_fetch_assoc( $res );
+	
+	if( $dbSession['ident'] != $_GET['ident'] )
+		throw new Exception( 'Not authorized' );
+	
+	$port = (int) $dbSession['port'];
+}
+catch ( Exception $ex ) {
+	echo $ex->getMessage();
+	exit(1);
+}
 
-if( ! (isset($_GET['cid']) && isset($_GET['sid']) && isset($_GET['ident']) ) )
-	die( 'No parameters' );
+function getConnection() {
+	global $WEBCONFIG, $port;
+	
+	try {
+		$socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+		if ($socket === false)
+		    throw new Exception( "socket_create() failed: reason: " . socket_strerror(socket_last_error()) );
+		
+		$result = socket_connect($socket, $WEBCONFIG['address'], $port );
+		if ($result === false)
+			throw new Exception( "socket_connect() failed.\nReason: ($result) " . socket_strerror(socket_last_error($socket)) );
+		
+		return $socket;
+	}
+	catch ( Exception $ex ) {
+		echo $ex->getMessage();
+		exit(1);
+	}
+}
 
-$db = mysql_connect( $WEBCONFIG['databaseHost'], $WEBCONFIG['databaseUsername'], $WEBCONFIG['databasePassword'] );
-mysql_select_db( 'sitefusion' );
-$res = mysql_query( "SELECT * FROM `processes` WHERE `id` = '".mysql_escape_string($_GET['sid'])."'" );
-if(! $res )
-	die( mysql_error() );
-
-if( ! mysql_num_rows($res) )
-	die( 'No session' );
-
-$dbSession = mysql_fetch_assoc( $res );
-
-if( $dbSession['ident'] != $_GET['ident'] )
-	die( 'Not authorized' );
-
-$port = (int) $dbSession['port'];
-
-$socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
-if ($socket === false)
-    die( "socket_create() failed: reason: " . socket_strerror(socket_last_error()) );
-
-$result = socket_connect($socket, $WEBCONFIG['address'], $port );
-if ($result === false)
-    die( "socket_connect() failed.\nReason: ($result) " . socket_strerror(socket_last_error($socket)) );
-
-WriteCommand( $socket, 'FILE', array('cid' => $_GET['cid']) );
-
-$cmd = ReadCommand( $socket );
-socket_close($socket);
-
-ob_end_clean();
-
-//var_dump( $cmd );
-header( 'Content-type: ' . $cmd->contentType );
-echo $cmd->data;
+try {
+	$socket = getConnection();
+	WriteCommand( $socket, 'FILE', array( 'cid' => $_GET['cid'], 'action' => 'start' ) );
+	$cmd = ReadCommand( $socket );
+	socket_close( $socket );
+	
+	$size = $cmd->size;
+	header( 'Content-type: ' . $cmd->contentType );
+	header( 'Content-length: ' . $size );
+	
+	$sentBytes = 0;
+	
+	while( $sentBytes < $size ) {
+		$socket = getConnection();
+		
+		WriteCommand( $socket, 'FILE', array( 'cid' => $_GET['cid'], 'action' => 'data' ) );
+		$cmd = ReadCommand( $socket );
+		
+		socket_close( $socket );
+		
+		if( strlen($cmd->data) == 0 )
+			throw new Exception( 'File transfer error' );
+		
+		echo $cmd->data;
+		$sentBytes += strlen($cmd->data);
+	}
+	
+	$socket = getConnection();
+	
+	WriteCommand( $socket, 'FILE', array( 'cid' => $_GET['cid'], 'action' => 'end' ) );
+	
+	socket_close($socket);
+}
+catch ( Exception $ex ) {
+	echo $ex->getMessage();
+	exit(1);
+}

@@ -30,32 +30,38 @@
  * @package Webfrontend
 */
 
-if( substr_count($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') ) ob_start("ob_gzhandler");
-
 include( '../conf/webfrontend.conf' );
 
-header( 'Content-Type: application/x-javascript; charset=utf-8' );
-/*
-$db = mysql_connect( $WEBCONFIG['databaseHost'], $WEBCONFIG['databaseUsername'], $WEBCONFIG['databasePassword'] );
-mysql_select_db( 'sitefusion' );
-$res = mysql_query( "SELECT `ident` FROM `processes` WHERE `id` = '".mysql_escape_string($_GET['sid'])."'" );
-if(! $res )
-	die( mysql_error() );
-
-if( ! mysql_num_rows($res) )
-	die( 'No session' );
-
-$dbSession = mysql_fetch_assoc( $res );
-
-if( $dbSession['ident'] != $_GET['ident'] )
-	die( 'Not authorized' );
-*/
-
-$name = $_GET['name'];
-
-if( preg_match( '/^[a-zA-Z0-9\-_\/]+$/', $name ) && is_file($WEBCONFIG['sitefusionPath'].'/'.$name.'.js') ) {
-	include( $WEBCONFIG['sitefusionPath'].'/'.$name.'.js' );
+try {
+	if( substr_count($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') ) ob_start("ob_gzhandler");
+	
+	header( 'Content-Type: application/x-javascript; charset=utf-8' );
+	/*
+	$db = mysql_connect( $WEBCONFIG['databaseHost'], $WEBCONFIG['databaseUsername'], $WEBCONFIG['databasePassword'] );
+	mysql_select_db( 'sitefusion' );
+	$res = mysql_query( "SELECT `ident` FROM `processes` WHERE `id` = '".mysql_escape_string($_GET['sid'])."'" );
+	if(! $res )
+		die( mysql_error() );
+	
+	if( ! mysql_num_rows($res) )
+		die( 'No session' );
+	
+	$dbSession = mysql_fetch_assoc( $res );
+	
+	if( $dbSession['ident'] != $_GET['ident'] )
+		die( 'Not authorized' );
+	*/
+	
+	$name = $_GET['name'];
+	
+	if( preg_match( '/^[a-zA-Z0-9\-_\/]+$/', $name ) && is_file($WEBCONFIG['sitefusionPath'].'/'.$name.'.js') ) {
+		include( $WEBCONFIG['sitefusionPath'].'/'.$name.'.js' );
+	}
+	else {
+		throw new Exception( 'No such library' );
+	}
 }
-else {
-	die( 'No such library' );
+catch ( Exception $ex ) {
+	echo $ex->getMessage();
+	exit(1);
 }

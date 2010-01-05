@@ -98,4 +98,9 @@ function ReturnError( $type, $message = NULL ) {
 	exit;
 }
 
+function ReturnResult( $data ) {
+	header( 'Content-Type: sitefusion/result; charset=utf-8' );
+	echo $data;
+}
+
 ?>

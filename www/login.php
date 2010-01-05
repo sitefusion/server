@@ -35,7 +35,7 @@ include( '../conf/webfrontend.conf' );
 include( 'functions.php' );
 
 if( ! (isset($_GET['app']) && isset($_GET['args']) && isset($_GET['clientid']) && isset($_POST['username']) && isset($_POST['password'])) )
-	die();
+	ReturnError( 'input_error' );
 
 try {
 	$socket = @socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
@@ -67,12 +67,10 @@ try {
 	
 	socket_close($socket);
 	
-	if( $cmd->success ) {
-		echo json_encode($cmd);
-	}
-	else {
+	if( $cmd->success )
+		ReturnResult( json_encode($cmd) );
+	else
 		ReturnError( $cmd->error );
-	}
 }
 catch ( Exception $ex ) {
 	// Give the daemon some time to collect error output

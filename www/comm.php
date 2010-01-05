@@ -119,6 +119,8 @@ catch ( Exception $ex ) {
 
 if( substr($cmd->data,-16) != '"EXEC_COMPLETE";' )
 	ReturnError( 'php_error', $cmd->data );
+else
+	ReturnResult( $cmd->data );
 
-header( 'Content-Type: application/x-javascript; charset=utf-8' );
-echo $cmd->data;
+//header( 'Content-Type: application/x-javascript; charset=utf-8' );
+//echo $cmd->data;
