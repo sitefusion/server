@@ -83,17 +83,8 @@ class DaemonProcess extends SiteFusionProcess
 		
 		try {
 			self::Log( 'Starting server...' );
-			self::Log( 'Opening main server socket on '.self::$Options['address'].':'.self::$Options['port'] );
-			self::$Socket = self::OpenSocket( self::$Options['address'], self::$Options['port'] );
 			
-			self::Log( 'Setting up signal handlers...' );
-			self::SetSignalHandlers();
-			
-		//	if( self::$Options['daemonize'] ) {
-		//		self::Log( 'Daemonizing...' );
-		//		self::Daemonize();
-		//	}
-			
+			self::Log( 'Setting up runtime directory...' );
 			$currentUser = posix_getpwuid(posix_getuid());
 			if( self::$Options['changeIdentity'] && $currentUser['name'] == self::$Options['systemUser'] )
 				self::$Options['changeIdentity'] = FALSE;
@@ -104,6 +95,12 @@ class DaemonProcess extends SiteFusionProcess
 				self::ChangeIdentity();
 			
 			self::WritePIDFile();
+			
+			self::Log( 'Opening main server socket on '.self::$Options['address'].':'.self::$Options['port'] );
+			self::$Socket = self::OpenSocket( self::$Options['address'], self::$Options['port'] );
+			
+			self::Log( 'Setting up signal handlers...' );
+			self::SetSignalHandlers();
 			
 			self::Log( 'Initializing database...' );
 			self::InitDatabase();

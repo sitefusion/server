@@ -250,8 +250,10 @@ class SitefusionAdmin extends Application
 			return;
 		
 		ApplicationProcess::SendDaemonShutdownFlags( TRUE, $e->sourceObject->grace, $e->sourceObject->restart );
-		if( !$e->sourceObject->grace )
+		if( !$e->sourceObject->grace ) {
+			sleep(1);
 			$this->window->close();
+		}
 	}
 	
 	public function cancelShutdown() {

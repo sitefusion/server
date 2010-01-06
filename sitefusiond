@@ -26,6 +26,11 @@ class SiteFusionStarter {
 	static public function Init() {
 		global $SFCONFIG;
 		
+		$opt = array_merge( array( 'daemonize' => $SFCONFIG['daemonize'] ), self::GetCommandLineOptions() );
+		
+		if( $opt['daemonize'] )
+			self::Daemonize();
+		
 		pcntl_signal( SIGHUP, array( 'SiteFusionStarter', 'SignalHandler' ) );
 		pcntl_signal( SIGTERM, array( 'SiteFusionStarter', 'SignalHandler' ) );
 		pcntl_signal( SIGINT, array( 'SiteFusionStarter', 'SignalHandler' ) );
@@ -35,18 +40,15 @@ class SiteFusionStarter {
 			1 => array("pipe", "w"),
 			2 => array("pipe", "w")
 		);
-
+		
 		self::$Process = proc_open( 'php '.$SFCONFIG['sitefusionPath'].'/daemon/start.php '.implode(' ',array_slice($_SERVER['argv'],1)), $descriptorspec, self::$Pipes );
 		if( !self::$Process ) {
-			echo "Daemon start failed, can't open daemon/start.php\n";
+			echo "SiteFusion daemon start failed, can't open daemon/start.php\n";
+			exit(1);
 		}
 		
-		$status = proc_get_status(self::$Process);
+		$status = proc_get_status( self::$Process );
 		self::$SiteFusionPID = $status['pid'];
-		
-		$opt = array_merge( array( 'daemonize' => $SFCONFIG['daemonize'] ), self::GetCommandLineOptions() );
-		if( $opt['daemonize'] )
-			self::Daemonize();
 	}
 	
 	static public function Loop() {
@@ -59,8 +61,10 @@ class SiteFusionStarter {
 			if( @stream_select( $read, $write, $except, 1 ) > 0 ) {
 				foreach ( $read as $fh ) {
 					$str = fread( $fh, 8192 );
-					if( $fh == self::$Pipes[2] ) // Write STDERR back to the daemon's STDIN
+					if( $fh == self::$Pipes[2] ) { // Write STDERR back to the daemon's STDIN
 						fwrite( self::$Pipes[0], $str );
+						fflush( self::$Pipes[0] );
+					}
 					elseif( ! self::$Daemonized )
 						echo $str;
 				}
@@ -113,22 +117,9 @@ class SiteFusionStarter {
 				if( ! self::$Process )
 					exit;
 				else
-					posix_kill( self::$SiteFusionPID, $signo );
+					if( $pid = (int) file_get_contents(self::$SiteFusionPIDFile) )
+						posix_kill( self::$SiteFusionPID, $signo );
 				break;
 		}
 	}
 }
-
-
-
-
-
-/*
-declare( ticks = 1 );
-
-include_once( 'conf/daemon.conf' );
-include_once( 'daemon/error.php.inc' );
-include_once( 'daemon/daemon.php.inc' );
-
-DaemonProcess::StartServer( $SFCONFIG );
-*/
