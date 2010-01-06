@@ -72,6 +72,22 @@ class XULListBox extends BranchNode
 		$this->setEventHandler( 'yield', $this, 'yieldCollect' );
 	}
 	
+	public function attach() {
+		parent::attach();
+		
+		if( count($this->selectedItems) )
+			$this->selectItem( $this->selectedItems );
+	}
+	
+	public function selectItem( $items ) {
+		if( !$this->isRegistered ) {
+			$this->selectedItems = (is_array($items) ? $items:array($items));
+			return;
+		}
+		
+		$this->callMethod( 'selectItem', array( $items ) );
+	}
+	
 	public function removeItems()
 	{
 		for ($i=0; $i < count($this->children); $i++)
@@ -269,6 +285,51 @@ class XULListCell extends BranchNode
 			
 			if( count($args) && is_string($args[0]) )
 				$this->label( array_shift($args) );
+			
+			parent::__construct( $args );
+		}
+		else parent::__construct();
+	}
+}
+
+
+/**
+ * RichListBox element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/richlistbox
+*/
+
+class XULRichListBox extends XULListBox
+{
+	public $remoteConstructor = 'RichListBox';
+}
+
+
+/**
+ * RichListItem element
+ * 
+ * @link https://developer.mozilla.org/en/XUL/richlistitem
+*/
+
+class XULRichListItem extends XULListItem
+{
+	public $remoteConstructor = 'RichListItem';
+
+	
+	/**
+	 * Dynamic Constructor
+	 *
+	 * @param string	$label
+	 * @param string	$value
+	 * @param mixed		$childNodes
+	*/
+	
+	public function __construct() {
+		if( func_num_args() ) {
+			$args = func_get_args();
+			
+			if( count($args) && is_string($args[0]) )
+				$this->value( array_shift($args) );
 			
 			parent::__construct( $args );
 		}

@@ -37,6 +37,14 @@ SiteFusion.Classes.ListBox = Class.create( SiteFusion.Classes.Node, {
 		this.eventHost.yield.msgType = 1;
 	},
 	
+	selectItem: function( items ) {
+		this.element.clearSelection();
+		
+		for( var n = 0; n < items.length; n++ ) {
+			this.element.addItemToSelection( items[n].element );
+		}
+	},
+	
 	yield: function() {
 		var items = this.element.selectedItem ? new Array( this.element.selectedItem.sfNode ) : new Array( null );
 		
@@ -118,6 +126,32 @@ SiteFusion.Classes.ListCell = Class.create( SiteFusion.Classes.Node, {
 	
 	initialize: function( win ) {
 		this.element = win.createElement( 'listcell' );
+		this.element.sfNode = this;
+		
+		this.setEventHost();
+	}
+} );
+
+
+SiteFusion.Classes.RichListBox = Class.create( SiteFusion.Classes.ListBox, {
+	sfClassName: 'XULRichListBox',
+	
+	initialize: function( win ) {
+		this.element = win.createElement( 'richlistbox' );
+		this.element.sfNode = this;
+		
+		this.setEventHost( [ 'yield' ] );
+		
+		this.eventHost.yield.msgType = 1;
+	}
+} );
+
+
+SiteFusion.Classes.RichListItem = Class.create( SiteFusion.Classes.ListItem, {
+	sfClassName: 'XULRichListItem',
+	
+	initialize: function( win ) {
+		this.element = win.createElement( 'richlistitem' );
 		this.element.sfNode = this;
 		
 		this.setEventHost();
