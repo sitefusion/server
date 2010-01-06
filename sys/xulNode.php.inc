@@ -91,7 +91,7 @@ class Node
 	
 	public function createClientEvent( $event, $type = -1 ) {
 		if(! $this->isRegistered )
-			Error::CallerFatal( "Can't create a client-side event on an unregistered node" );
+			throw new SFException( "Can't create a client-side event on an unregistered node", ERR_REPORT_APP );
 		
 		$this->callMethod( 'createEvent', array( $event, $type ) );
 	}
@@ -162,7 +162,7 @@ class Node
 		$handler = array( $obj, $func );
 		
 		if(! isset( $this->eventHandler[$event] ) )
-			Error::CallerFatal( 'The given handler is not in the node`s eventHandler list' );
+			throw new SFException( 'The given handler is not in the node`s eventHandler list', ERR_REPORT_APP );
 
 		for( $n = 0; $n < count($this->eventHandler[$event]); $n++ ) {
 			if( $this->eventHandler[$event][$n] === $handler )
@@ -199,16 +199,16 @@ class Node
 	
 	public function setEventYielder( $event, $obj ) {
 		if( ! $this->isRegistered )
-			Error::CallerFatal( 'Can`t set eventYielder because the hosting node is not registered' );
+			throw new SFException( 'Can`t set eventYielder because the hosting node is not registered', ERR_REPORT_APP );
 		
 		if(! is_array($obj) )
 			$obj = array($obj);
 		
 		foreach ( $obj as $node ) {
 			if( ! property_exists( $node, 'isRegistered' ) )
-				Error::CallerFatal( 'Object cannot be yielded because it is not a Node class object' );
+				throw new SFException( 'Object cannot be yielded because it is not a Node class object', ERR_REPORT_APP );
 			if( ! $node->isRegistered )
-				Error::CallerFatal( 'Given yielder node is not registered' );
+				throw new SFException( 'Given yielder node is not registered', ERR_REPORT_APP );
 			if( isset($this->eventYielder[$event]) && in_array( $node, $this->eventYielder[$event], TRUE ) )
 				return $this;
 			
@@ -242,16 +242,16 @@ class Node
 	
 	public function removeEventYielder( $event, $obj ) {
 		if( ! $this->isRegistered )
-			Error::CallerFatal( 'Can`t remove eventYielder because the hosting node is not registered' );
+			throw new SFException( 'Can`t remove eventYielder because the hosting node is not registered', ERR_REPORT_APP );
 		
 		if(! is_array($obj) )
 			$obj = array($obj);
 		
 		foreach ( $obj as $node ) {
 			if( ! $node->isRegistered )
-				Error::CallerFatal( 'Given yielder node is not registered' );
+				throw new SFException( 'Given yielder node is not registered', ERR_REPORT_APP );
 			if(! (is_array($this->eventYielder[$event]) && in_array( $node, $this->eventYielder[$event], TRUE )) )
-				Error::CallerFatal( 'This node does not yield the given node' );
+				throw new SFException( 'This node does not yield the given node', ERR_REPORT_APP );
 			
 			$index = array_search( $node, $this->eventYielder[$event], TRUE );
 			array_splice( $this->eventYielder[$event], $index, 1 );
@@ -296,7 +296,7 @@ class Node
 	
 	public function setEventType( $event, $type ) {
 		if( ! $this->isRegistered )
-			Error::CallerFatal( 'Can`t set event type because the hosting node is not registered' );
+			throw new SFException( 'Can`t set event type because the hosting node is not registered', ERR_REPORT_APP );
 		
 		$this->eventType[$event] = $type;
 		
@@ -316,7 +316,7 @@ class Node
 	
 	public function setEventBlocking( $event, $blocking ) {
 		if( ! $this->isRegistered )
-			Error::CallerFatal( 'Can`t set event blocking because the hosting node is not registered' );
+			throw new SFException( 'Can`t set event blocking because the hosting node is not registered', ERR_REPORT_APP );
 		
 		$this->callMethod( 'setEventBlocking', array($event,$blocking) );
 		
@@ -348,7 +348,7 @@ class Node
 	
 	public function setEventReflex( $event, $code ) {
 		if( ! $this->isRegistered )
-			Error::CallerFatal( 'Can`t set event reflex because the node is not registered' );
+			throw new SFException( 'Can`t set event reflex because the node is not registered', ERR_REPORT_APP );
 		
 		$this->callMethod( 'addReflex', array($event,$code) );
 		
@@ -367,7 +367,7 @@ class Node
 	
 	public function removeEventReflex( $event ) {
 		if( ! $this->isRegistered )
-			Error::CallerFatal( 'Can`t remove event reflex because the node is not registered' );
+			throw new SFException( 'Can`t remove event reflex because the node is not registered', ERR_REPORT_APP );
 		
 		$this->callMethod( 'removeReflex', array($event) );
 		
@@ -446,7 +446,7 @@ class Node
 	
 	public function fireClientEvent( $event, $args = NULL ) {
 		if(! $this->isRegistered )
-			Error::CallerFatal( 'Unregistered node cannot fire a ClientEvent' );
+			throw new SFException( 'Unregistered node cannot fire a ClientEvent', ERR_REPORT_APP );
 		
 		if( ! is_array($args) )
 			$args = array($args);
@@ -468,7 +468,7 @@ class Node
 	
 	public function yield() {
 		if(! $this->isRegistered )
-			Error::CallerFatal( 'Unregistered node cannot yield' );
+			throw new SFException( 'Unregistered node cannot yield', ERR_REPORT_APP );
 		
 		$this->rootApplication->sendCommand(
 			Comm::CallMethod( $this, 'yield' )
@@ -539,7 +539,7 @@ class Node
 	
 	public function createRemoteObject( $args = NULL ) {
 		if(! $this->isRegistered )
-			Error::CallerFatal( 'Can\'t call createRemoteObject on unregistered node' );
+			throw new SFException( 'Can\'t call createRemoteObject on unregistered node', ERR_REPORT_APP );
 		
 		$this->rootApplication->sendCommand(
 			Comm::CreateRemoteObject( $this, $args )
@@ -555,7 +555,7 @@ class Node
 	
 	public function insertElement() {
 		if(! $this->isRegistered )
-			Error::CallerFatal( 'Can\'t call insertElement on unregistered node' );
+			throw new SFException( 'Can\'t call insertElement on unregistered node', ERR_REPORT_APP );
 		
 		$this->rootApplication->sendCommand(
 			Comm::InsertElement( $this )
@@ -571,7 +571,7 @@ class Node
 	
 	public function removeElement() {
 		if(! $this->isRegistered )
-			Error::CallerFatal( 'Can\'t call removeElement on unregistered node' );
+			throw new SFException( 'Can\'t call removeElement on unregistered node', ERR_REPORT_APP );
 		
 		$this->rootApplication->sendCommand(
 			Comm::RemoveElement( $this )
@@ -587,7 +587,7 @@ class Node
 	
 	public function unRegister() {
 		if(! $this->isRegistered )
-			Error::CallerFatal( 'Can\'t call unRegister on unregistered node' );
+			throw new SFException( 'Can\'t call unRegister on unregistered node', ERR_REPORT_APP );
 		
 		$this->rootApplication->sendCommand(
 			Comm::UnRegister( $this )
@@ -607,7 +607,7 @@ class Node
 	
 	public function callMethod( $name, $args = NULL ) {
 		if(! $this->isRegistered )
-			Error::CallerFatal( 'Can\'t call callMethod on unregistered node' );
+			throw new SFException( 'Can\'t call callMethod on unregistered node', ERR_REPORT_APP );
 		
 		$this->rootApplication->sendCommand(
 			Comm::CallMethod( $this, $name, $args )
@@ -627,7 +627,7 @@ class Node
 	
 	public function callMethodDelayed( $name, $args = NULL, $delay = 1 ) {
 		if(! $this->isRegistered )
-			Error::CallerFatal( 'Can\'t call callMethod on unregistered node' );
+			throw new SFException( 'Can\'t call callMethod on unregistered node', ERR_REPORT_APP );
 		
 		$this->rootApplication->sendCommand(
 			Comm::CallMethodDelayed( $this, $name, $args, $delay )
@@ -646,7 +646,7 @@ class Node
 	
 	public function setProperty( $name, $value ) {
 		if(! $this->isRegistered )
-			Error::CallerFatal( 'Can\'t call setProperty on unregistered node' );
+			throw new SFException( 'Can\'t call setProperty on unregistered node', ERR_REPORT_APP );
 		
 		$this->rootApplication->sendCommand(
 			Comm::SetProperty( $this, $name, $value )
@@ -667,7 +667,7 @@ class Node
 	
 	public function setMethod( $method, $args, $code ) {
 		if(! $this->isRegistered )
-			Error::CallerFatal( 'Can\'t call setMethod on unregistered node' );
+			throw new SFException( 'Can\'t call setMethod on unregistered node', ERR_REPORT_APP );
 		
 		$this->rootApplication->sendCommand(
 			Comm::SetMethod( $this, $method, $args, $code )
@@ -687,7 +687,7 @@ class Node
 	
 	public function setAttribute( $name, $value ) {
 		if(! $this->isRegistered )
-			Error::CallerFatal( 'Can\'t call setAttribute on unregistered node' );
+			throw new SFException( 'Can\'t call setAttribute on unregistered node', ERR_REPORT_APP );
 		
 		$this->rootApplication->sendCommand(
 			Comm::SetAttribute( $this, $name, $value )
@@ -706,7 +706,7 @@ class Node
 	
 	public function removeAttribute( $name ) {
 		if(! $this->isRegistered )
-			Error::CallerFatal( 'Can\'t call removeAttribute on unregistered node' );
+			throw new SFException( 'Can\'t call removeAttribute on unregistered node', ERR_REPORT_APP );
 		
 		$this->rootApplication->sendCommand(
 			Comm::RemoveAttribute( $this, $name )
@@ -726,7 +726,7 @@ class Node
 	
 	public function setStyle( $name, $value ) {
 		if(! $this->isRegistered )
-			Error::CallerFatal( 'Can\'t call setStyle on unregistered node' );
+			throw new SFException( 'Can\'t call setStyle on unregistered node', ERR_REPORT_APP );
 		
 		$this->rootApplication->sendCommand(
 			Comm::SetProperty( $this, 'element.style.'.$name, $value )
@@ -800,7 +800,7 @@ class Node
 	
 	public function removeNode() {
 		if(! $this->isChild )
-			Error::CallerFatal( 'removeNode: Node is not a child' );
+			throw new SFException( 'removeNode: Node is not a child', ERR_REPORT_APP );
 		
 		$this->parent->removeChild( $this );
 	}
@@ -817,7 +817,7 @@ class Node
 	
 	public function extractNode() {
 		if(! $this->isChild )
-			Error::CallerFatal( 'extractNode: Node is not a child' );
+			throw new SFException( 'extractNode: Node is not a child', ERR_REPORT_APP );
 		
 		return $this->parent->extractChild( $this );
 	}
@@ -835,7 +835,7 @@ class Node
 	
 	public function findAncestor( $className ) {
 		if( !$this->isRegistered )
-			Error::CallerFatal( 'Node is not registered' );
+			throw new SFException( 'Node is not registered', ERR_REPORT_APP );
 		
 		$par = $this->parent;
 		
@@ -1592,7 +1592,7 @@ class Node
 	
 	public function setDraggable( $flavours = NULL ) {
 		if( ! $this->isRegistered )
-			Error::Fatal( "Can't call setDraggable() on unregistered node" );
+			throw new SFException( "Can't call setDraggable() on unregistered node", ERR_REPORT_APP );
 		
 		if( $flavours === NULL ) $flavours = array();
 		$send = array( get_class($this) );
@@ -1621,9 +1621,9 @@ class Node
 	
 	public function setDroppable( $flavours, $eventObj = NULL, $eventHandler = NULL ) {
 		if( ! $this->isRegistered )
-			Error::Fatal( "Can't call setDroppable() on unregistered node" );
+			throw new SFException( "Can't call setDroppable() on unregistered node", ERR_REPORT_APP );
 		if( (! is_array($flavours)) || count($flavours) < 1 )
-			Error::Fatal( "Can't declare node as Droppable with empty flavour list" );
+			throw new SFException( "Can't declare node as Droppable with empty flavour list", ERR_REPORT_APP );
 		
 		$this->callMethod( 'setDroppable', $flavours );
 		

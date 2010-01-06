@@ -32,79 +32,47 @@
 */
 
 
+define( 'ERR_REPORT_APP', 1 );
+define( 'ERR_REPORT_SF', 0 );
 
 class SFException extends Exception {
-	public function	__construct( $message, $code = NULL, $file = NULL, $line = NULL ) {
-		parent::__construct( $message, $code );
-		$this->file = $file;
-		$this->line = $line;
+	public function	__construct( $message, $type = 0, $file = NULL, $line = NULL ) {
+		parent::__construct( $message );
+		
+		$this->type = $type;
+		
+		if( $file === NULL )
+			$this->file = $this->getFile();
+		if( $line === NULL )
+			$this->line = $this->getLine();
+	}
+	
+	public function getFormattedReport() {
+		$msg = $this->getMessage();
+		$file = $this->file;
+		$line = $this->line;
+		
+		if( class_exists('ExtendedSiteFusionProcess') && $this->type == ERR_REPORT_APP ) {
+			$sfPath = ExtendedSiteFusionProcess::GetOption( 'sitefusionPath' );
+			$trace = $this->getTrace();
+			$appDir = $sfPath.'/app/';
+			
+			for( $stackLevel = 0; $stackLevel < count($trace); $stackLevel++ ) {
+				if( isset($trace[$stackLevel]['file']) && substr( $trace[$stackLevel]['file'], 0, strlen($appDir) ) == $appDir ) {
+					$file = $trace[$stackLevel]['file'];
+					$line = $trace[$stackLevel]['line'];
+					break;
+				}
+			}
+		}
+		
+		return $msg . ' in ' . $file . ' on line ' . $line . "\n\n" . $this->getTraceAsString();
 	}
 }
 
 
-function errorHandler( $no, $str, $file, $line, $context = NULL ) {
-		throw new SFException( strip_tags($str), $no, $file, $line );
-		return;
+function errorHandler( $no, $str, $file, $line ) {
+	throw new SFException( $str, ERR_REPORT_APP, $file, $line );
 }
-
 
 set_error_handler( 'errorHandler' );
-
-
-
-class Error
-{
-	public static $Suppress = FALSE;
-	
-	public static function CallerFatal( $msg, $level = 1 ) {
-		if( self::$Suppress ) return;
-		
-		if( ob_get_length() )
-			ob_clean();
-		
-		$bt = debug_backtrace();
-		
-		$msg = addslashes($msg);
-		$file = ( isset($bt[$level]['file']) ? $bt[$level]['file'] : '' );
-		$line = ( isset($bt[$level]['line']) ? $bt[$level]['line'] : '' );
-		
-		$text = "ERROR: $msg\\n\\nFile: $file\\nLine: $line\\n";
-
-		for( $n = $level + 1; isset($bt[$n]); $n++ ) {
-			$file = ( isset($bt[$n]['file']) ? $bt[$n]['file'] : '' );
-			$line = ( isset($bt[$n]['line']) ? $bt[$n]['line'] : '' );
-			$text .= "\\n\\nBacktrace $n:\\nFile: $file\\nLine: $line";
-		}
-
-		$text = str_replace( "\\n", "\n", $text );
-		echo $text;
-		
-		die();
-	}
-	
-	public static function Fatal( $msg ) {
-		if( self::$Suppress ) return;
-		
-		if( ob_get_length() )
-			ob_clean();
-		
-		$bt = debug_backtrace();
-		
-		$msg = addslashes($msg);
-		$file = ( isset($bt[0]['file']) ? $bt[0]['file'] : '' );
-		$line = ( isset($bt[0]['line']) ? $bt[0]['line'] : '' );
-		
-		$text = "ERROR: $msg\\n\\nFile: $file\\nLine: $line\\n";
-
-		for( $n = 1; isset($bt[$n]); $n++ ) {
-			$file = ( isset($bt[$n]['file']) ? $bt[$n]['file'] : '' );
-			$line = ( isset($bt[$n]['line']) ? $bt[$n]['line'] : '' );
-			$text .= "\\n\\nBacktrace $n:\\nFile: $file\\nLine: $line";
-		}
-
-		$text = str_replace( "\\n", "\n", $text );
-		echo $text;
-		
-		die();
-	}
-}

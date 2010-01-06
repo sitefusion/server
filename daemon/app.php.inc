@@ -170,7 +170,7 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 			if( self::$ConnectedDebugger ) {
 				self::ToDebuggerShowStack( $ex->getTrace(), FALSE, $ex->getMessage() . ' in ' . $ex->getFile() . ' at line ' . $ex->getLine() );
 			}
-			self::Log( $ex->getMessage() . ' in ' . $ex->getFile() . ' at line ' . $ex->getLine() . "\n" . $ex->getTraceAsString() );
+			self::Log( $ex->getFormattedReport() );
 			self::StopApplicationServer();
 			return;
 		}
@@ -200,7 +200,7 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 					if( self::$ConnectedDebugger )
 						throw $ex;
 					
-					self::Log($ex->getMessage());
+					self::Log($ex->getFormattedReport());
 				}
 			}
 			else return;
@@ -292,7 +292,7 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 			if( self::$ConnectedDebugger )
 				throw $ex;
 			
-			self::$NextCommOutput = $ex->getMessage() . ' in ' . $ex->getFile() . ' on line ' . $ex->getLine() . "\n\n" . $ex->getTraceAsString();
+			self::$NextCommOutput = $ex->getFormattedReport();
 		}
 		
 		$output = (self::$NextCommOutput ? self::$NextCommOutput : implode("\n",self::$Application->commandBuffer)."\"EXEC_COMPLETE\";");
@@ -347,7 +347,7 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 			if( self::$ConnectedDebugger )
 				throw $ex;
 			
-			self::$NextCommOutput = $ex->getMessage() . ' in ' . $ex->getFile() . ' on line ' . $ex->getLine() . "\n\n" . $ex->getTraceAsString();
+			self::$NextCommOutput = $ex->getFormattedReport();
 		}
 		
 		socket_close( $client );
@@ -490,7 +490,7 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 				if( self::$ConnectedDebugger )
 					throw $ex;
 				
-				self::$NextCommOutput = $ex->getMessage() . ' in ' . $ex->getFile() . ' on line ' . $ex->getLine() . "\n\n" . $ex->getTraceAsString();
+				self::$NextCommOutput = $ex->getFormattedReport();
 			}
 		}
 	}

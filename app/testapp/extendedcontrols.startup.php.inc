@@ -72,7 +72,17 @@ class SFExtendedControlsDemo extends Application
 					),
 					$this->panel2 = new XULTabPanel(
 						$stylebox = new XULVBox(1,
-						new XULLabel('This is a label situated in a XULVBox with some CSS styles applied to it!')
+							new XULLabel('This is a label situated in a XULVBox with some CSS styles applied to it!'),
+							new XULRichListBox( 'multiple',
+								new XULRichListItem( 'value1',
+									new XULLabel( 'This is the first item' ),
+									new XULButton( 'First button' )
+								),
+								new XULRichListItem( 'value2',
+									new XULLabel( 'This is the second item' ),
+									new XULButton( 'Second button' )
+								)
+							)
 						),
 						new XULSplitter(),
 						new XULTextBox(strval(""),TRUE)
@@ -92,7 +102,7 @@ class SFExtendedControlsDemo extends Application
 					),
 					$this->panel4 = new XULTabPanel(
 						new XULVBox(0,
-							new XULImage("http://sitefusion.org/images/header.jpg"),
+							new XULImage("http://sitefusion.org/images/header.jpg",400,70),
 							new XULTree(1,
 								$cols = new XULTreeCols(
 									new XULTreeCol('Col1', 1),

@@ -319,7 +319,6 @@ class XULRichListItem extends XULListItem
 	/**
 	 * Dynamic Constructor
 	 *
-	 * @param string	$label
 	 * @param string	$value
 	 * @param mixed		$childNodes
 	*/
@@ -331,9 +330,9 @@ class XULRichListItem extends XULListItem
 			if( count($args) && is_string($args[0]) )
 				$this->value( array_shift($args) );
 			
-			parent::__construct( $args );
+			Node::__construct( $args );
 		}
-		else parent::__construct();
+		else Node::__construct();
 	}
 }
 

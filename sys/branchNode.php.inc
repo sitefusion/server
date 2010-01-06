@@ -63,10 +63,10 @@ class BranchNode extends Node
 			$node = $args[$n];
 			
 			if(! $node instanceof Node )
-				Error::CallerFatal( 'Object is not a Node' );
+				throw new SFException( 'Object is not a Node', ERR_REPORT_APP );
 
 			if( $node->isChild )
-				Error::CallerFatal( 'Node is already a child' );
+				throw new SFException( 'Node is already a child', ERR_REPORT_APP );
 			
 			$this->fireLocalEvent( 'onBeforeAddChild', array($node) );
 			
@@ -100,11 +100,11 @@ class BranchNode extends Node
 	
 	public function addChildBefore( $node, $childnode ) {
 		if( $node->isChild ) {
-			Error::CallerFatal( 'Node is already a child' );
+			throw new SFException( 'Node is already a child', ERR_REPORT_APP );
 			return FALSE;
 		}
 		if(! in_array( $childnode, $this->children, TRUE ) ) {
-			Error::CallerFatal( 'Given childnode is not a child of this node' );
+			throw new SFException( 'Given childnode is not a child of this node', ERR_REPORT_APP );
 			return FALSE;
 		}
 		
@@ -142,11 +142,11 @@ class BranchNode extends Node
 	
 	public function addChildAfter( $node, $childnode ) {
 		if( $node->isChild ) {
-			Error::CallerFatal( 'Node is already a child' );
+			throw new SFException( 'Node is already a child', ERR_REPORT_APP );
 			return FALSE;
 		}
 		if(! in_array( $childnode, $this->children, TRUE ) ) {
-			Error::CallerFatal( 'Given childnode is not a child of this node' );
+			throw new SFException( 'Given childnode is not a child of this node', ERR_REPORT_APP );
 			return FALSE;
 		}
 		
@@ -237,7 +237,7 @@ class BranchNode extends Node
 			$obj = $args[$n];
 
 			if( ( $index = array_search($obj,$this->children,TRUE) ) === FALSE )
-				Error::CallerFatal( 'Node is not a child of this BranchNode' );
+				( 'Node is not a child of this BranchNode' );
 			
 			$this->fireLocalEvent( 'onBeforeRemoveChild', array($obj) );
 			
@@ -284,7 +284,7 @@ class BranchNode extends Node
 			$obj = $args[$n];
 
 			if( ( $index = array_search($obj,$this->children,TRUE) ) === FALSE )
-				Error::CallerFatal( 'Node is not a child of this BranchNode' );
+				throw new SFException( 'Node is not a child of this BranchNode', ERR_REPORT_APP );
 			
 			$this->fireLocalEvent( 'onBeforeRemoveChild', array($obj) );
 			
