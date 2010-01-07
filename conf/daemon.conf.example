@@ -49,7 +49,7 @@ $SFCONFIG['sitefusionPath'] = '/usr/local/sitefusion';
 
 // Debug mode (TRUE or FALSE)
 // This enables more extensive logging and the built-in debugger
-$SFCONFIG['debug'] = TRUE;
+$SFCONFIG['debug'] = FALSE;
 
 // Whether the daemon should stay in the foreground (FALSE) or detach and become
 // an independent process (TRUE)
