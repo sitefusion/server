@@ -600,7 +600,7 @@ class XULMenuList extends BranchNode
 	
 	public function selectItem( $val ) {
 		if(! (isset($this->children[0]) && $this->children[0] instanceof XULMenuPopup) )
-				Error::CallerFatal( 'XULMenuList needs a XULMenuPopup childnode to contain menu items' );
+				throw new SFException( 'XULMenuList needs a XULMenuPopup childnode to contain menu items', ERR_REPORT_APP );
 		
 		if( is_integer( $val ) ) {
 			$this->selectedItem = $this->children[0]->children[$val];

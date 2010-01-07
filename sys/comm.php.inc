@@ -41,7 +41,7 @@ class Comm
 {
 	public static function CreateRemoteObject( $obj, $args = NULL ) {
 		if( ! $obj->isRegistered )
-			Error::CallerFatal( 'Need a registered node for Comm::CreateRemoteObject()' );
+			throw new SFException( 'Need a registered node for Comm::CreateRemoteObject()', ERR_REPORT_APP );
 		
 		if( $args === NULL )
 			$args = '';
@@ -53,7 +53,7 @@ class Comm
 	
 	public static function InsertElement( $obj ) {
 		if( ! $obj->isRegistered )
-			Error::CallerFatal( 'Need a registered node for Comm::InsertElement()' );
+			throw new SFException( 'Need a registered node for Comm::InsertElement()', ERR_REPORT_APP );
 		
 		if( isset( $obj->insertBefore ) ) {
 			$id = $obj->insertBefore->id;
@@ -68,7 +68,7 @@ class Comm
 
 	public static function RemoveElement( $obj ) {
 		if( ! $obj->isRegistered )
-			Error::CallerFatal( 'Need a registered node for Comm::RemoveElement()' );
+			throw new SFException( 'Need a registered node for Comm::RemoveElement()', ERR_REPORT_APP );
 		
 		if( (! $obj->hostWindow->hasClosed) && (! isset($obj->isRemoved)) )
 			return "R[".$obj->parent->id."].removeChild(R[".$obj->id."]);";
@@ -78,14 +78,14 @@ class Comm
 	
 	public static function UnRegister( $obj ) {
 		if( ! $obj->isRegistered )
-			Error::CallerFatal( 'Need a registered node for Comm::UnRegister()' );
+			throw new SFException( 'Need a registered node for Comm::UnRegister()', ERR_REPORT_APP );
 		
 		return "delete R[".$obj->id."];";
 	}
 	
 	public static function CallMethod( $obj, $method, $args = NULL ) {
 		if( ! $obj->isRegistered )
-			Error::CallerFatal( 'Need a registered node for Comm::CallMethod()' );
+			throw new SFException( 'Need a registered node for Comm::CallMethod()', ERR_REPORT_APP );
 
 		if( $obj->hostWindow->hasClosed )
 			return '';
@@ -100,7 +100,7 @@ class Comm
 	
 	public static function CallMethodDelayed( $obj, $method, $args = NULL, $delay = 1 ) {
 		if( ! $obj->isRegistered )
-			Error::CallerFatal( 'Need a registered node for Comm::CallMethodDelayed()' );
+			throw new SFException( 'Need a registered node for Comm::CallMethodDelayed()', ERR_REPORT_APP );
 
 		if( $obj->hostWindow->hasClosed )
 			return '';
@@ -115,7 +115,7 @@ class Comm
 
 	public static function SetProperty( $obj, $prop, $value ) {
 		if( ! $obj->isRegistered )
-			Error::CallerFatal( 'Need a registered node for Comm::SetProperty()' );
+			throw new SFException( 'Need a registered node for Comm::SetProperty()', ERR_REPORT_APP );
 
 		if( $obj->hostWindow->hasClosed )
 			return '';
@@ -129,7 +129,7 @@ class Comm
 	
 	public static function SetMethod( $obj, $method, $args, $code ) {
 		if( ! $obj->isRegistered )
-			Error::CallerFatal( 'Need a registered node for Comm::SetMethod()' );
+			throw new SFException( 'Need a registered node for Comm::SetMethod()', ERR_REPORT_APP );
 
 		if( $obj->hostWindow->hasClosed )
 			return '';
@@ -139,7 +139,7 @@ class Comm
 	
 	public static function SetAttribute( $obj, $attr, $value ) {
 		if( ! $obj->isRegistered )
-			Error::CallerFatal( 'Need a registered node for Comm::SetAttribute()' );
+			throw new SFException( 'Need a registered node for Comm::SetAttribute()', ERR_REPORT_APP );
 
 		if( $obj->hostWindow->hasClosed )
 			return '';
@@ -149,7 +149,7 @@ class Comm
 
 	public static function RemoveAttribute( $obj, $attr ) {
 		if( ! $obj->isRegistered )
-			Error::CallerFatal( 'Need a registered node for Comm::RemoveAttribute()' );
+			throw new SFException( 'Need a registered node for Comm::RemoveAttribute()', ERR_REPORT_APP );
 
 		if( $obj->hostWindow->hasClosed )
 			return '';

@@ -464,7 +464,7 @@ class PromptService extends Node
 	 */
 	
 	public function alertCheck( $title, $text, $checkMsg, $checkState, $handlerObj, $handlerMethod, $carryValue = NULL ) {
-		if( $this->promptInProgress ) Error::CallerFatal( 'PromptService: a prompt is already in progress' );
+		if( $this->promptInProgress ) throw new SFException( 'PromptService: a prompt is already in progress', ERR_REPORT_APP );
 		$this->promptInProgress = TRUE;
 		$this->handlerObj = $handlerObj;
 		$this->handlerMethod = $handlerMethod;
@@ -484,7 +484,7 @@ class PromptService extends Node
 	 */
 	
 	public function confirm( $title, $text, $handlerObj, $handlerMethod, $carryValue = NULL ) {
-		if( $this->promptInProgress ) Error::CallerFatal( 'PromptService: a prompt is already in progress' );
+		if( $this->promptInProgress ) throw new SFException( 'PromptService: a prompt is already in progress', ERR_REPORT_APP );
 		$this->promptInProgress = TRUE;
 		$this->handlerObj = $handlerObj;
 		$this->handlerMethod = $handlerMethod;
@@ -505,7 +505,7 @@ class PromptService extends Node
 	 */
 	
 	public function confirmCheck( $title, $text, $checkMsg, $checkState, $handlerObj, $handlerMethod, $carryValue = NULL ) {
-		if( $this->promptInProgress ) Error::CallerFatal( 'PromptService: a prompt is already in progress' );
+		if( $this->promptInProgress ) throw new SFException( 'PromptService: a prompt is already in progress', ERR_REPORT_APP );
 		$this->promptInProgress = TRUE;
 		$this->handlerObj = $handlerObj;
 		$this->handlerMethod = $handlerMethod;
@@ -533,7 +533,7 @@ class PromptService extends Node
 	 */
 	
 	public function confirmEx( $title, $text, $buttonFlags, $button0Title, $button1Title, $button2Title, $checkMsg, $checkState, $handlerObj, $handlerMethod, $carryValue = NULL ) {
-		if( $this->promptInProgress ) Error::CallerFatal( 'PromptService: a prompt is already in progress' );
+		if( $this->promptInProgress ) throw new SFException( 'PromptService: a prompt is already in progress', ERR_REPORT_APP );
 		$this->promptInProgress = TRUE;
 		$this->handlerObj = $handlerObj;
 		$this->handlerMethod = $handlerMethod;
@@ -554,7 +554,7 @@ class PromptService extends Node
 	 */
 	
 	public function prompt( $title, $text, $textValue, $handlerObj, $handlerMethod, $carryValue = NULL ) {
-		if( $this->promptInProgress ) Error::CallerFatal( 'PromptService: a prompt is already in progress' );
+		if( $this->promptInProgress ) throw new SFException( 'PromptService: a prompt is already in progress', ERR_REPORT_APP );
 		$this->promptInProgress = TRUE;
 		$this->handlerObj = $handlerObj;
 		$this->handlerMethod = $handlerMethod;
@@ -577,7 +577,7 @@ class PromptService extends Node
 	 */
 	
 	public function promptCheck( $title, $text, $textValue, $checkMsg, $checkState, $handlerObj, $handlerMethod, $carryValue = NULL ) {
-		if( $this->promptInProgress ) Error::CallerFatal( 'PromptService: a prompt is already in progress' );
+		if( $this->promptInProgress ) throw new SFException( 'PromptService: a prompt is already in progress', ERR_REPORT_APP );
 		$this->promptInProgress = TRUE;
 		$this->handlerObj = $handlerObj;
 		$this->handlerMethod = $handlerMethod;
@@ -599,7 +599,7 @@ class PromptService extends Node
 	 */
 	
 	public function promptUsernameAndPassword( $title, $text, $username, $password, $handlerObj, $handlerMethod, $carryValue = NULL ) {
-		if( $this->promptInProgress ) Error::CallerFatal( 'PromptService: a prompt is already in progress' );
+		if( $this->promptInProgress ) throw new SFException( 'PromptService: a prompt is already in progress', ERR_REPORT_APP );
 		$this->promptInProgress = TRUE;
 		$this->handlerObj = $handlerObj;
 		$this->handlerMethod = $handlerMethod;
@@ -623,7 +623,7 @@ class PromptService extends Node
 	 */
 	
 	public function promptUsernameAndPasswordCheck( $title, $text, $username, $password, $checkMsg, $checkState, $handlerObj, $handlerMethod, $carryValue = NULL ) {
-		if( $this->promptInProgress ) Error::CallerFatal( 'PromptService: a prompt is already in progress' );
+		if( $this->promptInProgress ) throw new SFException( 'PromptService: a prompt is already in progress', ERR_REPORT_APP );
 		$this->promptInProgress = TRUE;
 		$this->handlerObj = $handlerObj;
 		$this->handlerMethod = $handlerMethod;
@@ -644,7 +644,7 @@ class PromptService extends Node
 	 */
 	
 	public function promptPassword( $title, $text, $password, $handlerObj, $handlerMethod, $carryValue = NULL ) {
-		if( $this->promptInProgress ) Error::CallerFatal( 'PromptService: a prompt is already in progress' );
+		if( $this->promptInProgress ) throw new SFException( 'PromptService: a prompt is already in progress', ERR_REPORT_APP );
 		$this->promptInProgress = TRUE;
 		$this->handlerObj = $handlerObj;
 		$this->handlerMethod = $handlerMethod;
@@ -667,7 +667,7 @@ class PromptService extends Node
 	 */
 	
 	public function promptPasswordCheck( $title, $text, $password, $checkMsg, $checkState, $handlerObj, $handlerMethod, $carryValue = NULL ) {
-		if( $this->promptInProgress ) Error::CallerFatal( 'PromptService: a prompt is already in progress' );
+		if( $this->promptInProgress ) throw new SFException( 'PromptService: a prompt is already in progress', ERR_REPORT_APP );
 		$this->promptInProgress = TRUE;
 		$this->handlerObj = $handlerObj;
 		$this->handlerMethod = $handlerMethod;
@@ -689,7 +689,7 @@ class PromptService extends Node
 	 */
 	
 	public function select( $title, $text, $list, $selectedIndex, $handlerObj, $handlerMethod, $carryValue = NULL ) {
-		if( $this->promptInProgress ) Error::CallerFatal( 'PromptService: a prompt is already in progress' );
+		if( $this->promptInProgress ) throw new SFException( 'PromptService: a prompt is already in progress', ERR_REPORT_APP );
 		$this->promptInProgress = TRUE;
 		$this->handlerObj = $handlerObj;
 		$this->handlerMethod = $handlerMethod;

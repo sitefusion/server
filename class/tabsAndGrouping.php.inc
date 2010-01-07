@@ -71,7 +71,7 @@ class XULTabBox extends BranchNode
 		if( $tab === NULL )
 			return $this->selectedTab;
 		if( ! $tab instanceof XULTab and ! $tab instanceof XULTabPanel )
-			Error::CallerFatal( 'Object is not a XULTab or XULTabPanel' );
+			throw new SFException( 'Object is not a XULTab or XULTabPanel', ERR_REPORT_APP );
 		
 		$this->selectedTab = $tab;
 		
@@ -83,7 +83,7 @@ class XULTabBox extends BranchNode
 		if( $tab === NULL )
 			return $this->selectedPanel;
 		if( ! $tab instanceof XULTabPanel )
-			Error::CallerFatal( 'Object is not a XULTabPanel' );
+			throw new SFException( 'Object is not a XULTabPanel', ERR_REPORT_APP );
 		
 		$this->selectedPanel = $tab;
 		
@@ -109,7 +109,7 @@ class XULTabs extends BranchNode
 		if( $tab === NULL )
 			return $this->selectedItem;
 		if( ! $tab instanceof XULTab )
-			Error::CallerFatal( 'Object is not a XULTab' );
+			throw new SFException( 'Object is not a XULTab', ERR_REPORT_APP );
 		
 		$this->selectedItem = $tab;
 		

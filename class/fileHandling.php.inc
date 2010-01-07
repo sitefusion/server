@@ -58,7 +58,7 @@ class XULFilePicker extends Node
 		if( $mode == 'open' || $mode == 'save' || $mode == 'getfolder' || $mode == 'openmultiple' )
 			$this->mode = $mode;
 		else
-			Error::CallerFatal( 'Invalid mode' );
+			throw new SFException( 'Invalid mode', ERR_REPORT_APP );
 		
 		$this->setEventHandler( 'yield', $this, 'yieldCollect' );
 		
@@ -154,7 +154,7 @@ class FileUploader extends Node
 	
 	public function startUpload( $remotePath ) {
 		if( (!isset($this->destPath)) || (!isset($this->destName)) )
-			Error::Fatal( 'No file path or name given. Use setDestination()' );
+			throw new SFException( 'No file path or name given. Use setDestination()', ERR_REPORT_APP );
 		
 		$this->callMethod( 'startUpload', array( $remotePath ) );
 	}
@@ -236,7 +236,7 @@ class FileDownloader extends Node
 	
 	public function startDownload() {
 		if( (!isset($this->destPath)) || (!isset($this->filePath)) )
-			Error::Fatal( 'No file path or name given. Use setPaths()' );
+			throw new SFException( 'No file path or name given. Use setPaths()', ERR_REPORT_APP );
 		
 		$this->callMethod( 'startDownload', array( $this->destPath ) );
 	}

@@ -118,13 +118,13 @@ class XULScrollBox extends XULBox
 	
 	public function scrollTo( $x, $y ) {
 		if( ! $this->isRegistered )
-			Error::CallerFatal( 'Call to scrollTo() on an unregistered XULScrollBox' );
+			throw new SFException( 'Call to scrollTo() on an unregistered XULScrollBox', ERR_REPORT_APP );
 		$this->callMethod( 'scrollTo', array( $x, $y ) );
 	}
 	
 	public function ensureElementIsVisible( $node ) {
 		if( ! $this->isRegistered )
-			Error::CallerFatal( 'Call to ensureElementIsVisible() on an unregistered XULScrollBox' );
+			throw new SFException( 'Call to ensureElementIsVisible() on an unregistered XULScrollBox', ERR_REPORT_APP );
 		$this->callMethod( 'ensureElementIsVisible', array( $node ) );
 	}
 }

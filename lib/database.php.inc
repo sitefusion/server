@@ -42,7 +42,7 @@ class Database
 	
 	public function __construct( $db = NULL ) {
 		if( $db === NULL )
-			Error::CallerFatal( "Database: No database name given" );
+			throw new SFException( "Database: No database name given", ERR_REPORT_APP );
 		
 		if( self::$connection === NULL )
 			self::$connection = mysql_connect( self::$hostname, self::$username, self::$password, TRUE );
@@ -264,7 +264,7 @@ class DatabaseObject
 		}
 		else {
 			if(! isset( $this->_variables[$name] ) )
-				Error::CallerFatal( "Undefined property '$name'" );
+				throw new SFException( "Undefined property '$name'", ERR_REPORT_APP );
 			
 			return $this->_variables[$name];
 		}
@@ -333,7 +333,7 @@ class DatabaseObject
 		if( ! is_resource($res) ) {
 			if( $res === NULL ) {
 				if(! isset($this->_data[$this->_id_field]) )
-					Error::CallerFatal( "DatabaseObject: Can't retrieve(), no id or resource given" );
+					throw new SFException( "DatabaseObject: Can't retrieve(), no id or resource given", ERR_REPORT_APP );
 				$res = $this->_data[$this->_id_field];
 			}
 			
@@ -342,13 +342,13 @@ class DatabaseObject
 			if( $index === NULL )
 				$index = $this->_id_field;
 			elseif( $index != $this->_id_field && ! in_array($index,$this->_indices) )
-				Error::CallerFatal( "DatabaseObject: Unrecognized index field '$index'" );
+				throw new SFException( "DatabaseObject: Unrecognized index field '$index'", ERR_REPORT_APP );
 			
 			$db = new Database( $this->_database );
 			$res = $db->query( "SELECT `" . implode( '`,`', array_values($this->_fields) ) . "` FROM `" . $this->_table . "` WHERE `" . $index . "` = '" . mysql_escape_string($id) . "' LIMIT 1" );
 			
 			if(! is_resource($res) )
-				Error::CallerFatal( 'DatabaseObject MySQL Error: ' . mysql_error() );
+				throw new SFException( 'DatabaseObject MySQL Error: ' . mysql_error(), ERR_REPORT_APP );
 			if( mysql_num_rows($res) != 1 ) {
 				$this->exists = FALSE;
 				return $this;
@@ -401,13 +401,13 @@ class DatabaseObject
 		if( $index === NULL )
 			$index = $this->_id_field;
 		elseif( $index != $this->_id_field && ! in_array($index,$this->_indices) )
-			Error::CallerFatal( "DatabaseObject: Unrecognized index field '$index'" );
+			throw new SFException( "DatabaseObject: Unrecognized index field '$index'", ERR_REPORT_APP );
 		
 		$db = new Database( $this->_database );
 		$res = $db->query( "SELECT `" . $index . "` FROM `" . $this->_table . "`" );
 		
 		if(! is_resource($res) )
-			Error::CallerFatal( "DatabaseObject MySQL Error: " . mysql_error() );
+			throw new SFException( "DatabaseObject MySQL Error: " . mysql_error(), ERR_REPORT_APP );
 		
 		$list = array();
 		

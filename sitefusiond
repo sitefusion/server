@@ -9,7 +9,34 @@ if( version_compare( PHP_VERSION, $requiredVersion ) == -1 ) {
 
 chdir( dirname(__FILE__) );
 
+if( ! is_file('conf/daemon.conf') ) {
+	echo "Can't find conf/daemon.conf, please create a new one or copy from conf/daemon.conf.example\n";
+	exit(1);
+}
+if( ! is_file('conf/webfrontend.conf') ) {
+	echo "Can't find conf/webfrontend.conf, please create a new one or copy from conf/webfrontend.conf.example\n";
+	exit(1);
+}
+
 include_once( 'conf/daemon.conf' );
+include_once( 'conf/webfrontend.conf' );
+
+if( ! is_file($SFCONFIG['sitefusionPath'].'/daemon/start.php') ) {
+	echo "Can't find daemon/start.php. Please check your 'sitefusionPath' configuration option in conf/daemon.conf, it should contain '".getcwd()."'\n";
+	exit(1);
+}
+if( ! is_dir(dirname($SFCONFIG['logfile'])) ) {
+	echo "Invalid path in configuration option 'logfile' in conf/daemon.conf, it needs to contain a path to a filename in an existing and writable directory.\n";
+	exit(1);
+}
+if( ! is_dir(dirname($SFCONFIG['runtimeDirectory'])) ) {
+	echo "Invalid path in configuration option 'runtimeDirectory' in conf/daemon.conf, it needs to contain a path to a subdirectory in an existing and writable directory.\n";
+	exit(1);
+}
+if( ! is_file($WEBCONFIG['sitefusionPath'].'/daemon/start.php') ) {
+	echo "Invalid path in configuration option 'sitefusionPath' in conf/webfrontend.conf, it should contain '".getcwd()."'\n";
+	exit(1);
+}
 
 while( 1 ) {
 	SiteFusionStarter::Init();

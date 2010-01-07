@@ -98,7 +98,7 @@ class Registry
 	
 	final public function remove( $node ) {
 		if(! $node->isRegistered )
-			Error::CallerFatal( 'Node is not registered' );
+			throw new SFException( 'Node is not registered', ERR_REPORT_APP );
 		
 		if( is_object($node->parent) && method_exists( $node->parent, 'onRemoveChild' ) )
 			$parent->onRemoveChild( $node );
@@ -125,7 +125,7 @@ class Registry
 
 	final public function removeSilent( $node ) {
 		if(! $node->isRegistered )
-			Error::CallerFatal( 'Node is not registered' );
+			throw new SFException( 'Node is not registered', ERR_REPORT_APP );
 		
 		if( is_object($node->parent) && method_exists( $node->parent, 'onRemoveChild' ) )
 			$parent->onRemoveChild( $node );
