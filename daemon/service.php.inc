@@ -148,9 +148,10 @@ class ServiceProcess extends ExtendedSiteFusionProcess
 			}
 		}
 		catch ( SFException $ex ) {
-			if( self::$ConnectedDebugger ) {
+			if( self::$ConnectedDebugger )
 				self::ToDebuggerShowStack( $ex->getTrace(), FALSE, $ex->getMessage() . ' in ' . $ex->getFile() . ' at line ' . $ex->getLine() );
-			}
+			
+			self::Log( 'Uncaught Exception in service ('.self::$SessionID.'): ' . $ex->getFormattedReport() );
 			self::StopApplicationServer();
 			return;
 		}
@@ -175,7 +176,7 @@ class ServiceProcess extends ExtendedSiteFusionProcess
 						case 'EVENT': self::HandleEvent( $cmd ); break;
 					}
 				}
-				catch ( SFException $ex ) { self::Log($ex->getMessage()); }
+				catch ( SFException $ex ) { self::Log( 'Uncaught Exception in service ('.self::$SessionID.'): ' . $ex->getFormattedReport() ); }
 			}
 			else return;
 		}
@@ -276,7 +277,7 @@ class ServiceProcess extends ExtendedSiteFusionProcess
 				$ret = self::$Service->handleCall( $cmd->name, $args );
 			}
 			catch ( SFException $ex ) {
-				self::Log( $ex->getMessage() . ' in file ' . $ex->getFile() . ' at line ' . $ex->getLine() . "\n\n" . $ex->getTraceAsString() );
+				self::Log( 'Uncaught Exception in service ('.self::$SessionID.'): ' . $ex->getFormattedReport() );
 				$ret = $ex;
 			}
 			
@@ -302,7 +303,7 @@ class ServiceProcess extends ExtendedSiteFusionProcess
 			self::$Service->handleGlobalEvent( $event, $args );
 		}
 		catch ( SFException $ex ) {
-			self::Log( $ex->getMessage() . ' in file ' . $ex->getFile() . ' at line ' . $ex->getLine() . "\n\n" . $ex->getTraceAsString() );
+			self::Log( 'Uncaught Exception in service ('.self::$SessionID.'): ' . $ex->getFormattedReport() );
 		}
 		
 		ob_end_clean();
@@ -320,7 +321,7 @@ class ServiceProcess extends ExtendedSiteFusionProcess
 				ob_end_clean();
 			}
 			catch ( SFException $ex ) {
-				self::Log( $ex->getMessage() . ' in file ' . $ex->getFile() . ' at line ' . $ex->getLine() . "\n\n" . $ex->getTraceAsString() );
+				self::Log( 'Uncaught Exception in service ('.self::$SessionID.'): ' . $ex->getFormattedReport() );
 			}
 		}
 	}

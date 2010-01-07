@@ -66,7 +66,7 @@ class JobProcess extends SiteFusionProcess
 			$output = "Job execution took $time seconds. Output:\n\n" . $output;
 		}
 		catch ( SFException $ex ) {
-			$output = "Job execution failed:\n\n" . $ex->getMessage() . ' in file ' . $ex->getFile() . ' at line ' . $ex->getLine() . "\n\n" . $ex->getTraceAsString();
+			$output = "Job execution failed:\n\n" . $ex->getFormattedReport();
 		}
 		
 		if( self::$MailTo ) {

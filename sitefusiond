@@ -75,6 +75,16 @@ class SiteFusionStarter {
 		}
 		
 		$status = proc_get_status( self::$Process );
+		
+		if( ! $status['running'] ) {
+			echo "SiteFusion daemon start failed, please check the logfile for details\n";
+			exit(1);
+		}
+		
+		stream_set_blocking( self::$Pipes[0], 0 );
+		stream_set_blocking( self::$Pipes[1], 0 );
+		stream_set_blocking( self::$Pipes[2], 0 );
+		
 		self::$SiteFusionPID = $status['pid'];
 	}
 	

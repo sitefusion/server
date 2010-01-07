@@ -170,7 +170,7 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 			if( self::$ConnectedDebugger ) {
 				self::ToDebuggerShowStack( $ex->getTrace(), FALSE, $ex->getMessage() . ' in ' . $ex->getFile() . ' at line ' . $ex->getLine() );
 			}
-			self::Log( $ex->getFormattedReport() );
+			self::Log( 'Uncaught Exception in application ('.self::$SessionID.'): ' . $ex->getFormattedReport() );
 			self::StopApplicationServer();
 			return;
 		}
@@ -200,7 +200,7 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 					if( self::$ConnectedDebugger )
 						throw $ex;
 					
-					self::Log($ex->getFormattedReport());
+					self::Log('Uncaught Exception in application ('.self::$SessionID.'): ' . $ex->getFormattedReport());
 				}
 			}
 			else return;
@@ -293,6 +293,9 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 				throw $ex;
 			
 			self::$NextCommOutput = $ex->getFormattedReport();
+			
+			if( self::$Options['debug'] )
+				self::Log( 'Uncaught Exception in application ('.self::$SessionID.'): ' . self::$NextCommOutput );
 		}
 		
 		$output = (self::$NextCommOutput ? self::$NextCommOutput : implode("\n",self::$Application->commandBuffer)."\"EXEC_COMPLETE\";");
@@ -348,6 +351,9 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 				throw $ex;
 			
 			self::$NextCommOutput = $ex->getFormattedReport();
+			
+			if( self::$Options['debug'] )
+				self::Log( 'Uncaught Exception in application ('.self::$SessionID.'): ' . self::$NextCommOutput );
 		}
 		
 		socket_close( $client );

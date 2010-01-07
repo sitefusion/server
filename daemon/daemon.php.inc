@@ -1010,6 +1010,8 @@ class DaemonProcess extends SiteFusionProcess
 					if( stream_select( $read, $write, $except, 0, 10000 ) > 0 ) {
 						self::$Children[$pid]->error = fread( $read[0], 8192 );
 						self::$Children[$pid]->errorTimestamp = time();
+						if( self::$Options['debug'] )
+							self::Log( 'Fatal error in session ('.self::$Children[$pid]->sessionId.'): '.trim(self::$Children[$pid]->error) );
 					}
 				}
 				break;
