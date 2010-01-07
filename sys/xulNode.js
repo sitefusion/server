@@ -347,7 +347,7 @@ SiteFusion.Classes.Node = Class.create( {
 	parseImageURL: function( text ) {
 		if( text.substr(0,1) == '/' ) {
 			var d = new Date();
-			text = SiteFusion.Address + '/appimage.php?name=' + text.substr(1) + '&app=' + SiteFusion.Application + '&args=' + SiteFusion.Arguments + '&sid=' + SiteFusion.SID + '&ident=' + SiteFusion.Ident + '&cycle=' + d.getTime();
+			text = SiteFusion.Address + '/appimage.php?name=' + text.substr(1) + '&app=' + SiteFusion.Application + '&args=' + SiteFusion.Arguments + '&sid=' + SiteFusion.SID + '&ident=' + SiteFusion.Ident /*+ '&cycle=' + d.getTime()*/;
 		}
 		return text;
 	},
