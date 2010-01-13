@@ -318,6 +318,8 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 		}
 		
 		self::$RevCommSocket = $client;
+		
+		self::$LastContact = time();
 	}
 	
 	static private function HandleFile( $client, $cmd ) {
