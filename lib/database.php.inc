@@ -138,7 +138,7 @@ class Database
 	}
 	
 	static function error() {
-		trigger_error( 'MySQL error: ' . mysql_error(), E_USER_ERROR );
+		throw new SFException( 'MySQL error: ' . mysql_error(), ERR_REPORT_APP );
 	}
 	
 	static function quoteCols() {
