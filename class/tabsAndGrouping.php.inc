@@ -104,6 +104,13 @@ class XULTabs extends BranchNode
 	public $remoteConstructor = 'Tabs';
 	protected $selectedItem = NULL;
 	public $orient = 'horizontal';
+	public $selectedIndex = 0;
+		
+	
+	public function __construct() {
+		parent::__construct();
+		$this->setEventHandler( 'yield', $this, 'yieldCollect' );
+	}
 	
 	public function selectedItem( $tab = NULL ) {
 		if( $tab === NULL )
@@ -116,6 +123,65 @@ class XULTabs extends BranchNode
 		if( $this->isRegistered )
 			$this->callMethod( 'selectedItem', array($tab) );
 	}	
+	
+	public function attach() {
+		parent::attach();
+		
+		$this->setEvent("select", MSG_SEND, $this, "onSwitchTab", array($this));
+	}
+	
+	public function onSwitchTab()	{
+		$tb = $this->findAncestor("XULTabBox");
+		
+		if ($tb && count($tb->children))
+		{
+			foreach ($tb->children as $tbchild) 
+			{
+				if ($tbchild instanceOf XULTabPanels)
+				{
+					$tabpanels = $tbchild;
+					
+					if ($tabpanels->children && count($tbchild->children))
+					{
+						//determine selected panel
+						$panelchildren = array();
+						foreach ($tabpanels->children as $tpschild)
+						{
+							if ($tpschild instanceOf XULTabPanel)
+								$panelchildren[] = $tpschild;
+						}
+						$selectedPanel = $panelchildren[$this->selectedIndex];
+						$index = 0;
+						foreach ($panelchildren as $tpschild)
+						{
+							//enumerate all tabpanels and disable corresponding xulkeysets
+							$tabpanel = $tpschild;
+							if ($tabpanel->children && count($tabpanel->children))
+							{
+								foreach ($tabpanel->children as $child)
+								{
+									if ($child instanceOf XULKeySet)
+									{
+										if ($selectedPanel === $tabpanel)
+										$child->disabled(FAlSE);
+										else
+										$child->disabled(TRUE);
+									}
+								}
+								//$this->hostWindow->alert(strval ( $tpschild->id . "-" . $index ) );
+							}
+							$index++;
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	public function yieldCollect( $e, $selectedItem = NULL, $selectedIndex = NULL) {
+		$this->selectedItem = $selectedItem;
+		$this->selectedIndex = $selectedIndex;
+	}
 }
 
 

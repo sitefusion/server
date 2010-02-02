@@ -42,6 +42,21 @@
 class XULKeySet extends BranchNode
 {
 	public $remoteConstructor = 'KeySet';
+	
+	public function attach() {
+		parent::attach();
+		
+		$tb = $this->findAncestor("XULTabBox");
+		if ($tb && $tb->children && count($tb->children))
+		{
+			foreach ($tb->children as $child)
+			{
+				if ($child instanceOf XULTabs)
+					$child->onSwitchTab();
+			}
+		}
+	}
+	
 }
 
 

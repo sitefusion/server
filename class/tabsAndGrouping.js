@@ -54,12 +54,18 @@ SiteFusion.Classes.Tabs = Class.create( SiteFusion.Classes.Node, {
 		this.element = win.createElement( 'tabs' );
 		this.element.sfNode = this;
 		
-		this.setEventHost();
+		this.setEventHost(['yield']);
+		this.eventHost.yield.msgType = 1;
 	},
 	
 	selectedItem: function( tab ) {
 		var oThis = this;
 		SiteFusion.Interface.DeferredCallbacks.push( function() { oThis.element.selectedItem = tab.element; } );
+	},
+	
+	yield: function() {
+		var oThis = this;
+		this.fireEvent( 'yield', [ oThis.element.selectedItem.sfNode, oThis.element.selectedIndex ] );
 	}
 } );
 
