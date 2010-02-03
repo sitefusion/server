@@ -374,4 +374,5 @@ class BranchNode extends Node
 		
 		return NULL;
 	}
+	
 }

@@ -120,9 +120,7 @@ class Comm
 		if( $obj->hostWindow->hasClosed )
 			return '';
 
-		$args = array($value);
-
-		$args = Comm::EncodeArguments( $args );
+		$args = Comm::EncodeArguments( $value );
 		
 		return "R[".$obj->id."].".$prop."=".$args.";";
 	}

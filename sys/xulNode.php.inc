@@ -1632,6 +1632,18 @@ class Node
 		}
 	}
 	
+	/**
+	 * Set the background of a node using CSS background-image property
+	 * 
+	 * @param string		$url	URL of the image you want to use.
+	*/
+	
+	public function backgroundImage( $url = NULL ) {
+		$this->backgroundImage = $url;
+		
+		if( $this->isRegistered )
+			$this->callMethod( 'backgroundImage', $url );
+	}
 	
 	/* Layout initializing on attach() */
 	
@@ -1649,7 +1661,9 @@ class Node
 			$this->backgroundColor( $this->backgroundColor );
 		if( isset($this->textStyle) )
 			$this->textStyle( $this->textStyle );
-		
+		if( isset($this->backgroundImage) )
+			$this->backgroundImage( $this->backgroundImage );
+			
 		if( isset($this->width) )
 			$this->width( $this->width );
 		if( isset($this->height) )

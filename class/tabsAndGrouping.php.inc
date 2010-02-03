@@ -124,6 +124,12 @@ class XULTabs extends BranchNode
 			$this->callMethod( 'selectedItem', array($tab) );
 	}	
 	
+	public function advanceSelectedTab($dir = 1, $wrap = FALSE)
+	{
+		if( $this->isRegistered )
+			$this->callMethod( 'advanceSelectedTab', array($dir, $wrap) );
+	}
+	
 	public function attach() {
 		parent::attach();
 		

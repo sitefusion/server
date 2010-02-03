@@ -54,13 +54,19 @@ SiteFusion.Classes.Tabs = Class.create( SiteFusion.Classes.Node, {
 		this.element = win.createElement( 'tabs' );
 		this.element.sfNode = this;
 		
-		this.setEventHost(['yield']);
+		this.setEventHost(['yield', 'afterAdvanceSelectedTab']);
 		this.eventHost.yield.msgType = 1;
+		this.eventHost.afterAdvanceSelectedTab.msgType = 1;
 	},
 	
 	selectedItem: function( tab ) {
 		var oThis = this;
 		SiteFusion.Interface.DeferredCallbacks.push( function() { oThis.element.selectedItem = tab.element; } );
+	},
+	
+	advanceSelectedTab: function(dir, wrap) {
+		this.element.advanceSelectedTab(dir, wrap);
+		this.fireEvent('afterAdvanceSelectedTab');
 	},
 	
 	yield: function() {

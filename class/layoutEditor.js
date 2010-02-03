@@ -28,7 +28,7 @@ SiteFusion.Classes.Editor = Class.create( SiteFusion.Classes.Node, {
 	sfClassName: 'XULEditor',
 	
 	initialize: function( win ) {
-		this.element = win.createElement( 'sourceeditor' );
+		this.element = win.createElement( 'editor' );
 		this.element.sfNode = this;
 		
 		this.hostWindow = win;

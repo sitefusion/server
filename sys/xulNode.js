@@ -352,6 +352,10 @@ SiteFusion.Classes.Node = Class.create( {
 		return text;
 	},
 
+	backgroundImage: function ( url ) {
+		this.element.style.backgroundImage = 'url(' + this.parseImageURL(url) + ')';
+	},
+	
 	setDraggable: function() {
 		var clsName = arguments[0];
 		var flavours = [];
