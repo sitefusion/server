@@ -31,6 +31,7 @@ SiteFusion.Classes.CustomTree = Class.create( SiteFusion.Classes.Node, {
 	initialize: function( win ) {
 		this.element = win.createElement( 'tree' );
 		this.element.sfNode = this;
+		this.hostWindow = win;
 		
 		this.isSparse = false;
 		this.isDraggable = false;
@@ -106,7 +107,7 @@ SiteFusion.Classes.CustomTree = Class.create( SiteFusion.Classes.Node, {
 	setView: function() {
 		var oThis = this;
 		this.view = new SiteFusion.Classes.CustomTree.ViewConstructor( oThis );
-		setTimeout( function() {
+		this.hostWindow.windowObject.setTimeout( function() {
 			oThis.element.view = oThis.view;
 			var tc = oThis.element.getElementsByTagName('treechildren')[0];
 			tc.setAttribute( 'ondraggesture', 'sfRootWindow.windowObject.SiteFusion.Registry['+oThis.cid+'].onDragGesture(event);' );
@@ -123,14 +124,16 @@ SiteFusion.Classes.CustomTree = Class.create( SiteFusion.Classes.Node, {
 		var start = new Object();
 		var end = new Object();
 		
-		var numRanges = this.view.selection.getRangeCount();
-		
-		for( var t = 0; t < numRanges; t++ ) {
-			this.view.selection.getRangeAt( t, start, end );
+		if( this.view.selection ) {
+			var numRanges = this.view.selection.getRangeCount();
 			
-			for( var v = start.value; v <= end.value; v++ ) {
-				if( v < 0 ) v = 0;
-				rows.push( this.view.visibleData[v].id );
+			for( var t = 0; t < numRanges; t++ ) {
+				this.view.selection.getRangeAt( t, start, end );
+				
+				for( var v = start.value; v <= end.value; v++ ) {
+					if( v < 0 ) v = 0;
+					rows.push( this.view.visibleData[v].id );
+				}
 			}
 		}
 		
