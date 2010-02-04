@@ -375,4 +375,72 @@ class BranchNode extends Node
 		return NULL;
 	}
 	
+	
+	/**
+	 * Recursively collects all nodes under this node
+	 * 
+	 * Examples:
+	 * 
+	 * Return all nodes under $node:
+	 * $node->getDescendants();
+	 * 
+	 * Return all nodes of class XULTextBox:
+	 * $node->getDescendants( 'XULTextBox' );
+	 * 
+	 * Return all nodes of either the XULTextBox or XULCheckbox:
+	 * $node->getDescendants( array('XULTextBox','XULCheckbox') );
+	 * 
+	 * Return all checkboxes that are checked:
+	 * $node->getDescendants( 'XULCheckbox', array( 'checked' => TRUE ) );
+	 * 
+	 * @param string|array	$className		When supplied, only nodes of the given class(es) are returned
+	 * @param array			$properties		Optional associative array of property names and values that nodes are checked against
+	 * @param bool			$strict			Apply strict comparison (===) of the given properties
+	*/
+	
+	public function getDescendants( $className = NULL, $properties = NULL, $strict = FALSE ) {
+		$collection = array();
+		$childCollection = array();
+		
+		foreach ( $this->children as $child ) {
+			if( $child instanceof BranchNode )
+				$childCollection = array_merge( $childCollection, $child->getDescendants( $className, $properties, $strict ) );
+			
+			if( $className !== NULL ) {
+				if( is_string($className) ) {
+					if( ! $child instanceof $className )
+						continue;
+				}
+				elseif( is_array($className) ) {
+					$match = FALSE;
+					foreach ( $className as $cn ) {
+						if( $child instanceof $cn )
+							$match = TRUE;
+					}
+					if( ! $match )
+						continue;
+				} else continue;
+			}
+			
+			if( $properties !== NULL ) {
+				$match = TRUE;
+				foreach ( $properties as $name => $value ) {
+					if( ! (isset($child->{$name}) && ($strict ? ($child->{$name} === $value) : ($child->{$name} == $value)) ) ) {
+						$match = FALSE;
+						break;
+					}
+				}
+				if( ! $match )
+					continue;
+			}
+			
+			$collection[] = $child;
+			if( count($childCollection) ) {
+				$collection = array_merge( $collection, $childCollection );
+				$childCollection = array();
+			}
+		}
+		
+		return array_merge( $collection, $childCollection );
+	}
 }

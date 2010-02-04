@@ -107,11 +107,6 @@ class XULTabs extends BranchNode
 	public $selectedIndex = 0;
 		
 	
-	public function __construct() {
-		parent::__construct();
-		$this->setEventHandler( 'yield', $this, 'yieldCollect' );
-	}
-	
 	public function selectedItem( $tab = NULL ) {
 		if( $tab === NULL )
 			return $this->selectedItem;
@@ -132,7 +127,7 @@ class XULTabs extends BranchNode
 	
 	public function attach() {
 		parent::attach();
-		
+		$this->setEventHandler( 'yield', $this, 'yieldCollect' );
 		$this->setEvent("select", MSG_SEND, $this, "onSwitchTab", array($this));
 	}
 	
@@ -346,15 +341,8 @@ class XULCaption extends BranchNode
 			
 		}
 		else parent::__construct();
-		
-		$this->setEventHandler( 'onAfterAttach', $this, 'init' );
 	}
 	
-	public function init()
-	{
-		
-	}
-
 	public function image( $src = NULL ) {
 		if( $src === NULL )
 			return (isset($this->image) ? $this->image : NULL);

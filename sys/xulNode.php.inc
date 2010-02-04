@@ -1257,6 +1257,26 @@ class Node
 		return $this;
 	}
 
+
+	/**
+	 * Set the background of a node using CSS background-image property
+	 * 
+	 * @param string		$url	URL or path relative to the sitefusion installation directory (starting with /) of the image you want to use.
+	 * @return mixed	Returns the current value or reference to self ($this) for easy chaining of method calls
+	*/
+	
+	public function backgroundImage( $url = NULL ) {
+		if( $url === NULL )
+			return (isset($this->backgroundImage) ? $this->backgroundImage : NULL);
+		
+		$this->backgroundImage = $url;
+		
+		if( $this->isRegistered )
+			$this->callMethod( 'backgroundImage', $url );
+		
+		return $this;
+	}
+	
 	
 	
 	/* Standard XUL attributes */
@@ -1632,18 +1652,6 @@ class Node
 		}
 	}
 	
-	/**
-	 * Set the background of a node using CSS background-image property
-	 * 
-	 * @param string		$url	URL of the image you want to use.
-	*/
-	
-	public function backgroundImage( $url = NULL ) {
-		$this->backgroundImage = $url;
-		
-		if( $this->isRegistered )
-			$this->callMethod( 'backgroundImage', $url );
-	}
 	
 	/* Layout initializing on attach() */
 	
