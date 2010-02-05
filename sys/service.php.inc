@@ -32,6 +32,9 @@
 */
 
 
+include( 'sys/event.php.inc' );
+
+
 /**
  * The base class for all SiteFusion services
  * 

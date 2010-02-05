@@ -520,11 +520,17 @@ class DaemonProcess extends SiteFusionProcess
 	}
 	
 	static private function HandleEvent( $sourceChild, $cmd ) {
+		$sourceAppGroup = explode( '/', $sourceChild->app );
+		$sourceAppGroup = $sourceAppGroup[0];
+		
 		foreach ( self::$Children as $child ) {
 			if( $child === $sourceChild )
 				continue;
 			
-			if( $child->type == 'app' && $child->loggedIn && $child->app == $sourceChild->app )
+			$childAppGroup = explode( '/', $child->app );
+			$childAppGroup = $childAppGroup[0];
+			
+			if( (($child->type == 'app' && $child->loggedIn) || $child->type == 'service') && $childAppGroup == $sourceAppGroup )
 				self::WriteCommand( $child->socket, 'EVENT', NULL, $cmd->data );
 		}
 	}

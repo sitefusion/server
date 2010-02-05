@@ -64,7 +64,7 @@ class ServiceProcess extends ExtendedSiteFusionProcess
 		self::$Started = time();
 		self::$LastKeepalive = time();
 		
-		ob_start();
+	//	ob_start();
 		
 		$GLOBALS['include_path'] = self::$Options['sitefusionPath'] . '/';
 		$path = $owner . ($owner == '' ? '':'/') . $service;
@@ -83,7 +83,7 @@ class ServiceProcess extends ExtendedSiteFusionProcess
 		self::$Service = new $class;
 		self::$Service->init( $args );
 		
-		ob_end_clean();
+	//	ob_end_clean();
 		
 		self::UpdateDatabase();
 		self::ServiceLoop();
@@ -269,7 +269,7 @@ class ServiceProcess extends ExtendedSiteFusionProcess
 		}
 		
 		if( ! isset($ret) ) {
-			ob_start();
+		//	ob_start();
 			
 			array_unshift( $args, $client );
 			
@@ -281,7 +281,7 @@ class ServiceProcess extends ExtendedSiteFusionProcess
 				$ret = $ex;
 			}
 			
-			ob_end_clean();
+		//	ob_end_clean();
 		}
 		
 		self::WriteCommand( $client->socket, 'CALL', NULL, serialize($ret) );
@@ -297,7 +297,7 @@ class ServiceProcess extends ExtendedSiteFusionProcess
 			return;
 		}
 		
-		ob_start();
+	//	ob_start();
 		
 		try {
 			self::$Service->handleGlobalEvent( $event, $args );
@@ -306,7 +306,7 @@ class ServiceProcess extends ExtendedSiteFusionProcess
 			self::Log( 'Uncaught Exception in service ('.self::$SessionID.'): ' . $ex->getFormattedReport() );
 		}
 		
-		ob_end_clean();
+	//	ob_end_clean();
 		
 		self::UpdateDatabase();
 	}
@@ -316,9 +316,9 @@ class ServiceProcess extends ExtendedSiteFusionProcess
 			try {
 				list($time,$timer) = array_shift( self::$Timers );
 				
-				ob_start();
+			//	ob_start();
 				$timer->trigger();
-				ob_end_clean();
+			//	ob_end_clean();
 			}
 			catch ( SFException $ex ) {
 				self::Log( 'Uncaught Exception in service ('.self::$SessionID.'): ' . $ex->getFormattedReport() );

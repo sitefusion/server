@@ -373,6 +373,8 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 			list($event,$args) = unserialize( $cmd->data );
 		}
 		catch ( SFException $ex ) {
+			if( self::$Options['debug'] )
+				self::Log( "Unable to process EVENT: " . $ex->getMessage() );
 			return;
 		}
 		

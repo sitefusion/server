@@ -67,6 +67,7 @@ function LoadClass( $class, $type = 'class' ) {
 
 // System classes
 LoadClass( 'interface', 'sys' );
+LoadClass( 'event', 'sys' );
 LoadClass( 'xulNode', 'sys' );
 LoadClass( 'branchNode', 'sys' );
 LoadClass( 'registry', 'sys' );
@@ -96,44 +97,6 @@ if( !(defined('SF_AUTOLOAD_CLASSES') && SF_AUTOLOAD_CLASSES === FALSE) ) {
 }
 
 
-
-/**
- * Represents events on the client and server side
- * 
- * Objects of the Event class represent events at both the client and the server side.
- * They can be constructed manually, for example to add additional properties for the 
- * handler(s), with a name and sourceObject parameter. They can then be fired on a node
- * through the fireLocalEvent method. The event handler(s) set on that node will then
- * be called, and the Event object is passed as the first argument.  An event handler 
- * can cancel the propagation of the event by setting the 'cancel' property to TRUE.
- * 
- * For events originating from the client, the sourceObject property will always be set
- * to the original source node of the event.
- * 
- * @property string	$name			Name of the event
- * @property Node	$sourceObject	Source node
- * @property bool	$cancel			Set to TRUE to cancel the event handling
-*/
-
-class Event
-{
-	public $name;
-	public $sourceObject;
-	public $cancel = FALSE;
-	
-	
-	/**
-	 * Constructor
-	 * 
-	 * @param string	$name			Name of the event
-	 * @param Node		$sourceObject	Source node
-	*/
-	
-	public function __construct( $name = NULL, $sourceObject = NULL ) {
-		$this->name = $name;
-		$this->sourceObject = $sourceObject;
-	}
-}
 
 
 /**
