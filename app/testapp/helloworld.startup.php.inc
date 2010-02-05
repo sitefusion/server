@@ -11,11 +11,10 @@ function getApplication( $args ) {
 class SFHelloWorld extends Application
 {
    public function init( $event ) {
-      $this->window->title( 'Hello World' );
-      $this->window->size( 1024, 740 );
+      $this->window->title( 'Hello World!' );
+      $this->window->size( 400, 300 );
       $this->window->addChild(
-         new XULLabel("Hello World")
+         new XULLabel("Hello World!")
       );
-     
    }
 }

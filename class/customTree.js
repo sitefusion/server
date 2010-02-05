@@ -147,7 +147,7 @@ SiteFusion.Classes.CustomTree = Class.create( SiteFusion.Classes.Node, {
 	select: function( itemJSON ) {
 		if( ! this.view.selection ) {
 			var oThis = this;
-			setTimeout( function() { oThis.select( itemJSON ); }, 10 );
+			this.hostWindow.windowObject.setTimeout( function() { oThis.select( itemJSON ); }, 10 );
 			return;
 		}
 		
@@ -509,7 +509,7 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
 		this.invalidateRow( idx );
 		var id = this.visibleData[idx].id;
 		var oThis = this;
-		setTimeout( function() {
+		this.sfTree.hostWindow.windowObject.setTimeout( function() {
 			oThis.sfTree.fireEvent( 'cellValueChange', [ oThis.visibleData[idx].id, col.index, value ] );
 		}, 1 );
 	};
@@ -519,7 +519,7 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
 		this.invalidateRow( idx );
 		var id = this.visibleData[idx].id;
 		var oThis = this;
-		setTimeout( function() {
+		this.sfTree.hostWindow.windowObject.setTimeout( function() {
 			oThis.sfTree.fireEvent( 'cellValueChange', [ oThis.visibleData[idx].id, col.index, value ] );
 		}, 1 );
 	};
@@ -636,7 +636,7 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
 			clearTimeout( this.invalidateTableTimer );
 		}
 		var oThis = this;
-		this.invalidateTableTimer = setTimeout( function() { oThis.treeBox.invalidate(); oThis.invalidateTableTimer = null; }, 1 );
+		this.invalidateTableTimer = this.sfTree.hostWindow.windowObject.setTimeout( function() { oThis.treeBox.invalidate(); oThis.invalidateTableTimer = null; }, 1 );
 	};
 	
 	this.rowCountChanged = function( idx, count ) {
