@@ -325,37 +325,41 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 	static private function HandleFile( $client, $cmd ) {
 		if( ! isset(self::$Application) )
 			throw new SFException( 'Invalid FILE request, not logged in yet' );
+		$app = self::$Application;
 		
-		try {
-			$app = self::$Application;
-			$transferable = $app->registry->all[$cmd->cid];
-			
-			switch( $cmd->action ) {
-				case 'start':
-					$descr = $transferable->transferStart();
-					self::WriteCommand( $client, 'FILE', array( 'contentType' => $descr[0], 'size' => $descr[1] ) );
-					break;
+		//if index is not set, object is already destructed
+		if (isset($app->registry->all[$cmd->cid]))
+		{
+			try {
+				$transferable = $app->registry->all[$cmd->cid];
 				
-				case 'data':
-					ob_start();
-					$transferable->transferGetData();
-					$content = ob_get_clean();
-					self::WriteCommand( $client, 'FILE', NULL, $content );
-					break;
-				
-				case 'end':
-					$transferable->transferEnd();
-					break;
+				switch( $cmd->action ) {
+					case 'start':
+						$descr = $transferable->transferStart();
+						self::WriteCommand( $client, 'FILE', array( 'contentType' => $descr[0], 'size' => $descr[1] ) );
+						break;
+					
+					case 'data':
+						ob_start();
+						$transferable->transferGetData();
+						$content = ob_get_clean();
+						self::WriteCommand( $client, 'FILE', NULL, $content );
+						break;
+					
+					case 'end':
+						$transferable->transferEnd();
+						break;
+				}
 			}
-		}
-		catch ( SFException $ex ) {
-			if( self::$ConnectedDebugger )
-				throw $ex;
-			
-			self::$NextCommOutput = $ex->getFormattedReport();
-			
-			if( self::$Options['debug'] )
-				self::Log( 'Uncaught Exception in application ('.self::$SessionID.'): ' . self::$NextCommOutput );
+			catch ( SFException $ex ) {
+				if( self::$ConnectedDebugger )
+					throw $ex;
+				
+				self::$NextCommOutput = $ex->getFormattedReport();
+				
+				if( self::$Options['debug'] )
+					self::Log( 'Uncaught Exception in application ('.self::$SessionID.'): ' . self::$NextCommOutput );
+			}
 		}
 		
 		socket_close( $client );
