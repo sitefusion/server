@@ -74,7 +74,7 @@ function ReadCommand( $socket ) {
 	
 		$data = '';
 		while( strlen($data) < $dl ) {
-			$sbuf = @socket_read( $socket, 2048, PHP_BINARY_READ );
+			$sbuf = @socket_read( $socket, min($dl-strlen($data),2048), PHP_BINARY_READ );
 			if( $sbuf === FALSE ) {
 				if( socket_last_error($socket) != 35 )
 					throw new SFException( 'ReadCommand: socket_read() failed: '.socket_strerror(socket_last_error($socket)) );
