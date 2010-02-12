@@ -456,6 +456,8 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
 	};
 	
 	this.getCellText = function( idx, column ) {
+		if( this.visibleData[idx].isSeparator )
+			return null;
 		return this.visibleData[idx].columns[column.index];
 	};
 	
