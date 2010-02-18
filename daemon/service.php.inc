@@ -317,7 +317,6 @@ class ServiceProcess extends ExtendedSiteFusionProcess
 		if( isset(self::$Timers[0]) && self::$Timers[0][0] <= microtime(TRUE) ) {
 			try {
 				list($time,$timer) = array_shift( self::$Timers );
-				echo "TIMER: ".(isset($timer->operation) ? get_class($timer->operation):'')."\n";
 			//	ob_start();
 				$timer->trigger();
 			//	ob_end_clean();
