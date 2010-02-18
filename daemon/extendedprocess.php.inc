@@ -39,6 +39,7 @@ class ExtendedSiteFusionProcess extends SiteFusionProcess
 	static protected $ConnectedDebugger = NULL;
 	static protected $Timers = array();
 	static protected $ParentSocket;
+	static protected $EventPipe;
 	static protected $LastKeepalive;
 	static protected $DebugSocket = NULL;
 	static public $ApplicationPath = NULL;
@@ -110,7 +111,7 @@ class ExtendedSiteFusionProcess extends SiteFusionProcess
 		
 		$event->sourceSession = self::$SessionID;
 		
-		self::WriteCommand( self::$ParentSocket, 'EVENT', NULL, serialize( array($event,$args) ) );
+		self::WriteCommand( self::$EventPipe, 'EVENT', NULL, serialize( array($event,$args) ) );
 	}
 	
 	static public function SendDaemonShutdownFlags( $shutdown, $graceful, $restart ) {

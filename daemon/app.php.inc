@@ -51,11 +51,12 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 	static private $ConnectedServices = array();
 	static private $DebugWindows = array();
 	
-	static public function StartServer( $client, $parentSocket, $loginCmd, $port, $clientid ) {
+	static public function StartServer( $client, $parentSocket, $eventPipe, $loginCmd, $port, $clientid ) {
 		if( self::$ApplicationStarted || self::$ProcessType )
 			return;
 		
 		self::$ParentSocket = $parentSocket;
+		self::$EventPipe = $eventPipe;
 		self::$ProcessType = 'app';
 		self::$ApplicationStarted = TRUE;
 		self::$ClientID = $clientid;
@@ -97,6 +98,7 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 	static private function StopApplicationServer() {
 		try { socket_close( self::$Socket ); } catch ( SFException $ex ) {}
 		try { socket_close( self::$ParentSocket ); } catch ( SFException $ex ) {}
+		try { socket_close( self::$EventPipe ); } catch ( SFException $ex ) {}
 		foreach ( self::$ConnectedServices as $service ) {
 			try {
 				self::WriteCommand( $service->socket, 'CLOSE' );
@@ -178,7 +180,7 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 	
 	static private function ListenToParent() {
 		while( 1 ) {
-			$read = array(self::$ParentSocket);
+			$read = array(self::$ParentSocket,self::$EventPipe);
 			$write = NULL;
 			$except = NULL;
 
@@ -187,20 +189,21 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 			
 			if( count($read) ) {
 				$socket = $read[0];
+				foreach ( $read as $socket ) {
+					try {
+						$cmd = self::ReadCommand( $socket );
 				
-				try {
-					$cmd = self::ReadCommand( $socket );
-				
-					switch ( $cmd->command ) {
-						case 'EVENT': self::HandleEvent( $cmd ); break;
-						case 'MESSAGE': self::HandleMessage( $cmd ); break;
+						switch ( $cmd->command ) {
+							case 'EVENT': self::HandleEvent( $cmd ); break;
+							case 'MESSAGE': self::HandleMessage( $cmd ); break;
+						}
 					}
-				}
-				catch ( SFException $ex ) {
-					if( self::$ConnectedDebugger )
-						throw $ex;
+					catch ( SFException $ex ) {
+						if( self::$ConnectedDebugger )
+							throw $ex;
 					
-					self::Log('Uncaught Exception in application ('.self::$SessionID.'): ' . $ex->getFormattedReport());
+						self::Log('Uncaught Exception in application ('.self::$SessionID.'): ' . $ex->getFormattedReport());
+					}
 				}
 			}
 			else return;

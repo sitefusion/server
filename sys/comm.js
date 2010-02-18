@@ -209,8 +209,9 @@ SiteFusion.Comm.Transmission = Class.create( {
 	},
 	
 	handleResponse: function() {
-		if( this.request.status != 200 && !this.reverseInitiative ) {
-			setTimeout( function() { this.openHttpRequest(); }, 1000 );
+		if( this.request.status != 200 ) {
+			if( !this.reverseInitiative )
+				setTimeout( function() { this.openHttpRequest(); }, 1000 );
 			return;
 		}
 		

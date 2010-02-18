@@ -146,9 +146,6 @@ class Application
 	
 	/**
 	 * [INTERNAL FUNCTION] This function initializes the Application class
-	 * 
-	 * @param int			$pid	PID of the process
-	 * @param XULWindow		$window	XULWindow root window object for the application 
 	*/
 	
 	public function __construct( $user, $ip, $ident, $app, $args ) {

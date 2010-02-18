@@ -147,6 +147,9 @@ class DaemonProcess extends SiteFusionProcess
 		self::Log( 'Waiting for children to exit, 2 minutes grace time...' );
 		$start = time();
 		while( count(self::$Children) && (time() - $start) < 120 ) {
+			if( self::$ShutdownKill )
+				break;
+			
 			foreach ( array_keys(self::$Children) as $pid ) {
 				if( ! posix_kill( $pid, 0 ) )
 					self::RemoveChild( $pid );
@@ -233,6 +236,7 @@ class DaemonProcess extends SiteFusionProcess
 				
 				self::$SleepingPorts[ self::$Children[$pid]->port ] = time();
 				try { socket_close( self::$Children[$pid]->socket ); } catch ( SFException $ex ) {}
+				try { socket_close( self::$Children[$pid]->eventPipe ); } catch ( SFException $ex ) {}
 				break;
 			
 			case 'job':
@@ -243,6 +247,7 @@ class DaemonProcess extends SiteFusionProcess
 				self::ChildEnded( self::$Children[$pid] );
 				
 				try { socket_close( self::$Children[$pid]->socket ); } catch ( SFException $ex ) {}
+				try { socket_close( self::$Children[$pid]->eventPipe ); } catch ( SFException $ex ) {}
 				break;
 		}
 		
@@ -347,8 +352,10 @@ class DaemonProcess extends SiteFusionProcess
 		$except = NULL;
 		
 		foreach ( self::$Children as $child ) {
-			if( $child->type == 'app' || $child->type == 'service' )
+			if( $child->type == 'app' || $child->type == 'service' ) {
 				$read[] = $child->socket;
+				$read[] = $child->eventPipe;
+			}
 		}
 		
 		if( ! count($read) )
@@ -767,16 +774,19 @@ class DaemonProcess extends SiteFusionProcess
 	
 	static private function StartApplication( $client, $clientid ) {
 		$port = self::GetFreePort();
-		list($parent,$child) = self::GetSocketPair();
+		list($parentCommandPipe,$childCommandPipe) = self::GetSocketPair();
+		list($parentEventPipe,$childEventPipe) = self::GetSocketPair();
 		$pid = self::ForkChild();
 		
 		if( $pid ) {	// Parent
-			socket_close( $child );
+			socket_close( $childCommandPipe );
+			socket_close( $childEventPipe );
 			$childObj = new DaemonChild;
 			$childObj->type = 'app';
 			$childObj->pid = $pid;
 			$childObj->port = $port;
-			$childObj->socket = $parent;
+			$childObj->socket = $parentCommandPipe;
+			$childObj->eventPipe = $parentEventPipe;
 			$childObj->started = time();
 			$childObj->lastKeepalive = time();
 			$childObj->clientId = $clientid;
@@ -789,7 +799,8 @@ class DaemonProcess extends SiteFusionProcess
 		else {		// Child
 			self::$ProcessType = NULL;
 			self::$Shutdown = FALSE;
-			socket_close( $parent );
+			socket_close( $parentCommandPipe );
+			socket_close( $parentEventPipe );
 			socket_close( self::$Socket );
 			self::ResetDatabase();
 			
@@ -803,7 +814,7 @@ class DaemonProcess extends SiteFusionProcess
 			}
 			
 			include_once( 'app.php.inc' );
-			ApplicationProcess::StartServer( $client, $child, $loginCmd, $port, $clientid );
+			ApplicationProcess::StartServer( $client, $childCommandPipe, $childEventPipe, $loginCmd, $port, $clientid );
 		}
 	}
 	
@@ -853,18 +864,21 @@ class DaemonProcess extends SiteFusionProcess
 		if( ($master && $srv['daemon']) || ((!$master) && (!$srv['daemon'])) )
 			return;
 		
-		list($parent,$child) = self::GetSocketPair();
+		list($parentCommandPipe,$childCommandPipe) = self::GetSocketPair();
+		list($parentEventPipe,$childEventPipe) = self::GetSocketPair();
 		$sessionId = md5( time() . $srv['service'] . $srv['owner'] . mt_rand() );
 		
 		$pid = self::ForkChild();
 		
 		if( $pid ) {	// Parent
-			socket_close( $child );
+			socket_close( $childCommandPipe );
+			socket_close( $childEventPipe );
 			$childObj = new DaemonChild;
 			$childObj->type = 'service';
 			$childObj->pid = $pid;
 			$childObj->port = 0;
-			$childObj->socket = $parent;
+			$childObj->socket = $parentCommandPipe;
+			$childObj->eventPipe = $parentEventPipe;
 			$childObj->started = time();
 			$childObj->lastKeepalive = time();
 			$childObj->serviceId = $srv['id'];
@@ -888,14 +902,15 @@ class DaemonProcess extends SiteFusionProcess
 		else {		// Child
 			self::$ProcessType = NULL;
 			self::$Shutdown = FALSE;
-			socket_close( $parent );
+			socket_close( $parentCommandPipe );
+			socket_close( $parentEventPipe );
 			socket_close( self::$Socket );
 			self::ResetDatabase();
 			
 			ini_set( 'include_path', ini_get('include_path').':'.self::$Options['sitefusionPath'].':' );
 			
 			include_once( 'service.php.inc' );
-			ServiceProcess::StartServer( $child, $srv['owner'], $srv['service'], $srv['args'], $sessionId );
+			ServiceProcess::StartServer( $childCommandPipe, $childEventPipe, $srv['owner'], $srv['service'], $srv['args'], $sessionId );
 		}
 	}
 	
@@ -940,7 +955,7 @@ class DaemonProcess extends SiteFusionProcess
 	
 	static private function GetChildBySocket( $socket ) {
 		foreach ( self::$Children as $child ) {
-			if( isset($child->socket) && $socket == $child->socket )
+			if( isset($child->socket) && ($socket == $child->socket || $socket == $child->eventPipe) )
 				return $child;
 		}
 	}
@@ -1036,6 +1051,7 @@ class SiteFusionProcess
 	static protected $Port;
 	static protected $Daemonized = FALSE;
 	static protected $Shutdown = FALSE;
+	static protected $ShutdownKill = FALSE;
 	static protected $ProcessType = NULL;
 	
 	
@@ -1193,7 +1209,10 @@ class SiteFusionProcess
 			
 			case SIGINT:
 			case SIGTERM:
-				self::$Shutdown = TRUE;
+				if( self::$Shutdown )
+					self::$ShutdownKill = TRUE;
+				else
+					self::$Shutdown = TRUE;
 				break;
 			
 			case SIGCHLD:

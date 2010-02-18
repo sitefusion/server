@@ -43,7 +43,7 @@ class ServiceProcess extends ExtendedSiteFusionProcess
 	static private $Clients = array();
 	static private $SocketPath;
 	
-	static public function StartServer( $parentSocket, $owner, $service, $args, $sessionId ) {
+	static public function StartServer( $parentSocket, $eventPipe, $owner, $service, $args, $sessionId ) {
 		if( self::$ServiceStarted || self::$ProcessType )
 			return;
 		
@@ -55,6 +55,7 @@ class ServiceProcess extends ExtendedSiteFusionProcess
 		self::$SessionID = $sessionId;
 		
 		self::$ParentSocket = $parentSocket;
+		self::$EventPipe = $eventPipe;
 		
 		if( self::$Options['debug'] )
 			self::$DebugSocket = self::OpenUnixSocket( self::$Options['runtimeDirectory'] . '/' . 'debug'.posix_getpid().'.sock' );
@@ -93,6 +94,7 @@ class ServiceProcess extends ExtendedSiteFusionProcess
 	static private function StopServiceServer() {
 		socket_close( self::$Socket );
 		socket_close( self::$ParentSocket );
+		socket_close( self::$EventPipe );
 		if( self::$Options['debug'] )
 			socket_close( self::$DebugSocket );
 	}
@@ -158,7 +160,7 @@ class ServiceProcess extends ExtendedSiteFusionProcess
 	}
 	
 	static private function ListenToParent() {
-		$read = array(self::$ParentSocket);
+		$read = array(self::$ParentSocket,self::$EventPipe);
 		$write = NULL;
 		$except = NULL;
 		
@@ -167,16 +169,16 @@ class ServiceProcess extends ExtendedSiteFusionProcess
 				return;
 			
 			if( count($read) ) {
-				$socket = $read[0];
+				foreach ( $read as $socket ) {
+					try {
+						$cmd = self::ReadCommand( $socket );
 				
-				try {
-					$cmd = self::ReadCommand( $socket );
-				
-					switch ( $cmd->command ) {
-						case 'EVENT': self::HandleEvent( $cmd ); break;
+						switch ( $cmd->command ) {
+							case 'EVENT': self::HandleEvent( $cmd ); break;
+						}
 					}
+					catch ( SFException $ex ) { self::Log( 'Uncaught Exception in service ('.self::$SessionID.'): ' . $ex->getFormattedReport() ); }
 				}
-				catch ( SFException $ex ) { self::Log( 'Uncaught Exception in service ('.self::$SessionID.'): ' . $ex->getFormattedReport() ); }
 			}
 			else return;
 		}
@@ -315,7 +317,7 @@ class ServiceProcess extends ExtendedSiteFusionProcess
 		if( isset(self::$Timers[0]) && self::$Timers[0][0] <= microtime(TRUE) ) {
 			try {
 				list($time,$timer) = array_shift( self::$Timers );
-				
+				echo "TIMER: ".(isset($timer->operation) ? get_class($timer->operation):'')."\n";
 			//	ob_start();
 				$timer->trigger();
 			//	ob_end_clean();
