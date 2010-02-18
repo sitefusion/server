@@ -152,7 +152,7 @@ class ServiceProcess extends ExtendedSiteFusionProcess
 				self::ToDebuggerShowStack( $ex->getTrace(), FALSE, $ex->getMessage() . ' in ' . $ex->getFile() . ' at line ' . $ex->getLine() );
 			
 			self::Log( 'Uncaught Exception in service ('.self::$SessionID.'): ' . $ex->getFormattedReport() );
-			self::StopApplicationServer();
+			self::StopServiceServer();
 			return;
 		}
 	}
