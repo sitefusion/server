@@ -225,7 +225,7 @@ class XULScale extends Node
 		return $this->attributeMethod( 'value', $value );
 	}
 	
-	public function yieldCollect( $e, $value ) {
+	public function yieldCollect( $e, $value = NULL ) {
 		$this->value = $value;
 	}
 }

@@ -199,7 +199,7 @@ class XULDirectImage extends Node
 	
 	public function transferStart() {
 		$this->transferStarted = TRUE;
-		$this->transferSize = filesize($this->tempImagePath);
+		$this->transferSize = @filesize($this->tempImagePath);
 		
 		switch ( $this->imageType ) {
 			case 'jpg': $contentType = 'image/jpeg'; break;
@@ -298,16 +298,19 @@ class XULFileSystemImage extends Node
 	
 	public function transferStart() {
 		$this->transferStarted = TRUE;
-		$this->transferSize = filesize($this->imagePath);
-		
-		switch ( strtolower(substr($this->imagePath,-3)) ) {
-			case 'jpg': $contentType = 'image/jpeg'; break;
-			case 'png': $contentType = 'image/png'; break;
-			case 'gif': $contentType = 'image/gif'; break;
-			default: $contentType = 'application/octet-stream';
+		if (file_exists($this->imagePath)) {
+			$this->transferSize = filesize($this->imagePath);
+			
+			switch ( strtolower(substr($this->imagePath,-3)) ) {
+				case 'jpg': $contentType = 'image/jpeg'; break;
+				case 'png': $contentType = 'image/png'; break;
+				case 'gif': $contentType = 'image/gif'; break;
+				default: $contentType = 'application/octet-stream';
+			}
+			
+			return array( 'application/octet-stream', $this->transferSize );
 		}
-		
-		return array( 'application/octet-stream', $this->transferSize );
+		else return FALSE;
 	}
 	
 	

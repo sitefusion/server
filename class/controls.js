@@ -91,6 +91,7 @@ SiteFusion.Classes.Scale = Class.create( SiteFusion.Classes.Node, {
 	},
 	
 	yield: function() {
+		//alert(this.element.value);
 		this.fireEvent( 'yield', [ this.element.value ] );
 	}
 } );

@@ -74,7 +74,8 @@ LoadClass( 'registry', 'sys' );
 LoadClass( 'comm', 'sys' );
 LoadClass( 'console', 'sys' );
 LoadClass( 'updater', 'sys' );
-
+//contribution classes
+LoadClass( 'command', 'sys' );
 // User classes
 LoadClass( 'windows' );
 
@@ -94,6 +95,7 @@ if( !(defined('SF_AUTOLOAD_CLASSES') && SF_AUTOLOAD_CLASSES === FALSE) ) {
 	LoadClass( 'scripting' );
 	LoadClass( 'layoutEditor' );
 	LoadClass( 'codeEditor' );
+	LoadClass( 'richTextEditor' );
 }
 
 

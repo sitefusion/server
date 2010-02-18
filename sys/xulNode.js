@@ -251,7 +251,10 @@ SiteFusion.Classes.Node = Class.create( {
 	},
 
 	directAddChildBefore: function( childSFNode, beforeSFNode ) {
-		this.element.insertBefore( childSFNode.element, beforeSFNode.element );
+		if( ! beforeSFNode )
+			this.directAddChild( childSFNode );
+		else
+			this.element.insertBefore( childSFNode.element, beforeSFNode.element );
 	},
 
 	addChildSilent: function( childSFNode ) {

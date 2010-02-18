@@ -123,7 +123,6 @@ SiteFusion.Classes.Editor = Class.create( SiteFusion.Classes.Node, {
 	yield: function() {
 		if(! this.editorElement )
 			return;
-		alert( this.element.contentDocument.body.innerHTML + '' );
 		this.fireEvent( 'yield', [ this.element.contentDocument.body.innerHTML + '' ] );
 	},
 	

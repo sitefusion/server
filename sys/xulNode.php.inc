@@ -1594,6 +1594,34 @@ class Node
 	}
 	
 	
+	/**
+	 * Indicate whether mouse events should pass through this node onto its parent
+	 * 
+	 * By default, all elements handle their own mouse events and don't pass them through to their parents.
+	 * 
+	 * @link https://developer.mozilla.org/en/XUL/Attribute/mousethrough
+	 * @param string	$value		'never' to handle all mouse events on this element, 'always' to pass all mouse events to the parent element (default)
+	 * @param bool		$recursive	FALSE to only affect this node, TRUE to affect this node and all its childnodes (default)
+	 * @return mixed	Returns the current value or reference to self ($this) for easy chaining of method calls
+	*/
+	
+	public function mousethrough( $value = 'always', $recursive = TRUE ) {
+		if( ! $this->isRegistered )
+			throw new SFException( "Can't call mousethrough() on an unregistered node" );
+		
+		$this->setAttribute( 'mousethrough', $value );
+		
+		if( $this instanceof ParentalNode && $recursive ) {
+			foreach ( $this->children as $child ) {
+				$child->mousethrough( $value, TRUE );
+			}
+		}
+		
+		return $this;
+	}
+	
+	
+	
 	/* Drag & Drop */
 	
 	

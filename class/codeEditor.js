@@ -45,6 +45,7 @@ Language.syntax = [
 	{ input : /(&lt;!--.*?--&gt.)/g, output : '<big>$1</big>' }
 ]
 	
+//this callback object is used to determine when the editor is not busy anymore	
 var EditorListener = {
   _handler : null,
   _enabled : true,
@@ -177,10 +178,11 @@ SiteFusion.Classes.CodeEditor = Class.create( SiteFusion.Classes.Editor, {
 		myKey.setAttribute('modifiers', "accel");
 
 		myKey.sfNode = this;
-		myKey.setAttribute('oncommand', "CommandUpdater.doCommand('cmd_pasteNoFormatting');");
+		myKey.setAttribute("oncommand", "sfRootWindow.windowObject.SiteFusion.CommandUpdater.doCommand('cmd_pasteNoFormatting');");
 		
 		myKeySet.appendChild(myKey);
 		this.element.appendChild(myKeySet);
+		//CommandUpdater.setAccessKey('cmd_pasteNoFormatting', 'v');
 		
 		this.eventHost.initialized.msgType = 0;
 		this.eventHost.madeEditable.msgType = 0;
