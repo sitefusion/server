@@ -83,6 +83,7 @@ class ServiceProcess extends ExtendedSiteFusionProcess
 		
 		self::$Service = new $class;
 		self::$Service->init( $args );
+		self::$Service->setDefaultEventGroup();
 		
 	//	ob_end_clean();
 		

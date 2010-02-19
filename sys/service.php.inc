@@ -50,6 +50,12 @@ class Service
 	public $callHandlers = array();
 	
 	
+	public function setDefaultEventGroup() {
+		$parts = explode( '/', ServiceProcess::$ApplicationPath );
+		$this->joinEventGroup( $parts[0] );
+	}
+	
+	
 	public function setCallHandler( $name, $obj, $method ) {
 		$this->callHandlers[$name] = array($obj,$method);
 	}
@@ -170,6 +176,46 @@ class Service
 			return;
 		
 		ServiceProcess::SendGlobalEvent( $event, $data );
+	}
+	
+	
+	/**
+	 * Joins an Event Group
+	 * 
+	 * Applications and services that have joined the same event groups will receive each other's
+	 * global events
+	 * 
+	 * @param string	$group		Name of the group
+	*/
+	
+	public function joinEventGroup( $group ) {
+		ServiceProcess::JoinGroup( $group );
+	}
+	
+	
+	/**
+	 * Parts an Event Group
+	 * 
+	 * Applications and services that have joined the same event groups will receive each other's
+	 * global events
+	 * 
+	 * @param string	$group		Name of the group
+	*/
+	
+	public function partEventGroup( $group ) {
+		ServiceProcess::PartGroup( $group );
+	}
+	
+	
+	/**
+	 * Get a list of joined Event Groups
+	 * 
+	 * Applications and services that have joined the same event groups will receive each other's
+	 * global events
+	*/
+	
+	public function getEventGroups() {
+		return ServiceProcess::GetGroups();
 	}
 	
 	

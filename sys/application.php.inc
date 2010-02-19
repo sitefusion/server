@@ -161,15 +161,24 @@ class Application
 		$this->registry = new Registry();
 		$this->registry->add( NULL, $this->window );
 		
-		$this->window->setEvent( 'close', MSG_SEND, $this, 'onWindowClose' );
-		$this->window->setEvent( 'clientInit', MSG_QUEUE, $this, 'onClientInit' );
-		$this->window->setEvent( 'clientComponentsInit', MSG_QUEUE, $this, 'onClientComponentsInit' );
-		$this->window->setEvent( 'initialized', MSG_SEND, $this, 'init' );
+		$this->window
+			->setEvent( 'close', MSG_SEND, $this, 'onWindowClose' )
+			->setEvent( 'clientInit', MSG_QUEUE, $this, 'onClientInit' )
+			->setEvent( 'clientComponentsInit', MSG_QUEUE, $this, 'onClientComponentsInit' )
+			->setEventType( 'initialized', MSG_SEND )
+			->setEventHandler( 'initialized', $this, 'init' )
+			->setEventHandler( 'initialized', $this, 'setDefaultEventGroup' );
 	}
 	
 	
 	public function preinit( $args ) {
 		
+	}
+	
+	
+	public function setDefaultEventGroup( $event ) {
+		$parts = explode( '/', $this->applicationName );
+		$this->joinEventGroup( $parts[0] );
 	}
 	
 	
@@ -320,6 +329,46 @@ class Application
 	
 	public function fireGlobalEvent( $event, $data = NULL ) {
 		ApplicationProcess::SendGlobalEvent( $event, $data );
+	}
+	
+	
+	/**
+	 * Joins an Event Group
+	 * 
+	 * Applications and services that have joined the same event groups will receive each other's
+	 * global events
+	 * 
+	 * @param string	$group		Name of the group
+	*/
+	
+	public function joinEventGroup( $group ) {
+		ApplicationProcess::JoinGroup( $group );
+	}
+	
+	
+	/**
+	 * Parts an Event Group
+	 * 
+	 * Applications and services that have joined the same event groups will receive each other's
+	 * global events
+	 * 
+	 * @param string	$group		Name of the group
+	*/
+	
+	public function partEventGroup( $group ) {
+		ApplicationProcess::PartGroup( $group );
+	}
+	
+	
+	/**
+	 * Get a list of joined Event Groups
+	 * 
+	 * Applications and services that have joined the same event groups will receive each other's
+	 * global events
+	*/
+	
+	public function getEventGroups() {
+		return ApplicationProcess::GetGroups();
 	}
 	
 	
