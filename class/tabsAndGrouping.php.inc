@@ -132,49 +132,18 @@ class XULTabs extends BranchNode
 	}
 	
 	public function onSwitchTab()	{
-		$tb = $this->findAncestor("XULTabBox");
+		if(! ($tb = $this->findAncestor('XULTabBox')) )
+			return;
 		
-		if ($tb && count($tb->children))
-		{
-			foreach ($tb->children as $tbchild) 
-			{
-				if ($tbchild instanceOf XULTabPanels)
-				{
-					$tabpanels = $tbchild;
-					
-					if ($tabpanels->children && count($tbchild->children))
-					{
-						//determine selected panel
-						$panelchildren = array();
-						foreach ($tabpanels->children as $tpschild)
-						{
-							if ($tpschild instanceOf XULTabPanel)
-								$panelchildren[] = $tpschild;
-						}
-						$selectedPanel = $panelchildren[$this->selectedIndex];
-						$index = 0;
-						foreach ($panelchildren as $tpschild)
-						{
-							//enumerate all tabpanels and disable corresponding xulkeysets
-							$tabpanel = $tpschild;
-							if ($tabpanel->children && count($tabpanel->children))
-							{
-								foreach ($tabpanel->children as $child)
-								{
-									if ($child instanceOf XULKeySet)
-									{
-										if ($selectedPanel === $tabpanel)
-										$child->disabled(FAlSE);
-										else
-										$child->disabled(TRUE);
-									}
-								}
-								//$this->hostWindow->alert(strval ( $tpschild->id . "-" . $index ) );
-							}
-							$index++;
-						}
-					}
-				}
+		if(! count($tps = $tb->getDescendants('XULTabPanels')) )
+			return;
+		
+		$tps = $tps[0];
+		$panels = $tps->getDescendants( 'XULTabPanel' );
+		
+		for( $n = 0; $n < count($panels); $n++ ) {
+			foreach ( $panels[$n]->getDescendants('XULKeySet') as $keyset ) {
+				$keyset->disabled( $n != $this->selectedIndex );
 			}
 		}
 	}
