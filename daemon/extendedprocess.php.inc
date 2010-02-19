@@ -42,6 +42,7 @@ class ExtendedSiteFusionProcess extends SiteFusionProcess
 	static protected $EventPipe;
 	static protected $LastKeepalive;
 	static protected $DebugSocket = NULL;
+	static protected $Groups = array();
 	static public $ApplicationPath = NULL;
 	static public $DebugPaused = FALSE;
 	static public $DebugTicks = FALSE;
@@ -234,6 +235,26 @@ class ExtendedSiteFusionProcess extends SiteFusionProcess
 		$cmd = self::ReadCommand( self::$ParentSocket );
 		
 		return unserialize( $cmd->data );
+	}
+	
+	static public function JoinGroup( $group ) {
+		if( in_array($group,self::$Groups) )
+			return;
+		
+		self::WriteCommand( self::$ParentSocket, 'GROUP', array('action' => 'join', 'group' => (string)$group) );
+		self::$Groups[] = $group;
+	}
+
+	static public function PartGroup( $group ) {
+		if( !in_array($group,self::$Groups) )
+			return;
+		
+		self::WriteCommand( self::$ParentSocket, 'GROUP', array('action' => 'part', 'group' => (string)$group) );
+		array_splice( $self::$Groups, array_search($group,self::$Groups), 1 );
+	}
+	
+	static public function GetGroups() {
+		return self::$Groups;
 	}
 	
 	static public function ToDebuggerShowStack( $bt, $pause = FALSE, $crash = FALSE ) {

@@ -188,7 +188,6 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 				return;
 			
 			if( count($read) ) {
-				$socket = $read[0];
 				foreach ( $read as $socket ) {
 					try {
 						$cmd = self::ReadCommand( $socket );

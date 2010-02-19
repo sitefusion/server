@@ -378,6 +378,7 @@ class DaemonProcess extends SiteFusionProcess
 					case 'JOB':			self::HandleJobCmd( $child, $cmd ); break;
 					case 'SERVICE':		self::HandleServiceCmd( $child, $cmd ); break;
 					case 'GETSERVICE':	self::HandleGetServiceCmd( $child, $cmd ); break;
+					case 'GROUP':		self::HandleGroupCmd( $child, $cmd ); break;
 				}
 			}
 			catch ( SFException $ex ) {}
@@ -527,18 +528,12 @@ class DaemonProcess extends SiteFusionProcess
 	}
 	
 	static private function HandleEvent( $sourceChild, $cmd ) {
-		$sourceAppGroup = explode( '/', $sourceChild->app );
-		$sourceAppGroup = $sourceAppGroup[0];
-		
 		foreach ( self::$Children as $child ) {
 			if( $child === $sourceChild )
 				continue;
 			
-			$childAppGroup = explode( '/', $child->app );
-			$childAppGroup = $childAppGroup[0];
-			
-			if( (($child->type == 'app' && $child->loggedIn) || $child->type == 'service') && $childAppGroup == $sourceAppGroup )
-				self::WriteCommand( $child->socket, 'EVENT', NULL, $cmd->data );
+			if( (($child->type == 'app' && $child->loggedIn) || $child->type == 'service') && count(array_intersect($sourceChild->groups,$child->groups)) )
+				self::WriteCommand( $child->eventPipe, 'EVENT', NULL, $cmd->data );
 		}
 	}
 	
@@ -763,6 +758,22 @@ class DaemonProcess extends SiteFusionProcess
 			$pid = self::StartService( $id, $child->pid );
 			self::WriteCommand( $child->socket, 'OK', array( 'pid' => $pid ) );
 			return;
+		}
+	}
+	
+	static private function HandleGroupCmd( $child, $cmd ) {
+		switch ( $cmd->action ) {
+			case 'join':
+				$child->groups[] = $cmd->group;
+			break;
+			case 'part':
+				for( $n = 0; $n < count($child->groups); $n++ ) {
+					if( $child->groups[$n] == $cmd->group ) {
+						array_splice( $child->groups, $n, 1 );
+						break;
+					}
+				}
+			break;
 		}
 	}
 	
@@ -1298,6 +1309,8 @@ class DaemonChild
 	public $ip;
 	public $app;
 	public $args;
+	
+	public $groups = array();
 	
 	public $clientId;
 	public $error;
