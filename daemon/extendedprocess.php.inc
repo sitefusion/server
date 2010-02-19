@@ -250,7 +250,7 @@ class ExtendedSiteFusionProcess extends SiteFusionProcess
 			return;
 		
 		self::WriteCommand( self::$ParentSocket, 'GROUP', array('action' => 'part', 'group' => (string)$group) );
-		array_splice( $self::$Groups, array_search($group,self::$Groups), 1 );
+		array_splice( self::$Groups, array_search($group,self::$Groups), 1 );
 	}
 	
 	static public function GetGroups() {
