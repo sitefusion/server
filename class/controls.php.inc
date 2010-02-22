@@ -128,7 +128,7 @@ class XULProgressMeter extends Node
  * @link https://developer.mozilla.org/en/XUL/splitter
 */
 
-class XULSplitter extends Node
+class XULSplitter extends BranchNode
 {
 	public $remoteConstructor = 'Splitter';
 	protected $className;
