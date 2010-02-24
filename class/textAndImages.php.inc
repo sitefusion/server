@@ -323,7 +323,7 @@ class XULFileSystemImage extends Node
 	
 	public function transferGetData() {
 		if( !$this->transferStarted )
-			throw new SFException( "File transfer not started!" );
+			throw new SFException( "File transfer not started!", ERR_REPORT_APP );
 		
 		readfile( $this->imagePath );
 	}

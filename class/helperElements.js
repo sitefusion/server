@@ -60,3 +60,36 @@ SiteFusion.Classes.Dropmarker = Class.create( SiteFusion.Classes.Node, {
 	}
 } );
 
+SiteFusion.Classes.Sound = Class.create( SiteFusion.Classes.Node, {
+	sfClassName: 'XULSound',
+	
+	initialize: function( win ) {
+		this.element = win.createElement( 'label' );
+		this.element.sfNode = this;
+		this.ioService = Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);
+		this.sound = Components.classes["@mozilla.org/sound;1"].createInstance(Components.interfaces.nsISound);
+		this.setEventHost();
+	},
+		
+	load: function() {
+		var d = new Date();
+		var strUrl = SiteFusion.Address + '/filestream.php?app=' + SiteFusion.Application + '&args=' + SiteFusion.Arguments + '&sid=' + SiteFusion.SID + '&ident=' + SiteFusion.Ident + '&cid=' + this.cid + '&cycle=' + d.getTime();
+		this.url = this.ioService.newURI(strUrl, null, null);
+		this.sound.init();
+	},
+	
+	beep: function() {
+		
+	},
+	
+	play: function() {
+		if (this.url)
+			this.sound.play(this.url);
+	},
+	
+	playSystemSound: function(soundAlias) {
+		this.sound.playSystemSound(soundAlias);
+	}
+} );
+
+

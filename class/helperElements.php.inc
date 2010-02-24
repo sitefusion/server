@@ -88,3 +88,114 @@ class XULDropmarker extends Node
 	public $remoteConstructor = 'Dropmarker';
 }
 
+
+/**
+ * Sound element
+ * 
+*/
+class XULSound extends Node
+{
+	public $remoteConstructor = 'Sound';
+	private $path;
+	
+	private $transferStarted = FALSE;
+	private $transferSize = NULL;
+	
+	/**
+	 * Dynamic Constructor
+	 *
+	 * @param string	$url
+	*/
+	
+	public function __construct() {
+		if( func_num_args() ) {
+			$args = func_get_args();
+			
+			if( count($args) && is_string($args[0]) )
+				$this->load( array_shift($args) );
+						
+			parent::__construct( $args );
+		}
+		else parent::__construct();
+	}
+	
+		/**
+	 * [INTERNAL FUNCTION]
+	 * This function is called by the daemon to start a transfer. It returns an array
+	 * of two elements, first is a string with the MIME content-type of the data, and
+	 * second is a integer number containing the size in bytes of the transfer.
+	 * 
+	 * @return array	Transfer descriptives
+	*/
+	
+	public function transferStart() {
+		$this->transferStarted = TRUE;
+		if (file_exists($this->path)) {
+			$this->transferSize = filesize($this->path);
+			
+			switch ( strtolower(substr($this->path,-3)) ) {
+				case 'wav': $contentType = 'audio/x-wav'; break;
+				default: $contentType = 'application/octet-stream';
+			}
+			
+			return array( 'application/octet-stream', $this->transferSize );
+		}
+		else return FALSE;
+	}
+	
+	
+	/**
+	 * [INTERNAL FUNCTION]
+	 * This function is called by the daemon to get (a piece of) data of a transfer.
+	 * It should output this data to the output buffer, which will be intercepted
+	 * by the daemon.
+	*/
+	
+	public function transferGetData() {
+		if( !$this->transferStarted )
+			throw new SFException( "File transfer not started!", ERR_REPORT_APP );
+		
+		readfile( $this->path );
+	}
+	
+	
+	/**
+	 * [INTERNAL FUNCTION]
+	 * This function is called by the daemon when all data has been transferred.
+	 * It is used to close open filehandles and clean up.
+	*/
+	
+	public function transferEnd() {
+		$this->transferStarted = FALSE;
+		$this->transferSize = NULL;
+	}
+	
+	public function attach() {
+		parent::attach();
+		if ($this->path)
+			$this->load($this->path);
+	}
+	
+	public function load($path) {
+		if (file_exists($path))
+			$this->path = $path;
+		elseif (file_exists(ApplicationProcess::GetOption("sitefusionPath") . $path))
+			$this->path = ApplicationProcess::GetOption("sitefusionPath") . $path;
+		else throw new SFException( "Audio file $path not found!", ERR_REPORT_APP );
+		
+		if ($this->isRegistered)
+			$this->callMethod( 'load' );
+	}
+	
+	public function play() {
+		$this->callMethod( 'play');
+	}
+	
+	public function playSystemSound($soundAlias) {
+		$this->callMethod( 'playSystemSound', array( $soundAlias  ) );
+	}
+	
+	public function beep() {
+		$this->callMethod( 'beep' );
+	}
+}

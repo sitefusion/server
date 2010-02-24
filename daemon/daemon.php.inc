@@ -1029,7 +1029,10 @@ class DaemonProcess extends SiteFusionProcess
 			
 			case SIGINT:
 			case SIGTERM:
-				self::$Shutdown = TRUE;
+				if( self::$Shutdown )
+					self::$ShutdownKill = TRUE;
+				else
+					self::$Shutdown = TRUE;
 				break;
 			
 			case SIGCHLD:
@@ -1220,10 +1223,7 @@ class SiteFusionProcess
 			
 			case SIGINT:
 			case SIGTERM:
-				if( self::$Shutdown )
-					self::$ShutdownKill = TRUE;
-				else
-					self::$Shutdown = TRUE;
+				self::$Shutdown = TRUE;
 				break;
 			
 			case SIGCHLD:
