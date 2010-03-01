@@ -36,7 +36,6 @@ include_once( 'debugger.php.inc' );
 class SitefusionAdmin extends Application
 {
 	public $centerscreen = TRUE;
-	public $alwaysRaised = TRUE;
 	public $width = 1024;
 	public $height = 740;
 	
@@ -44,6 +43,30 @@ class SitefusionAdmin extends Application
 		$this->window->title( 'SiteFusion Admin' );
 		
 		$this->window->addChild(
+			new XULToolBox(
+				new XULMenuBar(
+					$menuFile = new XULMenu( 'File',
+						new XULMenuPopup(
+							$mFileExit = new XULMenuItem( 'Exit' )
+						)
+					),
+					$menuTools = new XULMenu( 'Tools',
+						new XULMenuPopup(
+							$mToolsInfoSF = new XULMenuItem( "SiteFusion Info" ),
+							$mToolsErrorConsole = new XULMenuItem( "Fout Console" ),
+							$mToolsCheckUpdates = new XULMenuItem( "Controleer voor updates..." ),
+							new XULMenuSeparator,
+							$mToolsAddons = new XULMenuItem( "Add-ons beheren" ),
+							$mToolsAddonsSub = new XULMenu( "Add-ons",
+								$mPopupAddons = new XULMenuPopup()
+							),
+							new XULMenuSeparator,
+							$mToolsInfoMemory = new XULMenuItem( "Geheugen gebruik" )
+						)
+					)
+				)
+			),
+			
 			$gb1 = new XULGroupBox(
 				$cp1 = new XULCaption( 'Master Process', 'bold' ),
 				
@@ -167,6 +190,39 @@ class SitefusionAdmin extends Application
 		
 		$this->lblShutdown->setStyle( 'color', 'red' );
 		$this->btCancelShutdown->hidden( TRUE )->setEvent( 'command', MSG_SEND, $this, 'cancelShutdown' );
+		
+		
+		//check for the DOMInspector Component
+		if (isset($this->clientComponents['DOMInspector']) && $this->clientComponents['DOMInspector'] == true)
+		{
+			$mPopupAddons->addChild(
+				$mAddonsDI = new XULMenuItem( "DOM Inspector" )
+			);
+			$mAddonsDI->setEvent( 'command', MSG_SEND, 'DOMInspector', 'Open' );
+		}
+		
+		//check for the Venkman Component
+		if (isset($this->clientComponents['Venkman']) && $this->clientComponents['Venkman'] == true)
+		{
+			$mPopupAddons->addChild(
+				$mAddonsVenkman = new XULMenuItem( "Venkman" )
+			);
+			$mAddonsVenkman->setEvent( 'command', MSG_SEND, 'Venkman', 'Open' );
+		}
+		
+		if (!count($mPopupAddons->children))
+		{
+			$mToolsAddonsSub->disabled(TRUE);
+		}
+		
+		$mFileExit->setEvent( 'command', MSG_SEND, $this->window, 'close' );
+		
+		$mToolsInfoSF->setEvent( 'command', MSG_SEND, $this, 'openAbout' );
+		$mToolsInfoMemory->setEvent( 'command', MSG_SEND, $this, 'openAboutMemory' );
+		$mToolsAddons->setEvent( 'command', MSG_SEND, $this, 'openExtensions' );
+		$mToolsCheckUpdates->setEvent( 'command', MSG_SEND, $this, 'checkForUpdates' );
+		$mToolsErrorConsole->setEvent( 'command', MSG_SEND, $this, 'openErrorConsole' );
+		
 		
 		$this->tree->context( $treePopup );
 		$menuDebug->setEvent( 'command', MSG_SEND, $this, 'startDebugger', $this->tree );

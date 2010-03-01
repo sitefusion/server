@@ -58,7 +58,9 @@ try {
 			'args' => $_GET['args'],
 			'username' => $_POST['username'],
 			'password' => $_POST['password'],
-			'ip' => $_SERVER['REMOTE_ADDR']
+			'ip' => $_SERVER['REMOTE_ADDR'],
+			'server' => ((isset($_SERVER['HTTP_HOST']) && $_SERVER['HTTP_HOST'] != '') ? $_SERVER['HTTP_HOST'] : $_SERVER['SERVER_NAME']),
+			'secure' => ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != '') ? 1 : 0)
 		)
 	);
 

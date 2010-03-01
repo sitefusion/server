@@ -103,48 +103,96 @@ class ServiceProcess extends ExtendedSiteFusionProcess
 	static protected function ServiceLoop( $subloop = FALSE ) {
 		try {
 			while(1) {
+				if( ! self::$DebugPaused ) {
+					try {
+						$read = array();
+						$write = NULL;
+						$except = NULL;
+						$read['client'] = self::$Socket;
+						$read['parent'] = self::$ParentSocket;
+						$read['event'] = self::$EventPipe;
+						
+						if( self::$Options['debug'] )
+							$read['debug'] = self::$DebugSocket;
+						
+						foreach ( self::$Clients as $index => $client ) {
+							$read['client-'.$index] = $client->socket;
+						}
+						
+						try {
+							$sockNum = socket_select( $read, $write, $except, 0, self::$Options['daemonCycleInterval'] );
+						}
+						catch ( SFException $ex ) {}
+						
+						if( $sockNum !== FALSE && $sockNum > 0 ) {
+							foreach ( $read as $key => $socket ) {
+								
+								switch ( $key ) {
+									
+									case 'client':
+										$client = socket_accept( $socket );
+										$cmd = self::ReadCommand( $client );
+										switch ( $cmd->command ) {
+											case 'GETSERVICE': self::HandleNewClient( $client, $cmd ); break;
+										}
+									break;
+									
+									case 'parent':
+									case 'event':
+										$cmd = self::ReadCommand( $socket );
+										switch ( $cmd->command ) {
+											case 'EVENT': self::HandleEvent( $cmd ); break;
+										}
+									break;
+									
+									case 'debug':
+										self::$ConnectedDebugger = socket_accept( $socket );
+									break;
+									
+									default:
+										list($type,$index) = explode( '-', $key );
+										$cmd = self::ReadCommand( $socket );
+										if( $type == 'client' ) {
+											switch ( $cmd->command ) {
+												case 'LIVE': self::HandleClientCmdKeepalive( self::$Clients[(int)$index] ); break;
+												case 'CALL': self::HandleClientCmdCall( self::$Clients[(int)$index], $cmd ); break;
+												case 'CLOSE': self::CloseClient( self::$Clients[(int)$index] ); break;
+											}
+										}
+									break;
+								}
+							}
+						}
+						
+						self::CheckTimers();
+					}
+					catch ( SFException $ex ) { throw $ex; }
+				}
+				else usleep( self::$Options['daemonCycleInterval'] );
+				
+				
+				// Handle shutdown
 				if( self::$Shutdown ) {
 					self::StopServiceServer();
 					return;
 				}
 				
+				// Send keepalive to parent
 				if( time() - self::$LastKeepalive > self::$Options['keepaliveInterval'] ) {
 					self::WriteCommand( self::$ParentSocket, 'LIVE' );
 					self::$LastKeepalive = time();
 				}
 				
+				// Close unresponsive clients
 				for( $n = 0; $n < count(self::$Clients); $n++ ) {
 					if( time() - self::$Clients[$n]->lastKeepalive > self::$Options['serviceClientTimeout'] )
 						self::CloseClient( self::$Clients[$n] );
 				}
 				
-				if( self::$Options['debug'] ) {
-					if( self::$ConnectedDebugger )
-						self::ListenToDebugger();
-					else
-						self::$ConnectedDebugger = self::PollForDebugger();
-				}
+				// Listen to debugger
+				if( self::$Options['debug'] && self::$ConnectedDebugger )
+					self::ListenToDebugger();
 				
-				if(! self::$DebugPaused ) {
-					self::ListenToParent();
-					self::ListenToClients();
-					self::CheckTimers();
-					
-					if( $client = self::PollForClient() ) {
-						try {
-							$cmd = self::ReadCommand( $client );
-		
-							switch ( $cmd->command ) {
-								case 'GETSERVICE': self::HandleNewClient( $client, $cmd ); break;
-							}
-						}
-						catch ( SFException $ex ) {
-							throw $ex;
-						}
-					}
-					//else usleep( self::$Options['daemonCycleInterval'] );
-				}
-				else usleep( self::$Options['daemonCycleInterval'] );
 				
 				if( $subloop && !self::$DebugPaused )
 					return;
@@ -158,81 +206,6 @@ class ServiceProcess extends ExtendedSiteFusionProcess
 			self::StopServiceServer();
 			return;
 		}
-	}
-	
-	static private function ListenToParent() {
-		$read = array(self::$ParentSocket,self::$EventPipe);
-		$write = NULL;
-		$except = NULL;
-		
-		while( 1 ) {
-			if( socket_select($read, $write, $except, 0) < 1 )
-				return;
-			
-			if( count($read) ) {
-				foreach ( $read as $socket ) {
-					try {
-						$cmd = self::ReadCommand( $socket );
-				
-						switch ( $cmd->command ) {
-							case 'EVENT': self::HandleEvent( $cmd ); break;
-						}
-					}
-					catch ( SFException $ex ) { self::Log( 'Uncaught Exception in service ('.self::$SessionID.'): ' . $ex->getFormattedReport() ); }
-				}
-			}
-			else return;
-		}
-	}
-	
-	static private function ListenToClients() {
-		$read = array();
-		$write = NULL;
-		$except = NULL;
-		
-		foreach ( self::$Clients as $c ) {
-			$read[] = $c->socket;
-		}
-		
-		if( ! count($read) )
-			return;
-		
-		if( socket_select($read, $write, $except, 0) < 1 )
-			return;
-		
-		foreach ( $read as $socket ) {
-			$client = self::GetClientBySocket( $socket );
-			
-			try {
-				$cmd = self::ReadCommand( $socket );
-			
-				switch ( $cmd->command ) {
-					case 'LIVE': self::HandleClientCmdKeepalive( $client ); break;
-					case 'CALL': self::HandleClientCmdCall( $client, $cmd ); break;
-					case 'CLOSE': self::CloseClient( $client ); break;
-				}
-			}
-			catch ( SFException $ex ) {}
-		}
-	}
-	
-	static private function PollForClient() {
-		try {
-			$read = array( self::$Socket );
-			$write = NULL;
-			$except = NULL;
-			if( socket_select( $read, $write, $except, 0, self::$Options['daemonCycleInterval'] ) > 0 ) {
-				$client = socket_accept( self::$Socket );
-			}
-			else {
-				return NULL;
-			}
-		}
-		catch( SFException $ex ) {
-			//self::Log( 'PollForClient: ' . $ex->getMessage() );
-			return FALSE;
-		}
-		return $client;
 	}
 	
 	static private function CloseClient( $client ) {
@@ -325,13 +298,6 @@ class ServiceProcess extends ExtendedSiteFusionProcess
 			catch ( SFException $ex ) {
 				self::Log( 'Uncaught Exception in service ('.self::$SessionID.'): ' . $ex->getFormattedReport() );
 			}
-		}
-	}
-	
-	static private function GetClientBySocket( $socket ) {
-		foreach ( self::$Clients as $client ) {
-			if( isset($client->socket) && $socket == $client->socket )
-				return $client;
 		}
 	}
 	
