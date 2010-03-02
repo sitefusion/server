@@ -145,7 +145,18 @@ SiteFusion.Classes.Window = Class.create( SiteFusion.Classes.BasicWindow, {
 		this.element.setAttribute( 'id', 'sitefusion-window' );
 		
 		this.initMenuBar();
-
+		
+		var obsService = Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService);
+		
+		var shutdownObserver = {
+			observe: function( subject, topic, data ) {
+				if( !oThis.onClose() )
+					subject.data = true;
+			}
+		};
+		
+		obsService.addObserver( shutdownObserver, 'quit-application-requested', false );
+		
 		SiteFusion.Comm.RevComm();
 	},
 	
@@ -155,8 +166,10 @@ SiteFusion.Classes.Window = Class.create( SiteFusion.Classes.BasicWindow, {
 		this.fireEvent( 'close' );
 
 		if( this.preventClose ) {
-			event.preventDefault();
-			event.stopPropagation();
+			if( event ) {
+				event.preventDefault();
+				event.stopPropagation();
+			}
 			return false;
 		}
 		
@@ -166,7 +179,7 @@ SiteFusion.Classes.Window = Class.create( SiteFusion.Classes.BasicWindow, {
 			}
 			catch ( ex ) {}
 		}
-
+		
 		this.close();
 
 		return true;
