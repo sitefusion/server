@@ -200,6 +200,8 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
 		}
 		if( typeof(update.primaryImage) != 'undefined' )
 			row.primaryImage = update.primaryImage;
+		if( typeof(update.images) != 'undefined' )
+			row.images = update.images;
 		if( typeof(update.progressModes) != 'undefined' )
 			row.progressModes = update.progressModes;
 		if( typeof(update.editableCells) != 'undefined' )
@@ -478,10 +480,11 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
 	};
 
 	this.getImageSrc = function( idx, col ) {
-		if( col.primary && this.visibleData[idx].primaryImage ) {
+		if( col.primary && this.visibleData[idx].primaryImage )
 			return this.sfTree.parseImageURL( this.visibleData[idx].primaryImage );
-		}
-		else return null;
+		else if( this.visibleData[idx].images && this.visibleData[idx].images[col.index] )
+			return this.sfTree.parseImageURL( this.visibleData[idx].images[col.index] );
+		else return '';
 	};
 	
 	this.isSeparator = function( idx ) {

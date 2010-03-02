@@ -374,6 +374,8 @@ class TreeDataItem extends TreeDataSupports
 			$rowObject->primaryImage = $this->_primaryImage;
 		if( $this->isSeparator )
 			$rowObject->isSeparator = TRUE;
+		if( isset($this->_images) && $this->_images !== NULL )
+			$rowObject->images = $this->_images;
 		if( isset($this->_progressModes) && $this->_progressModes !== NULL )
 			$rowObject->progressModes = $this->_progressModes;
 		if( isset($this->_editableCells) && $this->_editableCells !== NULL )
@@ -397,6 +399,7 @@ class TreeDataRow extends TreeDataItem
 {
 	public $data = NULL;
 	protected $_cells = NULL;
+	protected $_images = NULL;
 	protected $_variables = array();
 	protected $_primaryImage = NULL;
 	protected $_progressModes = NULL;
@@ -449,6 +452,19 @@ class TreeDataRow extends TreeDataItem
 		
 		if( $this->_isSync )
 			$this->updateToDataSet();
+		
+		return $this;
+	}
+	
+	public function setImage( $column, $src ) {
+		if( ($index = $this->getColumnIndex($column)) === NULL )
+			throw new SFException( "No such column: $column" );
+		
+		if(! is_array($this->_images) ) $this->_images = array( $index => $src );
+		else $this->_images[$index] = $src;
+		
+		if( $this->_isSync )
+			$this->updateProperty( 'images', $this->_images );
 		
 		return $this;
 	}
