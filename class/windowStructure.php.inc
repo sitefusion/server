@@ -77,7 +77,7 @@ class XULBrowser extends Node
 /**
  * Printbox element
  * 
- * Call the setContent($html) method to fill the printbox with HTML content, and call
+ * Call the content($html) method to fill the printbox with HTML content, and call
  * the printContent() method to open the printer dialog. Optionally set the $silent
  * parameter to TRUE to print directly without opening the print dialog first.
 */

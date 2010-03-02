@@ -635,7 +635,7 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
 	
 	this.invalidateTable = function() {
 		if( this.invalidateTableTimer ) {
-			clearTimeout( this.invalidateTableTimer );
+			this.sfTree.hostWindow.windowObject.clearTimeout( this.invalidateTableTimer );
 		}
 		var oThis = this;
 		this.invalidateTableTimer = this.sfTree.hostWindow.windowObject.setTimeout( function() { oThis.treeBox.invalidate(); oThis.invalidateTableTimer = null; }, 1 );

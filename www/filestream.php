@@ -31,6 +31,8 @@
 */
 
 ignore_user_abort( TRUE );
+ob_implicit_flush();
+
 include( '../conf/webfrontend.conf' );
 include( 'functions.php' );
 
@@ -103,6 +105,10 @@ try {
 			throw new Exception( 'File transfer error' );
 		
 		echo $cmd->data;
+		
+		if( connection_aborted() )
+			break;
+		
 		$sentBytes += strlen($cmd->data);
 	}
 	
@@ -113,6 +119,12 @@ try {
 	socket_close($socket);
 }
 catch ( Exception $ex ) {
+	$socket = getConnection();
+	
+	WriteCommand( $socket, 'FILE', array( 'cid' => $_GET['cid'], 'action' => 'end' ) );
+	
+	socket_close($socket);
+	
 	echo $ex->getMessage();
 	exit(1);
 }
