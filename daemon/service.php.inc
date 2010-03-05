@@ -189,6 +189,12 @@ class ServiceProcess extends ExtendedSiteFusionProcess
 						self::CloseClient( self::$Clients[$n] );
 				}
 				
+				// Update database every two seconds
+				if( (!isset($lastTime)) || time() - $lastTime > 1 ) {
+					self::UpdateDatabase();
+					$lastTime = time();
+				}
+				
 				// Listen to debugger
 				if( self::$Options['debug'] && self::$ConnectedDebugger )
 					self::ListenToDebugger();
@@ -261,8 +267,6 @@ class ServiceProcess extends ExtendedSiteFusionProcess
 		}
 		
 		self::WriteCommand( $client->socket, 'CALL', NULL, serialize($ret) );
-		
-		self::UpdateDatabase();
 	}
 	
 	static private function HandleEvent( $cmd ) {
@@ -283,8 +287,6 @@ class ServiceProcess extends ExtendedSiteFusionProcess
 		}
 		
 	//	ob_end_clean();
-		
-		self::UpdateDatabase();
 	}
 	
 	static private function CheckTimers() {

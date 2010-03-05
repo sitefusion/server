@@ -95,6 +95,7 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 		
 		self::InitializeApplication();
 		
+		self::UpdateDatabase();
 		self::ApplicationLoop();
 		exit();
 	}
@@ -210,6 +211,12 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 					}
 				}
 				
+				// Update database every two seconds
+				if( (!isset($lastTime)) || time() - $lastTime > 1 ) {
+					self::UpdateDatabase();
+					$lastTime = time();
+				}
+				
 				// Listen to debugger
 				if( self::$Options['debug'] && self::$ConnectedDebugger )
 					self::ListenToDebugger();
@@ -282,8 +289,6 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 		socket_close( $client );
 		
 		self::$LastContact = time();
-		
-		self::UpdateDatabase();
 	}
 	
 	static private function HandleRevComm( $client ) {
@@ -339,8 +344,6 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 		socket_close( $client );
 		
 		self::$LastContact = time();
-		
-		self::UpdateDatabase();
 	}
 	
 	static private function HandleEvent( $cmd ) {
@@ -381,7 +384,7 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 	}
 	
 	static private function AuthorizeLogin( $cmd ) {
-		ob_start();
+	//	ob_start();
 		
 		$app = $cmd->app;
 		$args = (isset($cmd->args) && $cmd->args != '' ? explode(',',$cmd->args) : array());
@@ -414,7 +417,7 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 		
 		self::$Application = new $class ( $user, $ip, $ident, $app, $args );
 		
-		ob_end_clean();
+	//	ob_end_clean();
 		
 		$loginParam = array(
 			'success' => 1,
@@ -501,8 +504,6 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 			}
 		}
 		catch ( SFException $ex ) {}
-		
-		self::UpdateDatabase();
 	}
 	
 	static public function GetService( $id ) {
