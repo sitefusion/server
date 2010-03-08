@@ -119,12 +119,13 @@ class ServiceProcess extends ExtendedSiteFusionProcess
 							$read['client-'.$index] = $client->socket;
 						}
 						
+						$failed = FALSE;
 						try {
 							$sockNum = socket_select( $read, $write, $except, 0, self::$Options['daemonCycleInterval'] );
 						}
-						catch ( SFException $ex ) {}
+						catch ( SFException $ex ) { $failed = TRUE; }
 						
-						if( $sockNum !== FALSE && $sockNum > 0 ) {
+						if( $failed !== TRUE && $sockNum !== FALSE && $sockNum > 0 ) {
 							foreach ( $read as $key => $socket ) {
 								
 								switch ( $key ) {

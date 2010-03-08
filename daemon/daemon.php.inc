@@ -323,7 +323,6 @@ class DaemonProcess extends SiteFusionProcess
 			}
 			catch ( SFException $ex ) {}
 			
-			
 			// Wait for terminated children
 			pcntl_wait( $status, WNOHANG OR WUNTRACED );
 			
