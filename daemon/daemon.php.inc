@@ -1153,7 +1153,7 @@ class SiteFusionProcess
 			throw new SFException( "socket_listen() failed: reason: " . socket_strerror(socket_last_error($sock)) );
 		}
 		
-		socket_set_nonblock($sock); 
+		//socket_set_nonblock($sock); 
 		
 		return $sock;
 	}
@@ -1179,7 +1179,7 @@ class SiteFusionProcess
 			throw new SFException( "socket_listen() failed: reason: " . socket_strerror(socket_last_error($sock)) );
 		}
 		
-		socket_set_nonblock($sock); 
+		//socket_set_nonblock($sock); 
 		
 		return $sock;
 	}
