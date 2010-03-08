@@ -45,9 +45,25 @@ class SitefusionAdmin extends Application
 		$this->window->addChild(
 			new XULToolBox(
 				new XULMenuBar(
-					$menuFile = new XULMenu( 'File',
+					$menuFile = new XULMenu( 'Admin',
 						new XULMenuPopup(
-							$mFileExit = new XULMenuItem( 'Exit' )
+							$mAdminRestart = new XULMenu( 'Restart...',
+								new XULMenuPopup(
+									$mAdminRestartNow = new XULMenuItem( 'Now' ),
+									$mAdminRestartGrace = new XULMenuItem( 'When convenient' )
+								)
+							),
+							$mAdminStop = new XULMenu( 'Stop...',
+								new XULMenuPopup(
+									$mAdminStopNow = new XULMenuItem( 'Now' ),
+									$mAdminStopGrace = new XULMenuItem( 'When convenient' )
+								)
+							),
+							new XULMenuSeparator,
+							$mAdminEditJobs = new XULMenuItem( 'Edit Job Schedule...' ),
+							$mAdminEditServices = new XULMenuItem( 'Edit Services...' ),
+							new XULMenuSeparator,
+							$mAdminExit = new XULMenuItem( 'Exit' )
 						)
 					),
 					$menuTools = new XULMenu( 'Tools',
@@ -215,7 +231,25 @@ class SitefusionAdmin extends Application
 			$mToolsAddonsSub->disabled(TRUE);
 		}
 		
-		$mFileExit->setEvent( 'command', MSG_SEND, $this->window, 'close' );
+		$mAdminRestartNow->setEvent( 'command', MSG_SEND, $this, 'shutdownButton' );
+		$mAdminRestartNow->restart = TRUE;
+		$mAdminRestartNow->grace = FALSE;
+		
+		$mAdminRestartGrace->setEvent( 'command', MSG_SEND, $this, 'shutdownButton' );
+		$mAdminRestartGrace->restart = TRUE;
+		$mAdminRestartGrace->grace = TRUE;
+		
+		$mAdminStopNow->setEvent( 'command', MSG_SEND, $this, 'shutdownButton' );
+		$mAdminStopNow->restart = FALSE;
+		$mAdminStopNow->grace = FALSE;
+		
+		$mAdminStopGrace->setEvent( 'command', MSG_SEND, $this, 'shutdownButton' );
+		$mAdminStopGrace->restart = FALSE;
+		$mAdminStopGrace->grace = TRUE;
+		
+		$mAdminEditJobs->setEvent( 'command', MSG_SEND, $this, 'openJobScheduleDialog' );
+		$mAdminEditServices->setEvent( 'command', MSG_SEND, $this, 'openServiceListDialog' );
+		$mAdminExit->setEvent( 'command', MSG_SEND, $this->window, 'close' );
 		
 		$mToolsInfoSF->setEvent( 'command', MSG_SEND, $this, 'openAbout' );
 		$mToolsInfoMemory->setEvent( 'command', MSG_SEND, $this, 'openAboutMemory' );
