@@ -131,39 +131,6 @@ SiteFusion.Classes.CodeEditor = Class.create( SiteFusion.Classes.Editor, {
 		
 		this.hostWindow = win;
 		
-		window.controllers.appendController(
-		{
-		  supportsCommand : function(cmd) {
-		    var isSupported = false;
-		    switch (cmd) {
-		      case "cmd_pasteNoFormatting": 
-		        isSupported = true;
-		        break;
-		      default:
-		        isSupported = false;
-		        break;
-		    }
-		    return isSupported;
-		  },
-		  
-		  isCommandEnabled : function(cmd) {
-		    var textEditor = this.textEditor;
-		    if (textEditor) {
-					return textEditor.canPaste(textEditor.eNone);
-		    }
-		    return false;
-		  },
-		  
-		  doCommand : function(cmd) {
-		    var textEditor = this.textEditor;
-		    if (textEditor) {
-		      var htmlEditor = textEditor.QueryInterface(Components.interfaces.nsIHTMLEditor);
-		      htmlEditor.pasteNoFormatting(textEditor.eNone);
-		    }
-		  }
-		}
-		);
-		
 		this.setEventHost( [
 			'before_initialize',
 			'after_loaddata',
@@ -171,18 +138,6 @@ SiteFusion.Classes.CodeEditor = Class.create( SiteFusion.Classes.Editor, {
 			'madeEditable',
 			'yield'
 		] );
-	
-		var myKey = win.createElement( 'key' );
-		var myKeySet = win.createElement( 'keyset' );
-		myKey.setAttribute('key', "V");
-		myKey.setAttribute('modifiers', "accel");
-
-		myKey.sfNode = this;
-		myKey.setAttribute("oncommand", "sfRootWindow.windowObject.SiteFusion.CommandUpdater.doCommand('cmd_pasteNoFormatting');");
-		
-		myKeySet.appendChild(myKey);
-		this.element.appendChild(myKeySet);
-		//CommandUpdater.setAccessKey('cmd_pasteNoFormatting', 'v');
 		
 		this.eventHost.initialized.msgType = 0;
 		this.eventHost.madeEditable.msgType = 0;
@@ -213,8 +168,21 @@ SiteFusion.Classes.CodeEditor = Class.create( SiteFusion.Classes.Editor, {
 		this.textEditor.rootElement.style.backgroundColor = "white";
 		this.textEditor.rootElement.style.whiteSpace = "nowrap";
 		this.textEditor.rootElement.style.margin = 5;
-    //set language css
-    this.applyLanguageCSS();
+		
+		var myKey = this.hostWindow.createElement( 'key' );
+		var myKeySet = this.hostWindow.createElement( 'keyset' );
+		myKey.setAttribute('key', "V");
+		myKey.setAttribute('modifiers', "accel");
+
+		myKey.sfNode = this;
+		
+		myKey.setAttribute("oncommand", "sfRootWindow.windowObject.SiteFusion.Registry[" + this.cid + "].textEditor.QueryInterface(Components.interfaces.nsIHTMLEditor).pasteNoFormatting(1)");
+
+		myKeySet.appendChild(myKey);
+		this.element.appendChild(myKeySet);
+		
+	    //set language css
+	    this.applyLanguageCSS();
     
 		EditorListener.attach(this.textEditor);
 			
