@@ -361,8 +361,11 @@ class DaemonProcess extends SiteFusionProcess
 		if( ! count($read) )
 			return;
 		
-		if( socket_select($read, $write, $except, 0) < 1 )
-			return;
+		try {
+			if( socket_select($read, $write, $except, 0) < 1 )
+				return;
+		}
+		catch ( SFException $ex ) { return; }
 		
 		foreach ( $read as $socket ) {
 			$child = self::GetChildBySocket( $socket );

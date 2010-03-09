@@ -194,9 +194,14 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 			$read = array(self::$ParentSocket,self::$EventPipe);
 			$write = NULL;
 			$except = NULL;
-
-			if( socket_select($read, $write, $except, 0) < 1 )
+			
+			try {
+				if( socket_select($read, $write, $except, 0) < 1 )
+					return;
+			}
+			catch ( SFException $ex ) {
 				return;
+			}
 			
 			if( count($read) ) {
 				foreach ( $read as $socket ) {
@@ -232,8 +237,11 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 		if( ! count($read) )
 			return;
 		
-		if( socket_select($read, $write, $except, 0) < 1 )
-			return;
+		try {
+			if( socket_select($read, $write, $except, 0) < 1 )
+				return;
+		}
+		catch ( SFException $ex ) { return; }
 		
 		foreach ( $read as $socket ) {
 			$service = self::GetServiceBySocket( $socket );
