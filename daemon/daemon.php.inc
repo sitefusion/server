@@ -280,54 +280,12 @@ class DaemonProcess extends SiteFusionProcess
 	
 	static private function MainLoop() {
 		while(1) {
-			$read = array();
-			$write = NULL;
-			$except = NULL;
-			$read[0] = self::$Socket;
-			foreach ( self::$Children as $pid => $child ) {
-				if( $child->type == 'app' || $child->type == 'service' ) {
-					$read[$pid.'-cmd'] = $child->socket;
-					$read[$pid.'-evt'] = $child->eventPipe;
-				}
+			while( pcntl_wait($status, WNOHANG OR WUNTRACED) > 0 ) {
+				usleep( self::$Options['daemonCycleInterval'] );
 			}
 			
-			try {
-				if( ($sockNum = socket_select( $read, $write, $except, 0, self::$Options['daemonCycleInterval'] )) !== FALSE && $sockNum > 0 ) {
-					foreach ( $read as $key => $socket ) {
-						switch ( $key ) {
-							case 0:
-								$client = socket_accept($socket);
-								self::HandleClient( $client );
-							break;
-							
-							default:
-								list($pid,$type) = explode( '-', $key );
-								$child = self::$Children[$pid];
-								
-								$cmd = self::ReadCommand( $socket );
-								
-								switch ( $cmd->command ) {
-									case 'LIVE':		self::HandleChildCmdKeepalive( $child ); break;
-									case 'LOGIN':		self::ChildStarted( $child, $cmd ); break;
-									case 'EVENT':		self::HandleEvent( $child, $cmd ); break;
-									case 'ADMIN':		self::HandleAdminCmd( $child, $cmd ); break;
-									case 'JOB':			self::HandleJobCmd( $child, $cmd ); break;
-									case 'SERVICE':		self::HandleServiceCmd( $child, $cmd ); break;
-									case 'GETSERVICE':	self::HandleGetServiceCmd( $child, $cmd ); break;
-									case 'GROUP':		self::HandleGroupCmd( $child, $cmd ); break;
-								}
-							break;
-						}
-					}
-				}
-			}
-			catch ( SFException $ex ) {}
-			
-			// Wait for terminated children
-			pcntl_wait( $status, WNOHANG OR WUNTRACED );
-			
-			// Remove dead children from watchlist
 			$appCount = 0;
+			
 			foreach ( array_keys(self::$Children) as $pid ) {
 				if(! posix_kill($pid,0) ) {
 					self::RemoveChild( $pid );
@@ -337,22 +295,15 @@ class DaemonProcess extends SiteFusionProcess
 					$appCount++;
 			}
 			
-			// Clean abandoned children with attached error messages
-			foreach( array_keys(self::$DeadChildren) as $pid ) {
-				if( time() - self::$DeadChildren[$pid]->errorTimestamp > 60 )
-					unset(self::$DeadChildren[$pid]);
+			if( self::$Shutdown ) {
+				if( (self::$Graceful && $appCount == 0) || !self::$Graceful ) {
+					self::StopServer();
+					return;
+				}
 			}
 			
-			// Kill unresponsive children
-			foreach ( self::$Children as $pid => $child ) {
-				if( $child->type == 'app' && time() - $child->lastKeepalive > self::$Options['childTimeout'] )
-					self::KillChild( $pid );
-			}
-			
-			// Clean ports
 			self::CleanSleepingPorts();
 			
-			// Check job schedule
 			$jobCheckDate = time();
 			if(! isset($lastJobMinute) ) $lastJobMinute = idate('i',$jobCheckDate-60);
 			if( $lastJobMinute != idate('i',$jobCheckDate) ) {
@@ -369,13 +320,23 @@ class DaemonProcess extends SiteFusionProcess
 				$lastJobMinute = $minute;
 			}
 			
-			// Handle shutdown
-			if( self::$Shutdown ) {
-				if( (self::$Graceful && $appCount == 0) || !self::$Graceful ) {
-					self::StopServer();
-					return;
-				}
+			if( count(self::$Children) )
+				self::ListenToChildren();
+			
+			foreach( array_keys(self::$DeadChildren) as $pid ) {
+				if( time() - self::$DeadChildren[$pid]->errorTimestamp > 60 )
+					unset(self::$DeadChildren[$pid]);
 			}
+			
+			foreach ( self::$Children as $pid => $child ) {
+				if( $child->type == 'app' && time() - $child->lastKeepalive > self::$Options['childTimeout'] )
+					self::KillChild( $pid );
+			}
+			
+			if( $client = self::PollForClient() ) {
+				self::HandleClient( $client );
+			}
+			//else usleep( self::$Options['daemonCycleInterval'] );
 		}
 	}
 	
@@ -383,6 +344,45 @@ class DaemonProcess extends SiteFusionProcess
 		self::Log( 'Killing child with pid '.$pid );
 		posix_kill( $pid, SIGKILL );
 		self::RemoveChild( $pid );
+	}
+	
+	static private function ListenToChildren() {
+		$read = array();
+		$write = NULL;
+		$except = NULL;
+		
+		foreach ( self::$Children as $child ) {
+			if( $child->type == 'app' || $child->type == 'service' ) {
+				$read[] = $child->socket;
+				$read[] = $child->eventPipe;
+			}
+		}
+		
+		if( ! count($read) )
+			return;
+		
+		if( socket_select($read, $write, $except, 0) < 1 )
+			return;
+		
+		foreach ( $read as $socket ) {
+			$child = self::GetChildBySocket( $socket );
+			
+			try {
+				$cmd = self::ReadCommand( $socket );
+				
+				switch ( $cmd->command ) {
+					case 'LIVE':		self::HandleChildCmdKeepalive( $child ); break;
+					case 'LOGIN':		self::ChildStarted( $child, $cmd ); break;
+					case 'EVENT':		self::HandleEvent( $child, $cmd ); break;
+					case 'ADMIN':		self::HandleAdminCmd( $child, $cmd ); break;
+					case 'JOB':			self::HandleJobCmd( $child, $cmd ); break;
+					case 'SERVICE':		self::HandleServiceCmd( $child, $cmd ); break;
+					case 'GETSERVICE':	self::HandleGetServiceCmd( $child, $cmd ); break;
+					case 'GROUP':		self::HandleGroupCmd( $child, $cmd ); break;
+				}
+			}
+			catch ( SFException $ex ) {}
+		}
 	}
 	
 	static private function CheckJobSchedule( $minute, $hour, $monthday, $month, $weekday ) {
@@ -964,6 +964,32 @@ class DaemonProcess extends SiteFusionProcess
 		}
 	}
 	
+	static private function GetChildBySocket( $socket ) {
+		foreach ( self::$Children as $child ) {
+			if( isset($child->socket) && ($socket == $child->socket || $socket == $child->eventPipe) )
+				return $child;
+		}
+	}
+	
+	static private function PollForClient() {
+		try {
+			$read = array( self::$Socket );
+			$write = NULL;
+			$except = NULL;
+			if( socket_select( $read, $write, $except, 0, self::$Options['daemonCycleInterval'] ) > 0 ) {
+				$client = socket_accept( self::$Socket );
+			}
+			else {
+				return NULL;
+			}
+		}
+		catch( SFException $ex ) {
+			//self::Log( 'PollForClient: ' . $ex->getMessage() );
+			return FALSE;
+		}
+		return $client;
+	}
+	
 	static private function ForkChild() {
 		$pid = pcntl_fork();
 		
@@ -1152,7 +1178,7 @@ class SiteFusionProcess
 			throw new SFException( "socket_listen() failed: reason: " . socket_strerror(socket_last_error($sock)) );
 		}
 		
-		//socket_set_nonblock($sock); 
+		socket_set_nonblock($sock); 
 		
 		return $sock;
 	}
@@ -1178,7 +1204,7 @@ class SiteFusionProcess
 			throw new SFException( "socket_listen() failed: reason: " . socket_strerror(socket_last_error($sock)) );
 		}
 		
-		//socket_set_nonblock($sock); 
+		socket_set_nonblock($sock); 
 		
 		return $sock;
 	}

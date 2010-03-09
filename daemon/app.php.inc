@@ -50,8 +50,6 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 	static private $NextCommOutput = NULL;
 	static private $ConnectedServices = array();
 	static private $DebugWindows = array();
-	static public $ServerHost;
-	static public $ServerSecure;
 	
 	static public function StartServer( $client, $parentSocket, $eventPipe, $loginCmd, $port, $clientid ) {
 		if( self::$ApplicationStarted || self::$ProcessType )
@@ -77,8 +75,6 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 		}
 		
 		self::$ApplicationPath = $param['app'];
-		self::$ServerHost = $param['server'];
-		self::$ServerSecure = $param['secure'];
 		
 		self::SetSignalHandlers();
 		
@@ -120,96 +116,28 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 	static protected function ApplicationLoop( $subloop = FALSE ) {
 		try {
 			while(1) {
-				if( ! self::$DebugPaused ) {
-					try {
-						$read = array();
-						$write = NULL;
-						$except = NULL;
-						$read['client'] = self::$Socket;
-						$read['parent'] = self::$ParentSocket;
-						$read['event'] = self::$EventPipe;
-						
-						if( self::$Options['debug'] )
-							$read['debug'] = self::$DebugSocket;
-						
-						foreach ( self::$ConnectedServices as $index => $service ) {
-							$read['service-'.$index] = $service->socket;
-						}
-						
-						$failed = FALSE;
-						try {
-							$sockNum = socket_select( $read, $write, $except, 0, self::$Options['daemonCycleInterval'] );
-						}
-						catch ( SFException $ex ) { $failed = TRUE; }
-						
-						if( $failed !== TRUE && $sockNum !== FALSE && $sockNum > 0 ) {
-							foreach ( $read as $key => $socket ) {
-								
-								switch ( $key ) {
-									
-									case 'client':
-										$client = socket_accept( $socket );
-										$cmd = self::ReadCommand( $client );
-										switch ( $cmd->command ) {
-											case 'COMM': self::HandleComm( $client, $cmd ); break;
-											case 'REVCOMM': self::HandleRevComm( $client ); break;
-											case 'FILE': self::HandleFile( $client, $cmd ); break;
-										}
-									break;
-									
-									case 'parent':
-									case 'event':
-										$cmd = self::ReadCommand( $socket );
-										switch ( $cmd->command ) {
-											case 'EVENT': self::HandleEvent( $cmd ); break;
-											case 'MESSAGE': self::HandleMessage( $cmd ); break;
-										}
-									break;
-									
-									case 'debug':
-										self::$ConnectedDebugger = socket_accept( $socket );
-									break;
-									
-									default:
-										list($type,$index) = explode( '-', $key );
-										$cmd = self::ReadCommand( $socket );
-										if( $type == 'service' ) {
-											switch ( $cmd->command ) {
-												case 'CALLBACK': self::HandleServiceCmdCallback( self::$ConnectedServices[(int)$index], $cmd ); break;
-											}
-										}
-									break;
-								}
-							}
-						}
-						
-						self::ProcessEventQueue();
-						self::CheckTimers();
-						self::FlushRevComm();
-					}
-					catch ( SFException $ex ) { throw $ex; }
-				}
-				else usleep( self::$Options['daemonCycleInterval'] );
-				
-				
-				// Handle shutdown
 				if( self::$Shutdown || time() - self::$LastContact > self::$Options['sessionTimeout'] ) {
 					self::StopApplicationServer();
 					return;
 				}
-				
-				// Send keepalive to parent
+			
 				if( time() - self::$LastKeepalive > self::$Options['keepaliveInterval'] ) {
 					self::WriteCommand( self::$ParentSocket, 'LIVE' );
 					self::$LastKeepalive = time();
 				}
-				
-				// Send keepalives to services
+			
 				foreach ( self::$ConnectedServices as $service ) {
 					if( time() - $service->lastKeepalive > self::$Options['keepaliveInterval'] ) {
 						self::WriteCommand( $service->socket, 'LIVE' );
 						$service->lastKeepalive = time();
 					}
+				}
+				
+				if( self::$Options['debug'] ) {
+					if( self::$ConnectedDebugger )
+						self::ListenToDebugger();
+					else
+						self::$ConnectedDebugger = self::PollForDebugger();
 				}
 				
 				// Update database every two seconds
@@ -218,10 +146,30 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 					$lastTime = time();
 				}
 				
-				// Listen to debugger
-				if( self::$Options['debug'] && self::$ConnectedDebugger )
-					self::ListenToDebugger();
-				
+				if(! self::$DebugPaused ) {
+					self::ListenToParent();
+					self::ListenToServices();
+					self::ProcessEventQueue();
+					self::CheckTimers();
+					self::FlushRevComm();
+			
+					if( $client = self::PollForClient() ) {
+						try {
+							$cmd = self::ReadCommand( $client );
+
+							switch ( $cmd->command ) {
+								case 'COMM': self::HandleComm( $client, $cmd ); break;
+								case 'REVCOMM': self::HandleRevComm( $client ); break;
+								case 'FILE': self::HandleFile( $client, $cmd ); break;
+							}
+						}
+						catch ( SFException $ex ) {
+							throw $ex;
+						}
+					}
+					//else usleep( self::$Options['daemonCycleInterval'] );
+				}
+				else usleep( self::$Options['daemonCycleInterval'] );
 				
 				if( $subloop && !self::$DebugPaused )
 					return;
@@ -235,6 +183,85 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 			self::StopApplicationServer();
 			return;
 		}
+	}
+	
+	static private function ListenToParent() {
+		while( 1 ) {
+			$read = array(self::$ParentSocket,self::$EventPipe);
+			$write = NULL;
+			$except = NULL;
+
+			if( socket_select($read, $write, $except, 0) < 1 )
+				return;
+			
+			if( count($read) ) {
+				foreach ( $read as $socket ) {
+					try {
+						$cmd = self::ReadCommand( $socket );
+				
+						switch ( $cmd->command ) {
+							case 'EVENT': self::HandleEvent( $cmd ); break;
+							case 'MESSAGE': self::HandleMessage( $cmd ); break;
+						}
+					}
+					catch ( SFException $ex ) {
+						if( self::$ConnectedDebugger )
+							throw $ex;
+					
+						self::Log('Uncaught Exception in application ('.self::$SessionID.'): ' . $ex->getFormattedReport());
+					}
+				}
+			}
+			else return;
+		}
+	}
+	
+	static private function ListenToServices() {
+		$read = array();
+		$write = NULL;
+		$except = NULL;
+		
+		foreach ( self::$ConnectedServices as $s ) {
+			$read[] = $s->socket;
+		}
+		
+		if( ! count($read) )
+			return;
+		
+		if( socket_select($read, $write, $except, 0) < 1 )
+			return;
+		
+		foreach ( $read as $socket ) {
+			$service = self::GetServiceBySocket( $socket );
+			
+			try {
+				$cmd = self::ReadCommand( $socket );
+				
+				switch ( $cmd->command ) {
+					case 'CALLBACK':	self::HandleServiceCmdCallback( $service, $cmd ); break;
+				}
+			}
+			catch ( SFException $ex ) {}
+		}
+	}
+	
+	static private function PollForClient() {
+		try {
+			$read = array( self::$Socket );
+			$write = NULL;
+			$except = NULL;
+			if( socket_select( $read, $write, $except, 0, self::$Options['daemonCycleInterval'] ) > 0 ) {
+				$client = socket_accept( self::$Socket );
+			}
+			else {
+				return NULL;
+			}
+		}
+		catch( SFException $ex ) {
+			//self::Log( 'PollForClient: ' . $ex->getMessage() );
+			return FALSE;
+		}
+		return $client;
 	}
 	
 	static private function ReconstructNodeReferences( &$data ) {
@@ -384,8 +411,15 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 		$service->handleCallback( $name, $args );
 	}
 	
+	static private function GetServiceBySocket( $socket ) {
+		foreach ( self::$ConnectedServices as $service ) {
+			if( isset($service->socket) && $socket == $service->socket )
+				return $service;
+		}
+	}
+	
 	static private function AuthorizeLogin( $cmd ) {
-	//	ob_start();
+		ob_start();
 		
 		$app = $cmd->app;
 		$args = (isset($cmd->args) && $cmd->args != '' ? explode(',',$cmd->args) : array());
@@ -418,7 +452,7 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 		
 		self::$Application = new $class ( $user, $ip, $ident, $app, $args );
 		
-	//	ob_end_clean();
+		ob_end_clean();
 		
 		$loginParam = array(
 			'success' => 1,
@@ -428,8 +462,6 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 			'app' => $app,
 			'args' => $cmd->args,
 			'user' => $user,
-			'server' => $cmd->server,
-			'secure' => ($cmd->secure == 1 ? TRUE : FALSE),
 			'includeJs' => implode( ",", self::$JSLibraries ),
 			'alwaysLowered' => self::$Application->alwaysLowered,
 			'alwaysRaised' => self::$Application->alwaysRaised,
