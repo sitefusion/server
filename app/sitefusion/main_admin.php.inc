@@ -69,15 +69,15 @@ class SitefusionAdmin extends Application
 					$menuTools = new XULMenu( 'Tools',
 						new XULMenuPopup(
 							$mToolsInfoSF = new XULMenuItem( "SiteFusion Info" ),
-							$mToolsErrorConsole = new XULMenuItem( "Fout Console" ),
-							$mToolsCheckUpdates = new XULMenuItem( "Controleer voor updates..." ),
+							$mToolsErrorConsole = new XULMenuItem( "Error Console" ),
+							$mToolsCheckUpdates = new XULMenuItem( "Check for updates..." ),
 							new XULMenuSeparator,
-							$mToolsAddons = new XULMenuItem( "Add-ons beheren" ),
+							$mToolsAddons = new XULMenuItem( "Manage Add-ons" ),
 							$mToolsAddonsSub = new XULMenu( "Add-ons",
 								$mPopupAddons = new XULMenuPopup()
 							),
 							new XULMenuSeparator,
-							$mToolsInfoMemory = new XULMenuItem( "Geheugen gebruik" )
+							$mToolsInfoMemory = new XULMenuItem( "Memory Usage" )
 						)
 					)
 				)
