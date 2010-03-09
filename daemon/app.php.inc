@@ -50,6 +50,8 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 	static private $NextCommOutput = NULL;
 	static private $ConnectedServices = array();
 	static private $DebugWindows = array();
+	static public $ServerHost;
+	static public $ServerSecure;
 	
 	static public function StartServer( $client, $parentSocket, $eventPipe, $loginCmd, $port, $clientid ) {
 		if( self::$ApplicationStarted || self::$ProcessType )
@@ -75,6 +77,8 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 		}
 		
 		self::$ApplicationPath = $param['app'];
+		self::$ServerHost = $param['server'];
+		self::$ServerSecure = $param['secure'];
 		
 		self::SetSignalHandlers();
 		
@@ -462,6 +466,8 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 			'app' => $app,
 			'args' => $cmd->args,
 			'user' => $user,
+			'server' => $cmd->server,
+			'secure' => ($cmd->secure == 1 ? TRUE : FALSE),
 			'includeJs' => implode( ",", self::$JSLibraries ),
 			'alwaysLowered' => self::$Application->alwaysLowered,
 			'alwaysRaised' => self::$Application->alwaysRaised,
