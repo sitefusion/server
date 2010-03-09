@@ -172,14 +172,17 @@ class ServiceProcess extends ExtendedSiteFusionProcess
 		$except = NULL;
 		
 		while( 1 ) {
-			if( socket_select($read, $write, $except, 0) < 1 )
-				return;
-			
+			try {
+				if( socket_select($read, $write, $except, 0) < 1 )
+					return;
+			}
+			catch ( SFException $ex ) { return; }
+		
 			if( count($read) ) {
 				foreach ( $read as $socket ) {
 					try {
 						$cmd = self::ReadCommand( $socket );
-				
+			
 						switch ( $cmd->command ) {
 							case 'EVENT': self::HandleEvent( $cmd ); break;
 						}
@@ -202,9 +205,11 @@ class ServiceProcess extends ExtendedSiteFusionProcess
 		
 		if( ! count($read) )
 			return;
-		
-		if( socket_select($read, $write, $except, 0) < 1 )
-			return;
+		try {
+			if( socket_select($read, $write, $except, 0) < 1 )
+				return;
+		}
+		catch ( SFException $ex ) { return; }
 		
 		foreach ( $read as $socket ) {
 			$client = self::GetClientBySocket( $socket );
