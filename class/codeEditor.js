@@ -169,17 +169,23 @@ SiteFusion.Classes.CodeEditor = Class.create( SiteFusion.Classes.Editor, {
 		this.textEditor.rootElement.style.whiteSpace = "nowrap";
 		this.textEditor.rootElement.style.margin = 5;
 		
-		var myKey = this.hostWindow.createElement( 'key' );
-		var myKeySet = this.hostWindow.createElement( 'keyset' );
-		myKey.setAttribute('key', "V");
-		myKey.setAttribute('modifiers', "accel");
-
-		myKey.sfNode = this;
-		
-		myKey.setAttribute("oncommand", "sfRootWindow.windowObject.SiteFusion.Registry[" + this.cid + "].textEditor.QueryInterface(Components.interfaces.nsIHTMLEditor).pasteNoFormatting(1)");
-
-		myKeySet.appendChild(myKey);
-		this.element.appendChild(myKeySet);
+		var oThis = this;
+		this.element.contentWindow.onfocus= function() {
+			var myKey = oThis.hostWindow.createElement( 'key' );
+			oThis.element.myKeySet = oThis.hostWindow.createElement( 'keyset' );
+			myKey.setAttribute('key', "V");
+			myKey.setAttribute('modifiers', "accel");
+	
+			myKey.sfNode = oThis;
+			
+			myKey.setAttribute("oncommand", "sfRootWindow.windowObject.SiteFusion.Registry[" + oThis.cid + "].textEditor.QueryInterface(Components.interfaces.nsIHTMLEditor).pasteNoFormatting(1)");
+	
+			oThis.element.myKeySet.appendChild(myKey);
+			oThis.element.appendChild(oThis.element.myKeySet);
+		}
+		this.element.contentWindow.onblur= function() {
+			oThis.element.removeChild(oThis.element.myKeySet);
+		}
 		
 	    //set language css
 	    this.applyLanguageCSS();
@@ -338,37 +344,5 @@ SiteFusion.Classes.CodeEditor = Class.create( SiteFusion.Classes.Editor, {
   
 	yield: function() {
 		this.fireEvent( 'yield', [ this.getSource() ] );
-	}
-});
-
-SiteFusion.Classes.DiavoloCodeEditor = Class.create( SiteFusion.Classes.Node, {
-	sfClassName: 'XULDiavoloCodeEditor',
-	
-		initialize: function( win ) {
-		this.element = win.createElement( 'sourceeditor' );
-		this.element.sfNode = this;
-		
-		this.hostWindow = win;
-		
-		this.setEventHost( [
-			'before_initialize',
-			'after_loaddata',
-			'initialized',
-			'madeEditable',
-			'yield'
-		] );
-	
-		this.eventHost.initialized.msgType = 0;
-		this.eventHost.madeEditable.msgType = 0;
-		this.eventHost.yield.msgType = 1;
-	},
-	
-	init: function() {
-		this.element.setAttribute( 'grammarURL', 'http://sfdev.donnie.lan.thefrontdoor.nl/inc/diavolo/css.xml' );
-		this.fireEvent( 'initialized' );
-	},
-	
-	initDiavolo : function() {
-		this.element.init();
 	}
 });
