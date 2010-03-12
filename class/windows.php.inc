@@ -73,6 +73,10 @@ class XULBasicWindow extends BranchNode
 		$this->callMethod( 'minimize' );
 	}
 	
+	public function fullScreen( $state = TRUE ) {
+		$this->callMethod( 'fullScreen', array((bool)$state) );
+	}
+	
 	public function addStyleSheetRule() {
 		$rules = func_get_args();
 		

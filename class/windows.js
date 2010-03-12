@@ -28,17 +28,22 @@
 SiteFusion.Classes.BasicWindow = Class.create( SiteFusion.Classes.Node, {
 	maximize: function() {
 		var oThis = this;
-		setTimeout( function() { oThis.windowObject.maximize(); }, 100 );
+		this.windowObject.setTimeout( function() { oThis.windowObject.maximize(); }, 100 );
 	},
 
 	minimize: function() {
 		var oThis = this;
-		setTimeout( function() { oThis.windowObject.minimize(); }, 100 );
+		this.windowObject.setTimeout( function() { oThis.windowObject.minimize(); }, 100 );
+	},
+	
+	fullScreen: function( state ) {
+		var oThis = this;
+		this.windowObject.setTimeout( function() { oThis.windowObject.fullScreen = state; }, 100 );
 	},
 	
 	center: function() {
 		var oThis = this;
-		setTimeout( function() {
+		this.windowObject.setTimeout( function() {
 			oThis.windowObject
 				.QueryInterface(Ci.nsIInterfaceRequestor)
 				.getInterface(Ci.nsIWebNavigation)
