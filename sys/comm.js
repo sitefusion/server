@@ -86,9 +86,7 @@ SiteFusion.Comm = {
 			clearTimeout( this.ProgressTimer );
 			this.ProgressTimer = null;
 		}
-		else {
-			SiteFusion.Interface.CursorIdle();
-		}
+		SiteFusion.Interface.CursorIdle();
 	},
 	
 	AddToRegistry: function( id, node ) {

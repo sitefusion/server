@@ -149,13 +149,15 @@ SiteFusion.Interface = {
 	},
 	
 	SetCursor: function( cursor ) {
-		setCursor( cursor );
-		
-		for( var n = 0; n < SiteFusion.Interface.ChildWindows.length; n++ ) {
-			try {
-				SiteFusion.Interface.ChildWindows[n].setCursor( cursor );
-			}
-			catch( ex ) {}
+		var wm = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator);
+		var enumerator = wm.getEnumerator(null);
+		while(enumerator.hasMoreElements()) {
+			var win = enumerator.getNext();
+			var func = function() {
+				try { win.setCursor(cursor); } catch ( e ) { win.cursorTimer = win.setTimeout(func,10); }
+			};
+			if( win.cursorTimer ) win.clearTimeout(win.cursorTimer);
+			win.cursorTimer = win.setTimeout( func, 1 );
 		}
 	},
 	

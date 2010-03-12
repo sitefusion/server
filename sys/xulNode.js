@@ -197,46 +197,55 @@ SiteFusion.Classes.Node = Class.create( {
 	},
 	
 	addChild: function( childSFNode ) {
-		if( childSFNode.parentNode )
-			return;
+		try {
+			if( childSFNode.parentNode )
+				return;
 		
-		if( this.isPainted ) {
-			this.deferredSFChildren.push( [ 'addChild', childSFNode ] );
+			if( this.isPainted ) {
+				this.deferredSFChildren.push( [ 'addChild', childSFNode ] );
+			}
+			else {
+				this.directAddChild( childSFNode );
+				this.sfChildren.push( childSFNode );
+			}
 		}
-		else {
-			this.directAddChild( childSFNode );
-			this.sfChildren.push( childSFNode );
-		}
+		catch (e) { SiteFusion.consoleMessage( 'Exception in addChild: '+e ); }
 	},
 
 	addChildBefore: function( childSFNode, beforeSFNode ) {
-		if( childSFNode.parentNode )
-			return;
-		
-		if( this.isPainted ) {
-			this.deferredSFChildren.push( [ 'addChildBefore', childSFNode, beforeSFNode ] );
+		try {
+			if( childSFNode.parentNode )
+				return;
+			
+			if( this.isPainted ) {
+				this.deferredSFChildren.push( [ 'addChildBefore', childSFNode, beforeSFNode ] );
+			}
+			else {
+				this.directAddChildBefore( childSFNode, beforeSFNode );
+	
+				for( var n = 0; n < this.sfChildren.length; n++ ) {
+					if( this.sfChildren[n] == beforeSFNode ) {
+						this.sfChildren.splice( n, 0, childSFNode );
+						break;
+					}
+				}
+			}
 		}
-		else {
-			this.directAddChildBefore( childSFNode, beforeSFNode );
-
+		catch (e) { SiteFusion.consoleMessage( 'Exception in addChildBefore: '+e ); }
+	},
+	
+	removeChild: function( childSFNode ) {
+		try {
+			this.element.removeChild( childSFNode.element );
+			
 			for( var n = 0; n < this.sfChildren.length; n++ ) {
-				if( this.sfChildren[n] == beforeSFNode ) {
-					this.sfChildren.splice( n, 0, childSFNode );
+				if( this.sfChildren[n] == childSFNode ) {
+					this.sfChildren.splice( n, 1 );
 					break;
 				}
 			}
 		}
-	},
-	
-	removeChild: function( childSFNode ) {
-		this.element.removeChild( childSFNode.element );
-		
-		for( var n = 0; n < this.sfChildren.length; n++ ) {
-			if( this.sfChildren[n] == childSFNode ) {
-				this.sfChildren.splice( n, 1 );
-				break;
-			}
-		}
+		catch (e) { SiteFusion.consoleMessage( 'Exception in removeChild: '+e ); }
 	},
 
 	removeChildRecursive: function( childSFNode ) {
@@ -247,14 +256,20 @@ SiteFusion.Classes.Node = Class.create( {
 	},
 
 	directAddChild: function( childSFNode ) {
-		this.element.appendChild( childSFNode.element );
+		try {
+			this.element.appendChild( childSFNode.element );
+		}
+		catch (e) { SiteFusion.consoleMessage( 'Exception in directAddChild: '+e ); }
 	},
 
 	directAddChildBefore: function( childSFNode, beforeSFNode ) {
-		if( ! beforeSFNode )
-			this.directAddChild( childSFNode );
-		else
-			this.element.insertBefore( childSFNode.element, beforeSFNode.element );
+		try {
+			if( ! beforeSFNode )
+				this.directAddChild( childSFNode );
+			else
+				this.element.insertBefore( childSFNode.element, beforeSFNode.element );
+		}
+		catch (e) { SiteFusion.consoleMessage( 'Exception in directAddChildBefore: '+e ); }
 	},
 
 	addChildSilent: function( childSFNode ) {
