@@ -1045,6 +1045,7 @@ class DaemonProcess extends SiteFusionProcess
 					$read = array(STDIN);
 					$write = NULL;
 					$except = NULL;
+					
 					if( stream_select( $read, $write, $except, 0, 10000 ) > 0 ) {
 						self::$Children[$pid]->error = fread( $read[0], 8192 );
 						self::$Children[$pid]->errorTimestamp = time();

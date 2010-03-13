@@ -68,7 +68,19 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 		
 		self::$Socket = self::OpenSocket( self::$Options['address'], $port );
 		
-		$param = self::AuthorizeLogin( $loginCmd );
+		try {
+			$param = self::AuthorizeLogin( $loginCmd );
+		}
+		catch ( SFException $ex ) {
+			$err = fopen( 'php://stderr', 'w' );
+			fwrite( $err, $ex->getFormattedReport() );
+			fflush( $err );
+			fclose( $err );
+			socket_close( $client );
+			self::StopApplicationServer();
+			exit(1);
+		}
+		
 		if( ! $param['success'] ) {
 			self::WriteCommand( $client, 'LOGIN', $param );
 			socket_close( $client );
