@@ -30,7 +30,7 @@ SiteFusion.Comm = {
 	MSG_SEND: 0,
 	MSG_QUEUE: 1,
 	
-	ShowProgressCursorDelay: 2000,
+	ShowProgressCursorDelay: 1000,
 	CommTransmission: null,
 	RevCommTransmission: null,
 	TransmissionQueue: [],
