@@ -50,8 +50,20 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 	static private $NextCommOutput = NULL;
 	static private $ConnectedServices = array();
 	static private $DebugWindows = array();
+	
 	static public $ServerHost;
 	static public $ServerSecure;
+	
+	static public $AppInfo;
+	static public $PlatformInfo;
+	static public $ExtensionInfo;
+	static public $CommandLineArgs;
+	static public $ClientVersion;
+	
+	static public $ExtensionPolicy = array(
+		'require' => array(),
+		'disable' => array()
+	);
 	
 	static public function StartServer( $client, $parentSocket, $eventPipe, $loginCmd, $port, $clientid ) {
 		if( self::$ApplicationStarted || self::$ProcessType )
@@ -81,8 +93,8 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 			exit(1);
 		}
 		
-		if( ! $param['success'] ) {
-			self::WriteCommand( $client, 'LOGIN', $param );
+		if( (! $param['success']) || count($param['extensionPolicy']) ) {
+			self::WriteCommand( $client, 'LOGIN', NULL, json_encode($param) );
 			socket_close( $client );
 			self::StopApplicationServer();
 			exit();
@@ -95,7 +107,7 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 		self::SetSignalHandlers();
 		
 		$param['sid'] = self::$SessionID = md5( time() . $port . mt_rand() );
-		self::WriteCommand( $client, 'LOGIN', $param );
+		self::WriteCommand( $client, 'LOGIN', NULL, json_encode($param) );
 		socket_close( $client );
 
 		self::WriteCommand( self::$ParentSocket, 'LOGIN', $param );
@@ -445,11 +457,39 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 	static private function AuthorizeLogin( $cmd ) {
 		ob_start();
 		
-		$app = $cmd->app;
-		$args = (isset($cmd->args) && $cmd->args != '' ? explode(',',$cmd->args) : array());
-		$error = NULL;
-		$user = $cmd->username;
-		$pass = $cmd->password;
+		if( isset($cmd->loginObject) ) {
+			$loginObject = json_decode($cmd->data);
+			$app = $loginObject->app;
+			$args = (isset($loginObject->args) && $loginObject->args != '' ? explode(',',$loginObject->args) : array());
+			$error = NULL;
+			$user = $loginObject->username;
+			$pass = $loginObject->password;
+			$server = $loginObject->server;
+			$secure = $loginObject->secure;
+			$ip = $loginObject->ip;
+			self::$AppInfo = (array) $loginObject->appInfo;
+			self::$PlatformInfo = (array) $loginObject->platformInfo;
+			self::$ExtensionInfo = (array) $loginObject->extensionInfo;
+			foreach ( self::$ExtensionInfo as $key => $val ) { self::$ExtensionInfo[$key] = (array) $val; }
+			self::$CommandLineArgs = (array) $loginObject->cmdlineArgs;
+			self::$ClientVersion = self::$AppInfo['version'];
+		}
+		else {
+			$app = $cmd->app;
+			$args = (isset($cmd->args) && $cmd->args != '' ? explode(',',$cmd->args) : array());
+			$error = NULL;
+			$user = $cmd->username;
+			$pass = $cmd->password;
+			$server = NULL;
+			$secure = NULL;
+			$ip = $cmd->ip;
+			self::$AppInfo = NULL;
+			self::$PlatformInfo = NULL;
+			self::$ExtensionInfo = NULL;
+			self::$CommandLineArgs = NULL;
+			self::$ClientVersion = '1.2.0';
+		}
+		
 		$granted = FALSE;
 		
 		self::$IncludePath = self::$Options['sitefusionPath'] . '/';
@@ -469,7 +509,6 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 		if( ! $granted )
 			return array( 'success' => 0, 'error' => 'invalid_login' );
 
-		$ip = $cmd->ip;
 		$ident = md5( $ip . $user . md5($pass) );
 
 		$class = getApplication( $args );
@@ -478,21 +517,44 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 		
 		ob_end_clean();
 		
+		
+		$extensionPolicy = array();
+		
+		if( version_compare( self::$ClientVersion, '1.2.1' ) >= 0 ) {
+			foreach ( self::$ExtensionPolicy['require'] as $requireExtension ) {
+				if( (!isset(self::$ExtensionInfo[$requireExtension['id']]))
+				 	or ($requireExtension['minVersion'] !== NULL && version_compare(self::$ExtensionInfo[$requireExtension['id']]['version'],$requireExtension['minVersion']) == -1)
+					or ($requireExtension['maxVersion'] !== NULL && version_compare(self::$ExtensionInfo[$requireExtension['id']]['version'],$requireExtension['maxVersion']) == 1) )
+				{
+					$extensionPolicy[] = array( $requireExtension['id'], 'get' );
+				}
+				elseif( !self::$ExtensionInfo[$requireExtension['id']]['enabled'] ) {
+					$extensionPolicy[] = array( $requireExtension['id'], 'enable' );
+				}
+			}
+
+			foreach ( self::$ExtensionPolicy['disable'] as $disableExtension ) {
+				if( isset(self::$ExtensionInfo[$disableExtension['id']]) && self::$ExtensionInfo[$disableExtension['id']]['enabled'] )
+					$extensionPolicy[] = array( $disableExtension['id'], 'disable' );
+			}
+		}
+		
 		$loginParam = array(
 			'success' => 1,
 			'ip' => $ip,
 			'type' => 'app',
 			'ident' => $ident,
 			'app' => $app,
-			'args' => $cmd->args,
+			'args' => join(',',$args),
 			'user' => $user,
-			'server' => $cmd->server,
-			'secure' => ($cmd->secure == 1 ? TRUE : FALSE),
+			'server' => $server,
+			'secure' => ($secure == 1 ? TRUE : FALSE),
 			'includeJs' => implode( ",", self::$JSLibraries ),
 			'alwaysLowered' => self::$Application->alwaysLowered,
 			'alwaysRaised' => self::$Application->alwaysRaised,
 			'centerscreen' => self::$Application->centerscreen,
-			'resizable' => self::$Application->resizable
+			'resizable' => self::$Application->resizable,
+			'extensionPolicy' => $extensionPolicy
 		);
 		
 		if( is_int(self::$Application->width) && is_int(self::$Application->height) ) {

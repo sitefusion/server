@@ -34,17 +34,51 @@ SiteFusion.CommandLineArguments = {};
 SiteFusion.Initialize = function() {
 	SiteFusion.RootWindow = new SiteFusion.Classes.Window( window );
 	
-	SiteFusion.RootWindow.createEvent( 'clientInit', SiteFusion.Comm.MSG_QUEUE );
-	SiteFusion.RootWindow.createEvent( 'clientComponentsInit', SiteFusion.Comm.MSG_QUEUE );
-	
-	SiteFusion.InitializeClient();
-	SiteFusion.InitializeClientComponents();
+	if( !SiteFusion.Version ) {
+		SiteFusion.Version = '1.2.0';
+		
+		SiteFusion.RootWindow.createEvent( 'clientInit', SiteFusion.Comm.MSG_QUEUE );
+		SiteFusion.RootWindow.createEvent( 'clientComponentsInit', SiteFusion.Comm.MSG_QUEUE );
+		SiteFusion.InitializeClient();
+		SiteFusion.InitializeClientComponents();
+	}
 	
 	SiteFusion.RootWindow.fireEvent( 'initialized' );
 };
 
 
 SiteFusion.InitializeClient = function() {
+	var em = Components.classes["@mozilla.org/extensions/manager;1"].createInstance(Components.interfaces.nsIExtensionManager);
+	var count = {};
+	var list = em.getItemList( Components.interfaces.nsIUpdateItem.TYPE_ANY, count );
+	
+	// Is there no decent way to find out whether a certain extension is enabled?? This is kind of dirty
+	var enabledCount = {};
+	var enabledList = {};
+	var checkList = em.getIncompatibleItemList( '0.0', '0.0', Ci.nsIUpdateItem.TYPE_ANY, false, enabledCount );
+	for( var n = 0; n < checkList.length; n++ ) {
+		enabledList[checkList[n].id] = true;
+	}
+	
+	var extensionInfo = {};
+	for( var n = 0; n < list.length; n++ ) {
+		extensionInfo[list[n].id] = {
+			version: list[n].version,
+			minAppVersion: list[n].minAppVersion,
+			maxAppVersion: list[n].maxAppVersion,
+			installLocationKey: list[n].installLocationKey,
+			name: list[n].name,
+			xpiURL: list[n].xpiURL,
+			xpiHash: list[n].xpiHash,
+			iconURL: list[n].iconURL,
+			updateRDF: list[n].updateRDF,
+			updateKey: list[n].updateKey,
+			type: list[n].type,
+			targetAppID: list[n].targetAppID,
+			enabled: (enabledList[list[n].id] ? true:false)
+		}
+	}
+	
 	var platformInfo = {
 		appCodeName: navigator.appCodeName,
 		appName: navigator.appName,
@@ -55,6 +89,17 @@ SiteFusion.InitializeClient = function() {
 		platform: navigator.platform,
 		vendor: navigator.vendor,
 		vendorSub: navigator.vendorSub
+	};
+	
+	var appInfoObj = Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULAppInfo);
+	var appInfo = {
+		vendor: appInfoObj.vendor,
+		name: appInfoObj.name,
+		ID: appInfoObj.ID,
+		version: appInfoObj.version,
+		appBuildID: appInfoObj.appBuildID,
+		platformVersion: appInfoObj.platformVersion,
+		platformBuildID: appInfoObj.platformBuildID
 	};
 	
 	var cmdlineArgs = {};
@@ -70,7 +115,7 @@ SiteFusion.InitializeClient = function() {
 	
 	SiteFusion.CommandLineArguments = cmdlineArgs;
 	
-	SiteFusion.RootWindow.fireEvent( 'clientInit', [ cmdlineArgs, platformInfo ] );
+	SiteFusion.RootWindow.fireEvent( 'clientInit', [ extensionInfo, platformInfo, appInfo, cmdlineArgs ] );
 };
 
 

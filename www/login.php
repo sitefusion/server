@@ -34,8 +34,41 @@
 include( '../conf/webfrontend.conf' );
 include( 'functions.php' );
 
-if( ! (isset($_GET['app']) && isset($_GET['args']) && isset($_GET['clientid']) && isset($_POST['username']) && isset($_POST['password'])) )
+if( ! (isset($_GET['app']) && isset($_GET['args']) && isset($_GET['clientid'])) )
 	ReturnError( 'input_error' );
+
+if( strpos($_SERVER['CONTENT_TYPE'],'sitefusion/login') !== FALSE ) {
+	// New generation client (>= 1.2.1) login object
+	try {
+		$input = fopen( 'php://input', 'r' );
+		$content = '';
+		while( strlen($content) < $_SERVER['CONTENT_LENGTH'] ) {
+			$content .= fread( $input, 8192 );
+		}
+		fclose( $input );
+	
+		$loginObj = (array) json_decode( $content );
+	
+		if( ! (isset($loginObj['username']) && isset($loginObj['password'])) )
+			throw new Exception( 'No username or password given' );
+		
+		$username = $loginObj['username'];
+		$password = $loginObj['password'];
+		$clientVersion = $loginObj['appInfo']->version;
+	}
+	catch ( Exception $ex ) {
+		ReturnError( 'input_error', $ex->getMessage() );
+	}
+}
+else {
+	// For backward compatibility with 1.2.0 clients
+	if( ! (isset($_POST['username']) && isset($_POST['password'])) )
+		ReturnError( 'input_error', 'No username or password given' );
+	
+	$username = $_POST['username'];
+	$password = $_POST['password'];
+	$clientVersion = '1.2.0';
+}
 
 try {
 	$socket = @socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
@@ -47,32 +80,42 @@ try {
 	    throw new Exception( "socket_connect() failed.\nReason: ($result) " . socket_strerror(socket_last_error($socket)) );
 }
 catch ( Exception $ex ) {
-	ReturnError( 'server_offline' );
+	ReturnError( 'server_offline', $ex->getMessage() );
 }
 
-try {	
-	WriteCommand( $socket, 'STARTAPP', array( 'clientid' => $_GET['clientid'] ) );
-	WriteCommand( $socket, 'LOGIN',
-		array(
-			'app' => $_GET['app'],
-			'args' => $_GET['args'],
-			'username' => $_POST['username'],
-			'password' => $_POST['password'],
-			'ip' => $_SERVER['REMOTE_ADDR'],
-			'server' => ((isset($_SERVER['HTTP_HOST']) && $_SERVER['HTTP_HOST'] != '') ? $_SERVER['HTTP_HOST'] : $_SERVER['SERVER_NAME']),
-			'secure' => ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != '') ? 1 : 0)
-		)
+try {
+	$loginParam = array(
+		'app' => $_GET['app'],
+		'args' => $_GET['args'],
+		'username' => $username,
+		'password' => $password,
+		'ip' => $_SERVER['REMOTE_ADDR'],
+		'server' => ((isset($_SERVER['HTTP_HOST']) && $_SERVER['HTTP_HOST'] != '') ? $_SERVER['HTTP_HOST'] : $_SERVER['SERVER_NAME']),
+		'secure' => ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != '') ? 1 : 0),
+		'clientVersion' => $clientVersion
 	);
 
+	WriteCommand( $socket, 'STARTAPP', array( 'clientid' => $_GET['clientid'] ) );
+	
+	if( $clientVersion == '1.2.0' )
+		WriteCommand( $socket, 'LOGIN', $loginParam );
+	else {
+		$loginParam['extensionInfo'] = (array) $loginObj['extensionInfo'];
+		$loginParam['appInfo'] = (array) $loginObj['appInfo'];
+		$loginParam['platformInfo'] = (array) $loginObj['platformInfo'];
+		$loginParam['cmdlineArgs'] = (array) $loginObj['cmdlineArgs'];
+		WriteCommand( $socket, 'LOGIN', array('loginObject' => '1'), json_encode($loginParam) );
+	}
+	
 	$cmd = ReadCommand( $socket );
-	$cmd->success = ($cmd->success ? TRUE:FALSE);
+	$loginResponse = (array) json_decode($cmd->data);
 	
 	socket_close($socket);
 	
-	if( $cmd->success )
-		ReturnResult( json_encode($cmd) );
+	if( $loginResponse['success'] )
+		ReturnResult( $cmd->data );
 	else
-		ReturnError( $cmd->error );
+		ReturnError( $loginResponse['error'] );
 }
 catch ( Exception $ex ) {
 	// Give the daemon some time to collect error output

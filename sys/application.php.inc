@@ -40,8 +40,12 @@
  * and 'controls.js', just enter 'controls'. The type parameter defines the directory
  * to look in relative to the SiteFusion installation directory. This defaults to 'class'.
  * 
- * All built-in classes are loaded by default. To load a custom class from an application
- * directory, for example 'mycontrols' in application 'myapp', use 
+ * All built-in classes are loaded by default. To disable this, define a constant named
+ * SF_AUTOLOAD_CLASSES to FALSE:
+ * define( 'SF_AUTOLOAD_CLASSES', FALSE );
+ *
+ * To load a custom class from an application directory, for example 'mycontrols' in
+ * application 'myapp', use:
  * LoadClass('mycontrols','app/myapp')
  *
  * @param string	$class	The name of the class without extension
@@ -63,6 +67,13 @@ function LoadClass( $class, $type = 'class' ) {
 		array_push( ApplicationProcess::$JSLibraries, $basename );
 }
 
+function RequireExtension( $id, $minVersion = NULL, $maxVersion = NULL ) {
+	ApplicationProcess::$ExtensionPolicy['require'][] = array( 'id' => $id, 'minVersion' => $minVersion, 'maxVersion' => $maxVersion );
+}
+
+function DisableExtension( $id, $minVersion = NULL, $maxVersion = NULL ) {
+	ApplicationProcess::$ExtensionPolicy['disable'][] = array( 'id' => $id, 'minVersion' => $minVersion, 'maxVersion' => $maxVersion );
+}
 
 
 // System classes
@@ -187,13 +198,17 @@ class Application
 	 * and sets the Application::$client array.
 	 * 
 	 * @param Event			$event			Event object
-	 * @param object		$cmdlineArgs	Commandline arguments
+	 * @param object		$extensionInfo	Extension information
 	 * @param object		$platformInfo	Platform info
+	 * @param object		$appInfo		Application info
+	 * @param object		$cmdlineArgs	Commandline arguments
 	*/
 	
-	public function onClientInit( $event, $cmdlineArgs, $platformInfo ) {
-		$this->client = (array) $platformInfo;
-		$this->cmdlineArgs = (array) $cmdlineArgs;
+	public function onClientInit( $event, $extensionInfo, $platformInfo, $appInfo, $cmdlineArgs ) {
+		ApplicationProcess::$PlatformInfo = $this->client = (array) $platformInfo;
+		ApplicationProcess::$AppInfo = $this->appInfo = (array) $appInfo;
+		ApplicationProcess::$CommandLineArgs = $this->cmdlineArgs = (array) $cmdlineArgs;
+		ApplicationProcess::$ExtensionInfo = (array) $extensionInfo;
 	}
 	
 	
