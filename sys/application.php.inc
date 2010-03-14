@@ -67,9 +67,40 @@ function LoadClass( $class, $type = 'class' ) {
 		array_push( ApplicationProcess::$JSLibraries, $basename );
 }
 
-function RequireExtension( $id, $minVersion = NULL, $maxVersion = NULL ) {
-	ApplicationProcess::$ExtensionPolicy['require'][] = array( 'id' => $id, 'minVersion' => $minVersion, 'maxVersion' => $maxVersion );
+
+/**
+ * Require an extension to be activated in the client
+ * 
+ * This function adds a rule to the Extension Policy and must be called before the application starts,
+ * so either in the global scope or in the authorizeLogin or getApplication functions.
+ *
+ * @param string	$id			ID of the extension as specified in the install.rdf (usually name@vendor.tld)
+ * @param string	$minVersion	Minimal version of the extension to accept
+ * @param string	$maxVersion	Maximum version of the extension to accept
+ * @param string 	$fileName	Optional filename in the extensions directory in the SiteFusion server directory. The default is (id).xpi
+*/
+
+function RequireExtension( $id, $minVersion = NULL, $maxVersion = NULL, $fileName = NULL ) {
+	if( $fileName === NULL )
+		$fileName = $id.'.xpi';
+	
+	if( ! file_exists('extensions/'.$fileName) )
+		throw new SFException( "Can't require extension ".$fileName.": no such file" );
+	
+	ApplicationProcess::$ExtensionPolicy['require'][] = array( 'id' => $id, 'minVersion' => $minVersion, 'maxVersion' => $maxVersion, 'fileName' => $fileName );
 }
+
+
+/**
+ * Have an extension disabled in the client
+ * 
+ * This function adds a rule to the Extension Policy and must be called before the application starts,
+ * so either in the global scope or in the authorizeLogin or getApplication functions.
+ *
+ * @param string	$id			ID of the extension as specified in the install.rdf (usually name@vendor.tld)
+ * @param string	$minVersion	Minimal version of the extension to disable
+ * @param string	$maxVersion	Maximum version of the extension to disable
+*/
 
 function DisableExtension( $id, $minVersion = NULL, $maxVersion = NULL ) {
 	ApplicationProcess::$ExtensionPolicy['disable'][] = array( 'id' => $id, 'minVersion' => $minVersion, 'maxVersion' => $maxVersion );

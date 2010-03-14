@@ -526,7 +526,7 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 				 	or ($requireExtension['minVersion'] !== NULL && version_compare(self::$ExtensionInfo[$requireExtension['id']]['version'],$requireExtension['minVersion']) == -1)
 					or ($requireExtension['maxVersion'] !== NULL && version_compare(self::$ExtensionInfo[$requireExtension['id']]['version'],$requireExtension['maxVersion']) == 1) )
 				{
-					$extensionPolicy[] = array( $requireExtension['id'], 'get' );
+					$extensionPolicy[] = array( $requireExtension['id'], 'get', $requireExtension['fileName'] );
 				}
 				elseif( !self::$ExtensionInfo[$requireExtension['id']]['enabled'] ) {
 					$extensionPolicy[] = array( $requireExtension['id'], 'enable' );
