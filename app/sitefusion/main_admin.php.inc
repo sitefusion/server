@@ -209,7 +209,7 @@ class SitefusionAdmin extends Application
 		
 		
 		//check for the DOMInspector Component
-		if (isset($this->clientComponents['DOMInspector']) && $this->clientComponents['DOMInspector'] == true)
+		if (isset(ApplicationProcess::$ExtensionInfo['inspector@mozilla.org']) && ApplicationProcess::$ExtensionInfo['inspector@mozilla.org']['version'] == true)
 		{
 			$mPopupAddons->addChild(
 				$mAddonsDI = new XULMenuItem( "DOM Inspector" )
