@@ -189,6 +189,7 @@ class SitefusionAdmin extends Application
 			
 			new XULPopupSet(
 				$treePopup = new XULPopup(
+					$menuInfo = new XULMenuItem( 'Info' ),
 					$menuDebug = new XULMenuItem( 'Debug' ),
 					$menuTerm = new XULMenuItem( 'Shutdown Process' ),
 					$menuKill = new XULMenuItem( 'Kill Process' ),
@@ -201,7 +202,6 @@ class SitefusionAdmin extends Application
 			$this->ps = new PromptService
 		);
 		
-		
 		$infocol->width( 200 );
 		
 		$this->lblShutdown->setStyle( 'color', 'red' );
@@ -209,7 +209,7 @@ class SitefusionAdmin extends Application
 		
 		
 		//check for the DOMInspector Component
-		if (isset(ApplicationProcess::$ExtensionInfo['inspector@mozilla.org']) && ApplicationProcess::$ExtensionInfo['inspector@mozilla.org']['version'] == true)
+		if (isset(ApplicationProcess::$ExtensionInfo['inspector@mozilla.org']) && ApplicationProcess::$ExtensionInfo['inspector@mozilla.org']['enabled'] == true)
 		{
 			$mPopupAddons->addChild(
 				$mAddonsDI = new XULMenuItem( "DOM Inspector" )
@@ -218,7 +218,7 @@ class SitefusionAdmin extends Application
 		}
 		
 		//check for the Venkman Component
-		if (isset($this->clientComponents['Venkman']) && $this->clientComponents['Venkman'] == true)
+		if (isset(ApplicationProcess::$ExtensionInfo['{f13b157f-b174-47e7-a34d-4815ddfdfeb8}']) && ApplicationProcess::$ExtensionInfo['{f13b157f-b174-47e7-a34d-4815ddfdfeb8}']['enabled'] == true)
 		{
 			$mPopupAddons->addChild(
 				$mAddonsVenkman = new XULMenuItem( "Venkman" )
@@ -256,9 +256,10 @@ class SitefusionAdmin extends Application
 		$mToolsAddons->setEvent( 'command', MSG_SEND, $this, 'openExtensions' );
 		$mToolsCheckUpdates->setEvent( 'command', MSG_SEND, $this, 'checkForUpdates' );
 		$mToolsErrorConsole->setEvent( 'command', MSG_SEND, $this, 'openErrorConsole' );
-		
+		$this->tree->setEvent( 'dblclick', MSG_SEND, $this, 'openInfoWindow', $this->tree );
 		
 		$this->tree->context( $treePopup );
+		$menuInfo->setEvent( 'command', MSG_SEND, $this, 'openInfoWindow', $this->tree );
 		$menuDebug->setEvent( 'command', MSG_SEND, $this, 'startDebugger', $this->tree );
 		$menuKill->setEvent( 'command', MSG_SEND, $this, 'killProcess', $this->tree );
 		$menuTerm->setEvent( 'command', MSG_SEND, $this, 'termProcess', $this->tree );
@@ -287,6 +288,23 @@ class SitefusionAdmin extends Application
 		$this->window->focus();
 		
 		$this->setInterval( 1000, $this, 'updateProcessInterface' );
+	}
+	
+	public function openInfoWindow ($e ) {
+		if( count($this->tree->selectedRows) ) {
+			$sessionId = $this->tree->selectedRows[0]->sid;
+			if ($sessionId) {
+				$appInfo = ApplicationProcess::GetApplicationInfo($sessionId);
+				if ($appInfo == NULL)
+				{
+					$this->ps->alert("Method not supported", "Selected process does not contain any Application Info.");
+					return;
+				}
+				$this->window->addChild(
+					new SiteFusionAdminAppInfoWindow($appInfo)
+				);
+			}
+		}
 	}
 	
 	public function startDebugger( $e ) {
@@ -450,7 +468,138 @@ class SiteFusionProcessTreeItem extends XULTreeItem
 	}
 }
 
+class SiteFusionAdminAppInfoWindow extends XULChildWindow
+{
+	public $title = 'Application Info';
+	public $resizable = TRUE;
 
+	public function __construct( $appInfo = NULL ) {
+		$this->appInfo = $appInfo;
+	}
+	
+	public function init() {
+		$this->size(800, 600);
+		$this->addChild(
+			new XULGrid(1,
+				new XULColumns(
+					new XULColumn(1),
+					new XULColumn(1)
+				),
+				new XULRows(
+					new XULRow(1,
+						new XULVBox(1,
+							new XULLabel("Application Info"),
+							$this->listboxAppInfo = new XULListBox(1,
+								new XULListHead(
+									new XULListHeader("Key"),
+									new XULListHeader("Value")
+								),
+								new XULListCols(
+									new XULListCol(1),
+									new XULListCol(1)
+								)
+							)
+						),
+						new XULVBox(1,
+							new XULLabel("Extension Info"),
+							$this->treeExtensionInfo = new XULTree(1,
+								new XULTreeCols(
+									new XULTreeCol("Key", 1, TRUE),
+									new XULTreeCol("Value", 1)
+								),
+								new XULTreeChildren()
+							)
+						)
+					),
+					new XULRow(1,
+						new XULVBox(1,
+							new XULLabel("Platform Info"),
+							$this->listboxPlatformInfo = new XULListBox(1,
+								new XULListHead(
+									new XULListHeader("Key"),
+									new XULListHeader("Value")
+								),
+								new XULListCols(
+									new XULListCol(1),
+									new XULListCol(1)
+								)
+							)
+						),
+						new XULVBox(1,
+							new XULLabel("Command Line Arguments"),
+							$this->listboxCommandlineArgsInfo = new XULListBox(1,
+								new XULListHead(
+									new XULListHeader("Key"),
+									new XULListHeader("Value")
+								),
+								new XULListCols(
+									new XULListCol(1),
+									new XULListCol(1)
+								)
+							)
+						)
+					)
+				)
+			)
+		);
+		
+		foreach( $this->appInfo['AppInfo'] as $key => $value) {
+			
+			$this->listboxAppInfo->addChild(
+				new XULListItem(
+					new XULListCell(strval($key)),
+					new XULListCell(strval($value))
+				)
+			);
+		}
+		
+		foreach( $this->appInfo['ExtensionInfo'] as $key => $value) {
+			
+			$this->treeExtensionInfo->children[1]->addChild(
+				new XULTreeItem(TRUE,
+					new XULTreeRow(
+						new XULTreeCell(strval($key))
+					),
+					$treeChildren = new XULTreeChildren()
+				)
+			);
+					
+			if (is_array($value)) {
+				foreach ($value as $subvaluekey => $subvalue) {
+					$treeChildren->addChild (
+						new XULTreeItem(
+							new XULTreeRow(
+								new XULTreeCell(strval($subvaluekey)),
+								new XULTreeCell(strval($subvalue))
+							)
+						)
+					);
+				}
+			}
+		}
+		
+		foreach( $this->appInfo['PlatformInfo'] as $key => $value) {
+			
+			$this->listboxPlatformInfo->addChild(
+				new XULListItem(
+					new XULListCell(strval($key)),
+					new XULListCell(strval($value))
+				)
+			);
+		}
+		
+		foreach( $this->appInfo['CommandLineArgs'] as $key => $value) {
+			
+			$this->listboxCommandlineArgsInfo->addChild(
+				new XULListItem(
+					new XULListCell(strval($key)),
+					new XULListCell(strval($value))
+				)
+			);
+		}
+	}
+	
+}
 class SiteFusionAdminMessageDialog extends XULDialog
 {
 	public $title = 'Send Message';
