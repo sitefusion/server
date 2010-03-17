@@ -109,8 +109,15 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 		$param['sid'] = self::$SessionID = md5( time() . $port . mt_rand() );
 		self::WriteCommand( $client, 'LOGIN', NULL, json_encode($param) );
 		socket_close( $client );
-
-		self::WriteCommand( self::$ParentSocket, 'LOGIN', $param );
+		
+		$extendedInfo = array();
+		$extendedInfo['AppInfo'] = (isset(self::$AppInfo) ? self::$AppInfo : NULL);
+		$extendedInfo['PlatformInfo'] = (isset(self::$PlatformInfo) ? self::$PlatformInfo : NULL);
+		$extendedInfo['ExtensionInfo'] = (isset(self::$ExtensionInfo) ? self::$ExtensionInfo : NULL);
+		$extendedInfo['CommandLineArgs'] = (isset(self::$CommandLineArgs) ? self::$CommandLineArgs : NULL);
+		$extendedInfo['ClientVersion'] = self::$ClientVersion;
+		
+		self::WriteCommand( self::$ParentSocket, 'LOGIN', $param, serialize($extendedInfo) );
 		
 		self::$Port = $port;
 		self::$Started = time();

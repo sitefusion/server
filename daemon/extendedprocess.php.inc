@@ -132,6 +132,12 @@ class ExtendedSiteFusionProcess extends SiteFusionProcess
 		);
 	}
 	
+	static public function GetApplicationInfo( $sessionId ) {
+		self::WriteCommand( self::$ParentSocket, 'ADMIN', array( 'action' => 'getappinfo', 'sid' => $sessionId ) );
+		$cmd = self::ReadCommand( self::$ParentSocket );
+		return unserialize( $cmd->data );
+	}
+	
 	static public function SendSessionSignal( $pid, $sig ) {
 		self::WriteCommand( self::$ParentSocket, 'ADMIN', array( 'action' => ($sig == SIGKILL ? 'kill':'term'), 'pid' => $pid ) );
 	}

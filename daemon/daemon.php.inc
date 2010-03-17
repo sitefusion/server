@@ -419,6 +419,8 @@ class DaemonProcess extends SiteFusionProcess
 		$child->app = $param->app;
 		$child->args = $param->args;
 		$child->ip = $param->ip;
+		if( $child->type == 'app' )
+			$child->extendedInfo = unserialize($param->data);
 		
 		$res = self::DatabaseQuery( "INSERT INTO `sitefusion`.`processes` (
 		`id` ,
@@ -566,10 +568,19 @@ class DaemonProcess extends SiteFusionProcess
 				self::WriteCommand( $child->socket, 'STATUS', array( 'shutdown' => (int)self::$Shutdown, 'graceful' => (int)self::$Graceful, 'restart' => (int)self::$Restart, 'memory' => memory_get_usage(), 'memory_peak' => memory_get_peak_usage() ) );
 				break;
 			
+			case 'getappinfo':
+				$extendedInfo = NULL;
+				foreach ( self::$Children as $rChild ) {
+					if( $rChild->type == 'app' && $rChild->loggedIn && $cmd->sid == $rChild->sessionId )
+						$extendedInfo = $rChild->extendedInfo;
+				}
+				self::WriteCommand( $child->socket, 'APPINFO', NULL, serialize($extendedInfo) );
+				break;
+			
 			case 'message':
-				foreach ( self::$Children as $child ) {
-					if( $child->type == 'app' && $child->loggedIn && ($cmd->to == 'all' || $cmd->to == $child->sessionId) )
-						self::WriteCommand( $child->socket, 'MESSAGE', NULL, $cmd->data );
+				foreach ( self::$Children as $rChild ) {
+					if( $rChild->type == 'app' && $rChild->loggedIn && ($cmd->to == 'all' || $cmd->to == $rChild->sessionId) )
+						self::WriteCommand( $rChild->socket, 'MESSAGE', NULL, $cmd->data );
 				}
 				break;
 		}
