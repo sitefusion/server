@@ -430,6 +430,28 @@ class XULPrefPane extends BranchNode
 
 class PromptService extends Node
 {
+	const BUTTON_POS_0 = 1;
+    const BUTTON_POS_1 = 256;
+    const BUTTON_POS_2 = 65536;
+
+
+	const BUTTON_TITLE_OK = 1;
+    const BUTTON_TITLE_CANCEL = 2;
+    const BUTTON_TITLE_YES = 3;
+    const BUTTON_TITLE_NO = 4;
+    const BUTTON_TITLE_SAVE = 5;
+    const BUTTON_TITLE_DONT_SAVE = 6;
+    const BUTTON_TITLE_REVERT = 7;
+    const BUTTON_TITLE_IS_STRING = 127;
+
+    const BUTTON_POS_0_DEFAULT = 0;
+    const BUTTON_POS_1_DEFAULT = 16777216;
+    const BUTTON_POS_2_DEFAULT = 33554432;
+	
+	const BUTTON_DELAY_ENABLE = 67108864;
+	const STD_OK_CANCEL_BUTTONS = 513;
+	const STD_YES_NO_BUTTONS = 1027;
+	
 	public $remoteConstructor = 'PromptService';
 	
 	public $promptInProgress = FALSE;

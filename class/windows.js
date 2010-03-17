@@ -437,7 +437,7 @@ SiteFusion.Classes.PromptService = Class.create( SiteFusion.Classes.Node, {
 	
 	confirmEx: function( title, text, buttonFlags, button0Title, button1Title, button2Title, checkMsg, checkState ) {
 		checkState = { value: checkState };
-		var result = this.promptService.confirmCheck( this.hostWindow.windowObject, title+'', text+'', buttonFlags, button0Title, button1Title, button2Title, checkMsg, checkState );
+		var result = this.promptService.confirmEx( this.hostWindow.windowObject, title+'', text+'', buttonFlags, button0Title, button1Title, button2Title, checkMsg, checkState );
 		this.fireEvent( 'yield', [ result, checkState.value, null, null, null ] );
 	},
 	
