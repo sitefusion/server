@@ -96,7 +96,7 @@ class XULDropmarker extends Node
 class XULSound extends Node
 {
 	public $remoteConstructor = 'Sound';
-	private $path;
+	public $path;
 	
 	private $transferStarted = FALSE;
 	private $transferSize = NULL;

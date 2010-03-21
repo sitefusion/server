@@ -694,7 +694,6 @@ SiteFusion.Classes.Editor = Class.create( SiteFusion.Classes.Node, {
 		    	var processedHtml = selectedHtml;
 	    	
 			unicodestring.data = processedHtml;
-			alert(processedHtml);
 			xferablehtml.setTransferData("text/html", unicodestring, processedHtml.length * 2);
 
 			clipboard.setData(xferablehtml, null, Components.interfaces.nsIClipboard.kGlobalClipboard);

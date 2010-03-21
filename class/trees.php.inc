@@ -83,7 +83,7 @@ class XULTree extends BranchNode
 	}
 
 	public function seltype( $type = NULL ) {
-		return $this->attributeMethod( 'seltype', ($type === NULL ? NULL : ($type == 'single' ? 'single':'multiple')) );
+		return $this->attributeMethod( 'seltype', $type );
 	}
 
 	public function enableColumnDrag( $state = NULL ) {
