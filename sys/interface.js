@@ -114,7 +114,6 @@ SiteFusion.InitializeClient = function() {
 	}
 	
 	SiteFusion.CommandLineArguments = cmdlineArgs;
-	
 	SiteFusion.RootWindow.fireEvent( 'clientInit', [ extensionInfo, platformInfo, appInfo, cmdlineArgs ] );
 };
 

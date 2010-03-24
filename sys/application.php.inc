@@ -238,6 +238,7 @@ class Application
 		ApplicationProcess::$AppInfo = $this->appInfo = (array) $appInfo;
 		ApplicationProcess::$CommandLineArgs = $this->cmdlineArgs = (array) $cmdlineArgs;
 		ApplicationProcess::$ExtensionInfo = (array) $extensionInfo;
+		foreach ( array_keys(ApplicationProcess::$ExtensionInfo) as $id ) { $arr = (array) ApplicationProcess::$ExtensionInfo[$id]; ApplicationProcess::$ExtensionInfo[$id] = $arr; }
 	}
 	
 	
