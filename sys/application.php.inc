@@ -116,8 +116,6 @@ LoadClass( 'registry', 'sys' );
 LoadClass( 'comm', 'sys' );
 LoadClass( 'console', 'sys' );
 LoadClass( 'updater', 'sys' );
-//contribution classes
-LoadClass( 'command', 'sys' );
 // User classes
 LoadClass( 'windows' );
 
