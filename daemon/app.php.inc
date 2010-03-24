@@ -477,7 +477,7 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 			self::$AppInfo = (array) $loginObject->appInfo;
 			self::$PlatformInfo = (array) $loginObject->platformInfo;
 			self::$ExtensionInfo = (array) $loginObject->extensionInfo;
-			foreach ( self::$ExtensionInfo as $key => $val ) { self::$ExtensionInfo[$key] = (array) $val; }
+			foreach ( array_keys(self::$ExtensionInfo) as $id ) { $arr = (array) self::$ExtensionInfo[$id]; self::$ExtensionInfo[$id] = $arr; }
 			self::$CommandLineArgs = (array) $loginObject->cmdlineArgs;
 			self::$ClientVersion = self::$AppInfo['version'];
 		}
