@@ -45,8 +45,9 @@ class XULBasicWindow extends BranchNode
 		$this->setProperty( 'preventClose', (bool) $bool );
 	}
 
-	public function size( $width, $height ) {
-		$this->callMethod( 'windowObject.resizeTo', array($width,$height) );
+	public function size( $width = NULL, $height = NULL ) {
+		if( $width && $height )
+			$this->callMethod( 'windowObject.resizeTo', array($width,$height) );
 	}
 
 	public function alert( $mesg ) {

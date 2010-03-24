@@ -889,7 +889,7 @@ class Node
 	 * @return Node	Returns reference to self ($this) for easy chaining of method calls
 	*/
 	
-	public function size( $width, $height ) {
+	public function size( $width = NULL, $height = NULL ) {
 		$this->width( $width );
 		$this->height( $height );
 		
