@@ -410,6 +410,8 @@ class Application
 	 * 
 	 * Applications and services that have joined the same event groups will receive each other's
 	 * global events
+	 *
+	 * @return array List of group names
 	*/
 	
 	public function getEventGroups() {
