@@ -68,7 +68,7 @@ class SiteFusionStarter {
 			2 => array("pipe", "w")
 		);
 		
-		self::$Process = proc_open( 'php '.$SFCONFIG['sitefusionPath'].'/daemon/start.php '.implode(' ',array_slice($_SERVER['argv'],1)), $descriptorspec, self::$Pipes );
+		self::$Process = proc_open( 'php '.escapeshellarg($SFCONFIG['sitefusionPath'].'/daemon/start.php').' '.implode(' ',array_slice($_SERVER['argv'],1)), $descriptorspec, self::$Pipes );
 		if( !self::$Process ) {
 			echo "SiteFusion daemon start failed, can't open daemon/start.php\n";
 			exit(1);
