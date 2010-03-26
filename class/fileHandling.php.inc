@@ -234,6 +234,10 @@ class FileDownloader extends Node
 		$this->destPath = $destPath;
 	}
 	
+	public function cancelDownload() {
+		$this->callMethod( 'cancelDownload' );
+	}
+	
 	public function startDownload() {
 		if( (!isset($this->destPath)) || (!isset($this->filePath)) )
 			throw new SFException( 'No file path or name given. Use setPaths()', ERR_REPORT_APP );

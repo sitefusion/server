@@ -109,12 +109,6 @@ SiteFusion.Classes.FileUploader = Class.create( SiteFusion.Classes.Node, {
 	},
 	
 	startUpload: function( path ) {
-		// request local file read permission
-		try {
-			netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
-		} catch (e) {
-			SiteFusion.Error("Can't get read permissions");
-		}
 		
 		this.path = path;
 		
@@ -166,13 +160,6 @@ SiteFusion.Classes.FileUploader = Class.create( SiteFusion.Classes.Node, {
 			return;
 		}
 		
-		// request more permissions
-		try {
-			netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
-		} catch (e) {
-			alert("Kan geen rechten verkrijgen voor het lezen van bestanden.");
-		}
-		
 		var data, len;
 		
 		if( this.binary.available() < this.chunkSize )
@@ -212,33 +199,91 @@ SiteFusion.Classes.FileDownloader = Class.create( SiteFusion.Classes.Node, {
 	initialize: function() {
 		this.element = document.createElement( 'label' );
 	
-		this.setEventHost();
+		this.setEventHost( [ 'started', 'failed', 'finished', 'cycle', 'cancelled' ] );
 	},
 	
 	startDownload: function( localPath ) {
+		this.localPath = localPath;
+		
+		var progressListener = {
+			stateIsRequest: false,
+			lastCycle: 0,
+			cycleCount: 0,
+			done: false,
+	        QueryInterface : function(aIID) {
+	            if (aIID.equals(Components.interfaces.nsIWebProgressListener) ||
+	                aIID.equals(Components.interfaces.nsISupportsWeakReference) ||
+	                aIID.equals(Components.interfaces.nsISupports))
+	                    return this;
+	            throw Components.results.NS_NOINTERFACE;
+	        },
+			onStateChange: function( webProgress, request, stateFlags, status ) {},
+			onProgressChange: function( webProgress, request, curSelfProgress, maxSelfProgress, curTotalProgress, maxTotalProgress ) {
+				if( curSelfProgress == maxSelfProgress ) {
+					this.done = true;
+					this.cycleCount++;
+					this.downloader.fireEvent( 'cycle', [ maxSelfProgress, curSelfProgress, this.cycleCount ] );
+					this.downloader.fireEvent( 'finished', [ this.downloader.localPath ] );
+				}
+				else {
+					var now = Date.now();
+					if( now - this.lastCycle > 500 ) {
+						this.cycleCount++;
+						this.downloader.fireEvent( 'cycle', [ maxSelfProgress, curSelfProgress, this.cycleCount ] );
+						this.lastCycle = now;
+					}
+				}
+			},
+			onLocationChange: function( webProgress, request, location ) {},
+			onStatusChange: function( webProgress, request, status, message ) {},
+			onSecurityChange: function( webProgress, request, state ) {}
+		};
+		
+		progressListener.downloader = this;
+		
 		var d = new Date();
 		var httpLoc = SiteFusion.Address + '/filestream.php?app=' + SiteFusion.Application + '&args=' + SiteFusion.Arguments + '&sid=' + SiteFusion.SID + '&ident=' + SiteFusion.Ident + '&cid=' + this.cid + '&cycle=' + d.getTime();
 	
 		try {
-			//new obj_URI object
-			var obj_URI = Cc["@mozilla.org/network/io-service;1"].getService(Ci.nsIIOService).newURI(httpLoc, null, null);
-	
-			//new file object
-			var obj_TargetFile = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile);
-	
-			//set file with path
-			obj_TargetFile.initWithPath( localPath );
-			//if file doesn't exist, create
-			if(!obj_TargetFile.exists()) {
-				obj_TargetFile.create(0x00,0644);
+			var uri = Cc["@mozilla.org/network/io-service;1"].getService(Ci.nsIIOService).newURI(httpLoc, null, null);
+			this.targetFile = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile);
+			this.targetFile.initWithPath( localPath );
+			
+			if(!this.targetFile.exists()) {
+				this.targetFile.create(0x00,0644);
 			}
-			//new persitence object
-			var obj_Persist = Cc["@mozilla.org/embedding/browser/nsWebBrowserPersist;1"].createInstance(Ci.nsIWebBrowserPersist);
-	
-			//save file to target
-			obj_Persist.saveURI(obj_URI,null,null,null,null,obj_TargetFile);
+			
+			this.persistObject = Cc["@mozilla.org/embedding/browser/nsWebBrowserPersist;1"].createInstance(Ci.nsIWebBrowserPersist);
+			
+			this.persistObject.progressListener = progressListener;
+			var nsIWBP = Ci.nsIWebBrowserPersist;
+
+			this.persistObject.persistFlags = nsIWBP.PERSIST_FLAGS_REPLACE_EXISTING_FILES |
+			            nsIWBP.PERSIST_FLAGS_BYPASS_CACHE |
+			            nsIWBP.PERSIST_FLAGS_FAIL_ON_BROKEN_LINKS |
+			            nsIWBP.PERSIST_FLAGS_CLEANUP_ON_FAILURE;
+			
+			this.persistObject.saveURI(uri,null,null,null,null,this.targetFile);
 		} catch (e) {
 			SiteFusion.Error(e);
 		}
+		
+		this.fireEvent( 'started', [ this.localPath ] );
+	},
+	
+	cancelDownload: function() {
+		if( ! this.persistObject )
+			return;
+		
+		if( (!this.persistObject.progressListener) || this.persistObject.progressListener.done )
+			return;
+		
+		this.persistObject.cancelSave();
+		try {
+			this.targetFile.remove(false);
+		}
+		catch ( e ) {}
+		
+		this.fireEvent( 'cancelled', [ this.localPath ] );
 	}
 } );
