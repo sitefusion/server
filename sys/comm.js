@@ -173,34 +173,41 @@ SiteFusion.Comm.Transmission = Class.create( {
 	openHttpRequest: function() {
 		this.request = new XMLHttpRequest;
 		
-		var aSync = (this.reverseInitiative || !this.blocking)
+		var aSync = (this.reverseInitiative || !this.blocking);
 		
 		this.state = this.STATE_CONNECTED;
 		if( typeof(this.onstatechange) == 'function' )
 			this.onstatechange();
 		
-		this.request.open( 'POST',
-			SiteFusion.Address + '/' + (this.reverseInitiative ? 'revcomm':'comm') + '.php'
-			+ '?app=' + SiteFusion.Application
-			+ '&args=' + SiteFusion.Arguments
-			+ '&sid=' + SiteFusion.SID
-			+ '&ident=' + SiteFusion.Ident
-			+ '&clientid=' + SiteFusion.ClientID,
-			aSync
-		);
+		try {
+			this.request.open( 'POST',
+				SiteFusion.Address + '/' + (this.reverseInitiative ? 'revcomm':'comm') + '.php'
+				+ '?app=' + SiteFusion.Application
+				+ '&args=' + SiteFusion.Arguments
+				+ '&sid=' + SiteFusion.SID
+				+ '&ident=' + SiteFusion.Ident
+				+ '&clientid=' + SiteFusion.ClientID,
+				aSync
+			);
+			
+			if( this.payloadEncoding )
+				this.request.setRequestHeader( 'Content-Type', this.payloadEncoding );
 		
-		if( this.payloadEncoding )
-			this.request.setRequestHeader( 'Content-Type', this.payloadEncoding );
-		
-		if( aSync ) {
-			var transmission = this;
-			this.request.onreadystatechange = function( event ) {
-				if( this.readyState == 4 )
-					transmission.handleResponse();
-			};
+			if( aSync ) {
+				var transmission = this;
+				this.request.onreadystatechange = function( event ) {
+					if( this.readyState == 4 )
+						transmission.handleResponse();
+				};
+			}
+			
+			this.request[this.payloadEncoding == 'application/x-gzip' ? 'sendAsBinary':'send']( this.payload );
 		}
-		
-		this.request[this.payloadEncoding == 'application/x-gzip' ? 'sendAsBinary':'send']( this.payload );
+		catch ( e ) {
+			var oThis = this;
+			setTimeout( function() { oThis.openHttpRequest(); }, 1000 );
+		}
+			
 		
 		if( !aSync )
 			this.handleResponse();
@@ -208,8 +215,10 @@ SiteFusion.Comm.Transmission = Class.create( {
 	
 	handleResponse: function() {
 		if( this.request.status != 200 ) {
-			if( !this.reverseInitiative )
-				setTimeout( function() { this.openHttpRequest(); }, 1000 );
+			if( !this.reverseInitiative ) {
+				var oThis = this;
+				setTimeout( function() { oThis.openHttpRequest(); }, 1000 );
+			}
 			return;
 		}
 		
