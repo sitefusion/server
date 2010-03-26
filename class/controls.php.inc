@@ -125,6 +125,11 @@ class XULProgressMeter extends Node
 /**
  * Splitter element
  * 
+ * Dynamic Constructor
+ * 
+ * @param string	$className	Class name for styling
+ * @param mixed		$childNodes
+ * 
  * @link https://developer.mozilla.org/en/XUL/splitter
 */
 
@@ -133,10 +138,16 @@ class XULSplitter extends BranchNode
 	public $remoteConstructor = 'Splitter';
 	protected $className;
 	
-	public function __construct( $class = NULL ) {
-		$this->className = $class;
-		
-		parent::__construct();
+	public function __construct() {
+		if( func_num_args() ) {
+			$args = func_get_args();
+			
+			if( count($args) && is_string($args[0]) )
+				$this->className = array_shift($args);
+			
+			parent::__construct( $args );
+		}
+		else parent::__construct();
 	}
 	
 	public function attach() {
