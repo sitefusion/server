@@ -206,6 +206,7 @@ SiteFusion.Comm.Transmission = Class.create( {
 		catch ( e ) {
 			var oThis = this;
 			setTimeout( function() { oThis.openHttpRequest(); }, 1000 );
+			return;
 		}
 			
 		
