@@ -543,59 +543,67 @@ class SiteFusionAdminAppInfoWindow extends XULChildWindow
 			)
 		);
 		
-		foreach( $this->appInfo['AppInfo'] as $key => $value) {
-			
-			$this->listboxAppInfo->addChild(
-				new XULListItem(
-					new XULListCell(strval($key)),
-					new XULListCell(strval($value))
-				)
-			);
+		if( is_array($this->appInfo['AppInfo']) ) {
+			foreach( $this->appInfo['AppInfo'] as $key => $value) {
+				
+				$this->listboxAppInfo->addChild(
+					new XULListItem(
+						new XULListCell(strval($key)),
+						new XULListCell(strval($value))
+					)
+				);
+			}
 		}
 		
-		foreach( $this->appInfo['ExtensionInfo'] as $key => $value) {
-			
-			$this->treeExtensionInfo->children[1]->addChild(
-				new XULTreeItem(TRUE,
-					new XULTreeRow(
-						new XULTreeCell(strval($key))
-					),
-					$treeChildren = new XULTreeChildren()
-				)
-			);
-					
-			if (is_array($value)) {
-				foreach ($value as $subvaluekey => $subvalue) {
-					$treeChildren->addChild (
-						new XULTreeItem(
-							new XULTreeRow(
-								new XULTreeCell(strval($subvaluekey)),
-								new XULTreeCell(strval($subvalue))
+		if( is_array($this->appInfo['ExtensionInfo']) ) {
+			foreach( $this->appInfo['ExtensionInfo'] as $key => $value) {
+				
+				$this->treeExtensionInfo->children[1]->addChild(
+					new XULTreeItem(TRUE,
+						new XULTreeRow(
+							new XULTreeCell(strval($key))
+						),
+						$treeChildren = new XULTreeChildren()
+					)
+				);
+						
+				if (is_array($value)) {
+					foreach ($value as $subvaluekey => $subvalue) {
+						$treeChildren->addChild (
+							new XULTreeItem(
+								new XULTreeRow(
+									new XULTreeCell(strval($subvaluekey)),
+									new XULTreeCell(strval($subvalue))
+								)
 							)
-						)
-					);
+						);
+					}
 				}
 			}
 		}
 		
-		foreach( $this->appInfo['PlatformInfo'] as $key => $value) {
-			
-			$this->listboxPlatformInfo->addChild(
-				new XULListItem(
-					new XULListCell(strval($key)),
-					new XULListCell(strval($value))
-				)
-			);
+		if( is_array($this->appInfo['PlatformInfo']) ) {
+			foreach( $this->appInfo['PlatformInfo'] as $key => $value) {
+				
+				$this->listboxPlatformInfo->addChild(
+					new XULListItem(
+						new XULListCell(strval($key)),
+						new XULListCell(strval($value))
+					)
+				);
+			}
 		}
 		
-		foreach( $this->appInfo['CommandLineArgs'] as $key => $value) {
-			
-			$this->listboxCommandlineArgsInfo->addChild(
-				new XULListItem(
-					new XULListCell(strval($key)),
-					new XULListCell(strval($value))
-				)
-			);
+		if( is_array($this->appInfo['CommandLineArgs']) ) {
+			foreach( $this->appInfo['CommandLineArgs'] as $key => $value) {
+				
+				$this->listboxCommandlineArgsInfo->addChild(
+					new XULListItem(
+						new XULListCell(strval($key)),
+						new XULListCell(strval($value))
+					)
+				);
+			}
 		}
 	}
 	
