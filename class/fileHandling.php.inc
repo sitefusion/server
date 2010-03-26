@@ -199,8 +199,10 @@ class FileUploader extends Node
  * 
  * This class constructs a node that downloads a file from the server to the client in 
  * the background. Construct it with the local (server) path as the first argument and
- * the remote (client) path as the second argument, and call startDownload(). At present
- * this control does not supply any progress information. This will be added soon.
+ * the remote (client) path as the second argument, and call startDownload(). This control
+ * fires a 'started' event when the download starts, a 'cycle' event periodically with progress
+ * information, a 'finished' event when the download is finished and a 'cancelled' event when
+ * the download is cancelled.
  * 
  * @see XULFilePicker
 */
