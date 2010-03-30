@@ -308,17 +308,19 @@ class ClientFileService extends Node
 {
 	public $remoteConstructor = 'FileService';
 	private $handlers = array();
+	private $fileMonitors = array();
 	
 	public function __construct() {
 		parent::__construct();
 	}
 	
 	public function attach() {
-		$this->createRemoteObject();
+		$this->createRemoteObject( array( $this->hostWindow ) );
 		$this->setEvent( 'result', MSG_SEND, $this, 'onResult' );
 	}
 	
 	public function detach() {
+		$this->callMethod( 'cancelAllMonitors' );
 		$this->unRegister();
 	}
 	
@@ -327,11 +329,70 @@ class ClientFileService extends Node
 		$this->callMethod( 'getDirectory', array( $path ) );
 	}
 	
-	public function createDirectory( $path, $name, $handlerObj = NULL, $handlerMethod = NULL ) {
-		if( $handlerObj && $handlerMethod )
-			$this->handlers[] = array( $handlerObj, $handlerMethod );
+	public function getSpecialDirectory( $id, $handlerObj, $handlerMethod ) {
+		$this->handlers[] = array( $handlerObj, $handlerMethod );
+		$this->callMethod( 'getSpecialDirectory', array( $id ) );
+	}
+	
+	public function createDirectory( $path, $handlerObj = NULL, $handlerMethod = NULL ) {
+		$this->handlers[] = ($handlerObj&&$handlerMethod ? array( $handlerObj, $handlerMethod ) : NULL);
+		$this->callMethod( 'createDirectory', array( $path ) );
+	}
+	
+	public function writeFile( $localPath, $clientPath, $handlerObj = NULL, $handlerMethod = NULL ) {
+		$this->hostWindow->addChild( $fdn = new FileDownloader( $localPath, $clientPath ) );
+		if( $handlerObj && $handlerMethod ) {
+			$fdn->setEventHandler( 'finished', $handlerObj, $handlerMethod );
+			$fdn->setEventHandler( 'failed', $handlerObj, $handlerMethod );
+			$fdn->setEventHandler( 'cancelled', $handlerObj, $handlerMethod );
+		}
+		$fdn->setEventHandler( 'finished', $this, 'onDownloaderFinished' );
+		$fdn->setEventHandler( 'failed', $this, 'onDownloaderFinished' );
+		$fdn->setEventHandler( 'cancelled', $this, 'onDownloaderFinished' );
+		$fdn->startDownload();
 		
-		$this->callMethod( 'createDirectory', array( $path, $name ) );
+		return $fdn;
+	}
+	
+	public function onDownloaderFinished( $event ) {
+		$event->sourceObject->removeNode();
+	}
+	
+	public function readFile( $clientPath, $localPath, $handlerObj = NULL, $handlerMethod = NULL ) {
+		$this->hostWindow->addChild( $fup = new FileUploader( dirname($localPath), basename($localPath) ) );
+		if( $handlerObj && $handlerMethod ) {
+			$fup->setEventHandler( 'finished', $handlerObj, $handlerMethod );
+			$fup->setEventHandler( 'failed', $handlerObj, $handlerMethod );
+			$fup->setEventHandler( 'cancelled', $handlerObj, $handlerMethod );
+		}
+		$fup->setEventHandler( 'finished', $this, 'onUploaderFinished' );
+		$fup->setEventHandler( 'failed', $this, 'onUploaderFinished' );
+		$fup->setEventHandler( 'cancelled', $this, 'onUploaderFinished' );
+		$fup->startUpload( $clientPath );
+		
+		return $fup;
+	}
+	
+	public function onUploaderFinished( $event ) {
+		$event->sourceObject->removeNode();
+	}
+	
+	public function removeDirectory( $clientPath, $recursive, $handlerObj = NULL, $handlerMethod = NULL ) {
+		$this->handlers[] = ($handlerObj&&$handlerMethod ? array( $handlerObj, $handlerMethod ) : NULL);
+		$this->callMethod( 'removeDirectory', array( $clientPath, (bool)$recursive ) );
+	}
+	
+	public function removeFile( $clientPath, $handlerObj = NULL, $handlerMethod = NULL ) {
+		$this->handlers[] = ($handlerObj&&$handlerMethod ? array( $handlerObj, $handlerMethod ) : NULL);
+		$this->callMethod( 'removeFile', array( $clientPath ) );
+	}
+	
+	public function monitorFile( $clientPath, $handlerObj, $handlerMethod ) {
+		if( isset($this->fileMonitors[$clientPath]) )
+			throw new SFException( "Path $clientPath is already being monitored!", ERR_REPORT_APP );
+		
+		$this->fileMonitors[$clientPath] = array( $handlerObj, $handlerMethod );
+		$this->callMethod( 'monitorFile', array( $clientPath ) );
 	}
 	
 	public function onResult() {
@@ -340,37 +401,69 @@ class ClientFileService extends Node
 		$op = array_shift( $args );
 		
 		switch ( $op ) {
-			case 'specialPath':
-				list($status,$path) = $args;
-				call_user_func_array( array_shift($this->handlers), array($this,$status,$path) );
-			break;
-			
 			case 'list':
-				list($status,$path) = $args;
+				$status = array_shift( $args );
+				$path = array_shift( $args );
 				$files = array();
 				if( $status ) {
-					foreach ( $args[0] as $file ) {
-						$cf = new ClientFile();
-						$cf->fileService = $this;
-						$cf->path = $path.$this->getDirSeparator().$file[0];
-						$cf->name = $file[0];
-						$cf->isReadable = $file[1];
-						$cf->isWritable = $file[2];
-						$cf->isExecutable = $file[3];
-						$cf->isHidden = $file[4];
-						$cf->size = $file[5];
-						$files[$file[0]] = $cf;
+					$dirFile = $this->fileFromResult( $path, $args[0] );
+					$dirFile->entries = array();
+					foreach ( $args[1] as $file ) {
+						$cf = $this->fileFromResult( $path.$this->getDirSeparator().$file[0], $file );
+						$dirFile->entries[$file[0]] = $cf;
 					}
-					call_user_func_array( array_shift($this->handlers), array($this,$status,$path,$files) );
 				}
-				else
-					call_user_func_array( array_shift($this->handlers), array($this,$status,$path) );
+				else $dirFile = NULL;
+				
+				call_user_func_array( array_shift($this->handlers), array($this,$status,$dirFile) );
+			break;
+			
+			case 'createDirectory':
+				$status = array_shift( $args );
+				$path = array_shift( $args );
+				if( $status ) {
+					$file = array_shift( $args );
+					$dirFile = $this->fileFromResult( $path, $file );
+					$dirFile->entries = array();
+				}
+				else $dirFile = NULL;
+				
+				if( ($handler = array_shift($this->handlers)) !== NULL )
+					call_user_func_array( $handler, array($this,$status,$dirFile) );
+			break;
+			
+			case 'removeDirectory':
+			case 'removeFile':
+				$status = array_shift( $args );
+				$path = array_shift( $args );
+				
+				if( ($handler = array_shift($this->handlers)) !== NULL )
+					call_user_func_array( $handler, array($this,$status,$path) );
+			break;
+			
+			case 'fileChanged':
+				list($path,$exists,$modificationTime,$size) = $args;
+				call_user_func_array( $this->fileMonitors[$path], array($this,$path,$exists,$modificationTime,$size) );
 			break;
 		}
 	}
 	
+	private function fileFromResult( $path, $file ) {
+		$cf = new ClientFile();
+		$cf->fileService = $this;
+		$cf->path = $path;
+		$cf->name = $file[0];
+		$cf->isDirectory = $file[1];
+		$cf->isReadable = $file[2];
+		$cf->isWritable = $file[3];
+		$cf->isExecutable = $file[4];
+		$cf->isHidden = $file[5];
+		$cf->size = $file[6];
+		return $cf;
+	}
+	
 	public function getDirSeparator() {
-		if( stripos(ApplicationProcess::$PlatformInfo['platform'],'win') )
+		if( stripos(ApplicationProcess::$PlatformInfo['platform'],'win') != -1 )
 			return "\\";
 		else
 			return "/";
@@ -383,23 +476,50 @@ class ClientFile
 	public $fileService;
 	public $path;
 	public $name;
+	public $isDirectory;
 	public $isReadable;
 	public $isWritable;
 	public $isExecutable;
 	public $isHidden;
 	public $size;
+	public $entries = NULL;
 	public $exists = TRUE;
 	
 	public function append( $fileName ) {
 		$file = new self;
-		$file->path .= $this->fileService->getDirSeparator().$this->name.$this->fileService->getDirSeparator().$fileName;
+		$file->fileService = $this->fileService;
+		$file->path = $this->path.$this->fileService->getDirSeparator().$fileName;
 		$file->name = $fileName;
 		$file->exists = FALSE;
 		return $file;
 	}
 	
 	public function createDirectory( $handlerObj = NULL, $handlerMethod = NULL ) {
-		$this->fileService->createDirectory( $this->path, $this->name, $handlerObj, $handlerMethod );
+		$this->fileService->createDirectory( $this->path, $handlerObj, $handlerMethod );
+	}
+	
+	public function getDirectory( $handlerObj, $handlerMethod ) {
+		$this->fileService->getDirectory( $this->path, $handlerObj, $handlerMethod );
+	}
+	
+	public function writeFile( $localPath, $handlerObj = NULL, $handlerMethod = NULL ) {
+		return $this->fileService->writeFile( $localPath, $this->path, $handlerObj, $handlerMethod );
+	}
+	
+	public function readFile( $localPath, $handlerObj = NULL, $handlerMethod = NULL ) {
+		return $this->fileService->readFile( $this->path, $localPath, $handlerObj, $handlerMethod );
+	}
+	
+	public function removeDirectory( $recursive = FALSE, $handlerObj = NULL, $handlerMethod = NULL ) {
+		$this->fileService->removeDirectory( $this->path, $recursive, $handlerObj, $handlerMethod );
+	}
+	
+	public function removeFile( $handlerObj = NULL, $handlerMethod = NULL ) {
+		$this->fileService->removeFile( $this->path, $handlerObj, $handlerMethod );
+	}
+	
+	public function monitorFile( $handlerObj, $handlerMethod ) {
+		$this->fileService->monitorFile( $this->path, $handlerObj, $handlerMethod );
 	}
 }
 

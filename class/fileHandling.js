@@ -109,7 +109,6 @@ SiteFusion.Classes.FileUploader = Class.create( SiteFusion.Classes.Node, {
 	},
 	
 	startUpload: function( path ) {
-		
 		this.path = path;
 		
 		// open the local file
@@ -298,57 +297,152 @@ SiteFusion.Classes.FileService = Class.create( SiteFusion.Classes.Node, {
 		this.eventHost.yield.msgType = 0;
 		
 		this.hostWindow = win;
+		
+		this.monitors = [];
 	},
 	
 	getDirectory: function( path ) {
 		var file = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile);  
 		file.initWithPath(path);
 		if( (!file.exists()) || (!file.isDirectory()) ) {
-			this.fireEvent( 'result', [ 'list', path, false ] );
+			this.fireEvent( 'result', [ 'list', false, file.path ] );
 			return;
 		}
 		
-		var entries = file.directoryEntries;  
+		var entries = file.directoryEntries;
+		var base = this.resultFromFile( file );
+		
 		var array = [];
-		while(entries.hasMoreElements()) {  
+		while(entries.hasMoreElements()) {
 			var entry = entries.getNext();  
 			entry.QueryInterface(Components.interfaces.nsIFile);  
-			array.push( [
-				entry.leafName,
-				entry.isDirectory(),
-				entry.isReadable(),
-				entry.isWritable(),
-				entry.isExecutable(),
-				entry.isHidden(),
-				(entry.isDirectory() ? null : entry.fileSize)
-			] );  
+			array.push( this.resultFromFile( entry ) );
 		}
 		
-		this.fireEvent( 'result', [ 'list', true, path, array ] );
+		this.fireEvent( 'result', [ 'list', true, file.path, base, array ] );
 	},
 	
 	getSpecialDirectory: function( id ) {
 		try {
 			var file = Cc["@mozilla.org/file/directory_service;1"].getService(Ci.nsIProperties).get(id, Ci.nsIFile);
-			this.fireEvent( 'result', [ 'specialPath', true, file.path ] );
+			this.getDirectory( file.path );
 		}
 		catch ( e ) {
-			this.fireEvent( 'result', [ 'specialPath', false ] );
+			this.fireEvent( 'result', [ 'list', false, null ] );
 		}
 	},
 	
-	createDirectory: function( path, name ) {
+	createDirectory: function( path ) {
 		try {
 			var file = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile);  
 			file.initWithPath(path);
-			file.append( name );
-			file.create( Ci.nsIFile.DIRECTORY_TYPE );
-			this.fireEvent( 'result', [ 'createDirectory', true, file.path ] );
+			file.create( Ci.nsIFile.DIRECTORY_TYPE, 0755 );
+			var base = this.resultFromFile( file );
+			this.fireEvent( 'result', [ 'createDirectory', true, path, base ] );
 		}
 		catch ( e ) {
-			this.fireEvent( 'result', [ 'createDirectory', false ] );
+			this.fireEvent( 'result', [ 'createDirectory', false, path, null ] );
 		}
+	},
+	
+	removeDirectory: function( path, recursive ) {
+		try {
+			var file = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile);
+			file.initWithPath(path);
+			if( file.exists() && file.isDirectory() ) {
+				file.remove(recursive);
+				this.fireEvent( 'result', [ 'removeDirectory', true, path ] );
+				return;
+			}
+		}
+		catch ( e ) {}
+		
+		this.fireEvent( 'result', [ 'removeDirectory', false, path ] );
+	},
+	
+	removeFile: function( path ) {
+		try {
+			var file = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile);
+			file.initWithPath(path);
+			if( file.exists() && file.isFile() ) {
+				file.remove(false);
+				this.fireEvent( 'result', [ 'removeFile', true, path ] );
+				return;
+			}
+		}
+		catch ( e ) {}
+		
+		this.fireEvent( 'result', [ 'removeFile', false, path ] );
+	},
+	
+	monitorFile: function( path ) {
+		var oThis = this;
+		this.monitors.push( new SiteFusion.Classes.FileService.FileMonitor( this, path ) );
+	},
+	
+	cancelAllMonitors: function() {
+		for( var n = 0; n < this.monitors.length; n++ ) {
+			this.monitors[n].cancel();
+		}
+	},
+	
+	resultFromFile: function( file ) {
+		return [
+			file.leafName,
+			file.isDirectory(),
+			file.isReadable(),
+			file.isWritable(),
+			file.isExecutable(),
+			file.isHidden(),
+			(file.isDirectory() ? null : file.fileSize),
+			Math.round(file.lastModifiedTime/1000)
+		];
 	}
 } );
 
 
+SiteFusion.Classes.FileService.FileMonitor = Class.create( {
+	exists: null,
+	modificationTime: null,
+	size: null,
+	timer: null,
+	fileService: null,
+	
+	initialize: function( fileService, path ) {
+		this.path = path;
+		this.fileService = fileService;
+		
+		var file = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile);
+		file.initWithPath(path);
+		this.exists = file.exists();
+		this.modificationTime = (this.exists ? file.lastModifiedTime : null);
+		this.size = (this.exists ? file.fileSize : null);
+
+		var oThis = this;
+		this.timer = setTimeout( function() { oThis.check(); }, 500 );
+	},
+	
+	check: function() {
+		var file = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile);
+		file.initWithPath(this.path);
+		
+		var exists = file.exists();
+		var modificationTime = (exists ? file.lastModifiedTime : null);
+		var size = (exists ? file.fileSize : null);
+		
+		if( exists != this.exists || modificationTime != this.modificationTime || size != this.size ) {
+			this.fileService.fireEvent( 'result', [ 'fileChanged', this.path, exists, Math.round(modificationTime/1000), size ] );
+		}
+		
+		this.exists = exists;
+		this.modificationTime = modificationTime;
+		this.size = size;
+		
+		var oThis = this;
+		this.timer = setTimeout( function() { oThis.check(); }, 500 );
+	},
+	
+	cancel: function() {
+		clearTimeout( this.timer );
+	}
+} );
