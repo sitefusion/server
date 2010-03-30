@@ -287,3 +287,68 @@ SiteFusion.Classes.FileDownloader = Class.create( SiteFusion.Classes.Node, {
 		this.fireEvent( 'cancelled', [ this.localPath ] );
 	}
 } );
+
+
+SiteFusion.Classes.FileService = Class.create( SiteFusion.Classes.Node, {
+	sfClassName: 'FileService',
+	
+	initialize: function ( win ) {
+		this.element = win.createElement( 'label' );
+		this.setEventHost( [ 'result' ] );
+		this.eventHost.yield.msgType = 0;
+		
+		this.hostWindow = win;
+	},
+	
+	getDirectory: function( path ) {
+		var file = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile);  
+		file.initWithPath(path);
+		if( (!file.exists()) || (!file.isDirectory()) ) {
+			this.fireEvent( 'result', [ 'list', path, false ] );
+			return;
+		}
+		
+		var entries = file.directoryEntries;  
+		var array = [];
+		while(entries.hasMoreElements()) {  
+			var entry = entries.getNext();  
+			entry.QueryInterface(Components.interfaces.nsIFile);  
+			array.push( [
+				entry.leafName,
+				entry.isDirectory(),
+				entry.isReadable(),
+				entry.isWritable(),
+				entry.isExecutable(),
+				entry.isHidden(),
+				(entry.isDirectory() ? null : entry.fileSize)
+			] );  
+		}
+		
+		this.fireEvent( 'result', [ 'list', true, path, array ] );
+	},
+	
+	getSpecialDirectory: function( id ) {
+		try {
+			var file = Cc["@mozilla.org/file/directory_service;1"].getService(Ci.nsIProperties).get(id, Ci.nsIFile);
+			this.fireEvent( 'result', [ 'specialPath', true, file.path ] );
+		}
+		catch ( e ) {
+			this.fireEvent( 'result', [ 'specialPath', false ] );
+		}
+	},
+	
+	createDirectory: function( path, name ) {
+		try {
+			var file = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile);  
+			file.initWithPath(path);
+			file.append( name );
+			file.create( Ci.nsIFile.DIRECTORY_TYPE );
+			this.fireEvent( 'result', [ 'createDirectory', true, file.path ] );
+		}
+		catch ( e ) {
+			this.fireEvent( 'result', [ 'createDirectory', false ] );
+		}
+	}
+} );
+
+

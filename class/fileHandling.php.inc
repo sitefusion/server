@@ -297,3 +297,109 @@ class FileDownloader extends Node
 			unlink( $this->filePath );
 	}
 }
+
+
+
+/**
+ * 
+*/
+
+class ClientFileService extends Node
+{
+	public $remoteConstructor = 'FileService';
+	private $handlers = array();
+	
+	public function __construct() {
+		parent::__construct();
+	}
+	
+	public function attach() {
+		$this->createRemoteObject();
+		$this->setEvent( 'result', MSG_SEND, $this, 'onResult' );
+	}
+	
+	public function detach() {
+		$this->unRegister();
+	}
+	
+	public function getDirectory( $path, $handlerObj, $handlerMethod ) {
+		$this->handlers[] = array( $handlerObj, $handlerMethod );
+		$this->callMethod( 'getDirectory', array( $path ) );
+	}
+	
+	public function createDirectory( $path, $name, $handlerObj = NULL, $handlerMethod = NULL ) {
+		if( $handlerObj && $handlerMethod )
+			$this->handlers[] = array( $handlerObj, $handlerMethod );
+		
+		$this->callMethod( 'createDirectory', array( $path, $name ) );
+	}
+	
+	public function onResult() {
+		$args = func_get_args();
+		$event = array_shift( $args );
+		$op = array_shift( $args );
+		
+		switch ( $op ) {
+			case 'specialPath':
+				list($status,$path) = $args;
+				call_user_func_array( array_shift($this->handlers), array($this,$status,$path) );
+			break;
+			
+			case 'list':
+				list($status,$path) = $args;
+				$files = array();
+				if( $status ) {
+					foreach ( $args[0] as $file ) {
+						$cf = new ClientFile();
+						$cf->fileService = $this;
+						$cf->path = $path.$this->getDirSeparator().$file[0];
+						$cf->name = $file[0];
+						$cf->isReadable = $file[1];
+						$cf->isWritable = $file[2];
+						$cf->isExecutable = $file[3];
+						$cf->isHidden = $file[4];
+						$cf->size = $file[5];
+						$files[$file[0]] = $cf;
+					}
+					call_user_func_array( array_shift($this->handlers), array($this,$status,$path,$files) );
+				}
+				else
+					call_user_func_array( array_shift($this->handlers), array($this,$status,$path) );
+			break;
+		}
+	}
+	
+	public function getDirSeparator() {
+		if( stripos(ApplicationProcess::$PlatformInfo['platform'],'win') )
+			return "\\";
+		else
+			return "/";
+	}
+}
+
+
+class ClientFile
+{
+	public $fileService;
+	public $path;
+	public $name;
+	public $isReadable;
+	public $isWritable;
+	public $isExecutable;
+	public $isHidden;
+	public $size;
+	public $exists = TRUE;
+	
+	public function append( $fileName ) {
+		$file = new self;
+		$file->path .= $this->fileService->getDirSeparator().$this->name.$this->fileService->getDirSeparator().$fileName;
+		$file->name = $fileName;
+		$file->exists = FALSE;
+		return $file;
+	}
+	
+	public function createDirectory( $handlerObj = NULL, $handlerMethod = NULL ) {
+		$this->fileService->createDirectory( $this->path, $this->name, $handlerObj, $handlerMethod );
+	}
+}
+
