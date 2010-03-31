@@ -386,6 +386,32 @@ SiteFusion.Classes.FileService = Class.create( SiteFusion.Classes.Node, {
 		}
 	},
 	
+	executeFile: function( path, args, async ) {
+		var file = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile);
+		file.initWithPath(path);
+		
+		if( file.exists() ) {
+			var process = Cc["@mozilla.org/process/util;1"].createInstance(Ci.nsIProcess);
+			process.init( file );
+			if( async ) {
+				var oThis = this;
+				var observer = {
+					observe: function( subject, topic, data ) {
+						oThis.fireEvent( 'result', [ 'executeFile', (topic == 'process-finished'), path ] );
+					}
+				};
+				
+				process.runAsync( args, args.length, observer );
+			}
+			else {
+				process.run( true, args, args.length );
+				this.fireEvent( 'result', [ 'executeFile', true, path ] );
+			}	
+			return;
+		}
+		this.fireEvent( 'result', [ 'executeFile', false, path ] );
+	},
+	
 	resultFromFile: function( file ) {
 		return [
 			file.leafName,
