@@ -109,9 +109,8 @@ class XULFilePicker extends Node
  * Background file uploader
  * 
  * This class creates an object that uploads a file from the client to the server.
- * Construct it with a destination path and name (on the server). Then call the 
- * method startUpload( $path ) where $path is the location of the file on the client
- * side. This path can be retrieved with f.e. XULFilePicker. This control fires the
+ * Construct it with a source (client) path and destination path. Then call the 
+ * method startUpload(). This control fires the
  * event 'finished' when the upload was successful, 'failed' when it went wrong or 
  * 'cancelled' when the upload was cancelled through the cancelUpload() method. It
  * also fires the event 'cycle' for every chunk received, allowing you to keep track
@@ -126,13 +125,13 @@ class FileUploader extends Node
 	public $fileSize;
 	public $fileName;
 	public $destPath;
-	public $destName;
+	public $clientPath;
 	public $uploadedPath = NULL;
 	public $remoteConstructor = 'FileUploader';
 	
-	public function __construct( $destPath = NULL, $destName = NULL ) {
+	public function __construct( $clientPath = NULL, $destPath = NULL ) {
+		if( $clientPath ) $this->clientPath = $clientPath;
 		if( $destPath ) $this->destPath = $destPath;
-		if( $destName ) $this->destName = $destName;
 		
 		parent::__construct();
 	}
@@ -147,16 +146,16 @@ class FileUploader extends Node
 		$this->setEvent( 'failed', MSG_SEND, $this, 'handleError' );
 	}
 
-	public function setDestination( $destPath, $destName ) {
+	public function setPaths( $clientPath, $destPath ) {
+		$this->clientPath = $clientPath;
 		$this->destPath = $destPath;
-		$this->destName = $destName;
 	}
 	
-	public function startUpload( $remotePath ) {
-		if( (!isset($this->destPath)) || (!isset($this->destName)) )
-			throw new SFException( 'No file path or name given. Use setDestination()', ERR_REPORT_APP );
+	public function startUpload() {
+		if( (!isset($this->destPath)) || (!isset($this->clientPath)) )
+			throw new SFException( 'No source or destination file path given. Use setPaths()', ERR_REPORT_APP );
 		
-		$this->callMethod( 'startUpload', array( $remotePath ) );
+		$this->callMethod( 'startUpload', array( $this->clientPath ) );
 	}
 	
 	public function cancelUpload() {
@@ -165,31 +164,27 @@ class FileUploader extends Node
 	
 	public function handleError( $e, $remotePath ) {
 		$path = $this->destPath;
-		$name = $this->destName;
-		$fullpath = $path . '/' . $name;
 		
-		if( file_exists($fullpath) )
-			@unlink( $fullpath );
+		if( file_exists($path) )
+			@unlink( $path );
 	}
 	
 	public function handleFileChunk( $e, $filesize, $progress, $cycle, $data ) {
 		$path = $this->destPath;
-		$name = $this->destName;
-		$fullpath = $path . '/' . $name;
 		
-		if( file_exists($fullpath) && $cycle == 1 )
-			@unlink( $fullpath );
+		if( file_exists($path) && $cycle == 1 )
+			@unlink( $path );
 		
-		$file = fopen( $fullpath, 'a' );
+		$file = fopen( $path, 'a' );
 		fwrite( $file, base64_decode($data) );
 		fclose( $file );
 		
-		$this->uploadedPath = $fullpath;
+		$this->uploadedPath = $path;
 		
-		$this->filePath = $path;
-		$this->fileName = $name;
+		$this->filePath = dirname($path);
+		$this->fileName = basename($path);
 		clearstatcache();
-		$this->fileSize = filesize( $this->uploadedPath );
+		$this->fileSize = filesize( $path );
 	}
 }
 
@@ -226,9 +221,7 @@ class FileDownloader extends Node
 	}
 	
 	public function attach() {
-		$this->rootApplication->sendCommand(
-			Comm::CreateRemoteObject( $this, array( $this->hostWindow ) )
-		);
+		$this->createRemoteObject( array( $this->hostWindow ) );
 	}
 
 	public function setPaths( $filePath, $destPath ) {
@@ -604,7 +597,7 @@ class ClientFileService extends Node
 				list($status) = $args;
 				if( ($handler = array_shift($this->handlers)) !== NULL )
 					call_user_func_array( $handler, array($this,$status) );
-				break;
+			break;
 		}
 	}
 	
@@ -659,22 +652,94 @@ class ClientFile extends ClientBaseFile
 	public $isDirectory = FALSE;
 	public $size;
 	
+	
+	/**
+	 * Copies a file from server to client
+	 * 
+	 * Returns the FileDownloader object to allow progress checking. The handler is attached to the 'finished', 'failed' and 'cancelled' events
+	 * of the FileDownloader.
+	 *
+	 * @param string		$localPath			The path on the server side
+	 * @param object|string	$handlerObj			The object or classname to call the handler on when the operation finishes
+	 * @param string		$handlerMethod		The method to call on the handler object
+	 * @return FileDownloader $transfer			The transfer object keeping track of transfer progress
+	*/
+	
 	public function write( $localPath, $handlerObj = NULL, $handlerMethod = NULL ) {
 		return $this->fileService->writeFile( $localPath, $this->path, $handlerObj, $handlerMethod );
 	}
+	
+	
+	/**
+	 * Copies a file from client to server
+	 * 
+	 * Returns the FileUploader object to allow progress checking. The handler is attached to the 'finished', 'failed' and 'cancelled' events
+	 * of the FileUploader.
+	 *
+	 * @param string		$localPath			The path on the server side
+	 * @param object|string	$handlerObj			The object or classname to call the handler on when the operation finishes
+	 * @param string		$handlerMethod		The method to call on the handler object
+	 * @return FileUploader $transfer			The transfer object keeping track of transfer progress
+	*/
 	
 	public function read( $localPath, $handlerObj = NULL, $handlerMethod = NULL ) {
 		return $this->fileService->readFile( $this->path, $localPath, $handlerObj, $handlerMethod );
 	}
 	
+	
+	/**
+	 * Removes the file
+	 * 
+	 * The handler receives these parameters:
+	 * - ClientFileService $fileService	- this object
+	 * - bool $status: indicates whether the operation was successful
+	 * - string $path: the remote path
+	 *
+	 * @param string		$clientPath			The path on the client side to remove
+	 * @param object|string	$handlerObj			The object or classname to call the handler on when the operation finishes
+	 * @param string		$handlerMethod		The method to call on the handler object
+	*/
+	
 	public function remove( $handlerObj = NULL, $handlerMethod = NULL ) {
 		$this->fileService->removeFile( $this->path, $handlerObj, $handlerMethod );
 	}
+	
+	
+	/**
+	 * Starts monitoring the file
+	 * 
+	 * The handler receives these parameters when the file is created, removed or changed:
+	 * - ClientFileService $fileService	- this object
+	 * - string $path: the remote path
+	 * - bool $exists: whether the file exists
+	 * - int $modificationTime: the modification time of the file
+	 * - int $size: file size
+	 *
+	 * @param string		$clientPath			The path on the client side to monitor
+	 * @param object|string	$handlerObj			The object or classname to call the handler on when the operation finishes
+	 * @param string		$handlerMethod		The method to call on the handler object
+	*/
 	
 	public function monitor( $handlerObj, $handlerMethod ) {
 		$this->fileService->monitorFile( $this->path, $handlerObj, $handlerMethod );
 	}
 
+	
+	/**
+	 * Executes the file
+	 * 
+	 * The handler receives these parameters:
+	 * - ClientFileService $fileService	- this object
+	 * - bool $status: indicates whether the operation was successful
+	 * - string $path: the remote path
+	 *
+	 * @param string		$clientPath			The path on the client side to execute
+	 * @param array 		$args				Arguments for the executable
+	 * @param bool			$async				If TRUE, the file is executed in the background. If FALSE, the application blocks until the executable ends
+	 * @param object|string	$handlerObj			The object or classname to call the handler on when the operation finishes
+	 * @param string		$handlerMethod		The method to call on the handler object
+	*/
+	
 	public function execute( $args = array(), $async = TRUE, $handlerObj = NULL, $handlerMethod = NULL ) {
 		$this->fileService->executeFile( $this->path, $args, $async, $handlerObj, $handlerMethod );
 	}
@@ -690,6 +755,14 @@ class ClientDirectory extends ClientBaseFile
 	public $isDirectory = TRUE;
 	public $entries = array();
 	
+	
+	/**
+	 * Returns a new ClientDirectory representing a new directory in the current one
+	 * 
+	 * @param string		$dirName		The directory name to append to the current path
+	 * @return ClientDirectory	The (new or existing) directory
+	*/
+	
 	public function appendDirectory( $dirName ) {
 		if( isset($this->entries[$dirName]) )
 			throw new SFException( "File or directory $dirName already exists", ERR_REPORT_APP );
@@ -701,6 +774,14 @@ class ClientDirectory extends ClientBaseFile
 		$file->exists = FALSE;
 		return $file;
 	}
+	
+	
+	/**
+	 * Returns a new ClientFile representing a new file in the current directory
+	 * 
+	 * @param string		$fileName		The filename to append to the current path
+	 * @return ClientFile	The (new or existing) file
+	*/
 	
 	public function appendFile( $fileName ) {
 		if( isset($this->entries[$fileName]) )
@@ -714,13 +795,56 @@ class ClientDirectory extends ClientBaseFile
 		return $file;
 	}
 	
+	
+	/**
+	 * Creates the directory
+	 * 
+	 * The handler receives these parameters:
+	 * - ClientFileService $fileService	- this object
+	 * - bool $status: indicates whether the operation was successful
+	 * - ClientFile $dirFile: if successful, a file object referring to the new remote directory
+	 *
+	 * @param string		$path				The path on the client side to create
+	 * @param object|string	$handlerObj			The object or classname to call the handler on when the operation finishes
+	 * @param string		$handlerMethod		The method to call on the handler object
+	*/
+	
 	public function create( $handlerObj = NULL, $handlerMethod = NULL ) {
 		$this->fileService->createDirectory( $this->path, $handlerObj, $handlerMethod );
 	}
 	
+	
+	/**
+	 * Gets the contents of a directory
+	 * 
+	 * The handler receives these parameters:
+	 * - ClientFileService $fileService	- this object
+	 * - bool $status: indicates whether the operation was successful
+	 * - ClientFile $dirFile: if successful, a file object referring to the remote directory with the directory contents in the ClientFile::$entries array
+	 *
+	 * @param string		$path				The path on the client side to read
+	 * @param object|string	$handlerObj			The object or classname to call the handler on when the operation finishes
+	 * @param string		$handlerMethod		The method to call on the handler object
+	*/
+	
 	public function get( $handlerObj, $handlerMethod ) {
 		$this->fileService->getDirectory( $this->path, $handlerObj, $handlerMethod );
 	}
+	
+	
+	/**
+	 * Removes the directory
+	 * 
+	 * The handler receives these parameters:
+	 * - ClientFileService $fileService	- this object
+	 * - bool $status: indicates whether the operation was successful
+	 * - string $path: the remote path
+	 *
+	 * @param string		$clientPath			The path on the client side to remove
+	 * @param bool			$recursive			If TRUE, all underlying contents are removed as well. If FALSE, the directory needs to be empty
+	 * @param object|string	$handlerObj			The object or classname to call the handler on when the operation finishes
+	 * @param string		$handlerMethod		The method to call on the handler object
+	*/
 	
 	public function remove( $recursive = FALSE, $handlerObj = NULL, $handlerMethod = NULL ) {
 		$this->fileService->removeDirectory( $this->path, $recursive, $handlerObj, $handlerMethod );
