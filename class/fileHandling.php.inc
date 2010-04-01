@@ -326,7 +326,7 @@ class ClientFileService extends Node
 	 * The handler receives these parameters:
 	 * - ClientFileService $fileService	- this object
 	 * - bool $status: indicates whether the operation was successful
-	 * - ClientFile $dirFile: if successful, a file object referring to the remote directory with the directory contents in the ClientFile::$entries array
+	 * - ClientDirectory $dirFile: if successful, a file object referring to the remote directory with the directory contents in the ClientFile::$entries array
 	 *
 	 * @param string		$path				The path on the client side to read
 	 * @param object|string	$handlerObj			The object or classname to call the handler on when the operation finishes
@@ -343,9 +343,9 @@ class ClientFileService extends Node
 	 * Gets the contents of a special directory
 	 * 
 	 * The handler receives these parameters:
-	 * - ClientFileService $fileService	- this object
+	 * - ClientFileService $fileService: this object
 	 * - bool $status: indicates whether the operation was successful
-	 * - ClientFile $dirFile: if successful, a file object referring to the remote directory with the directory contents in the ClientFile::$entries array
+	 * - ClientDirectory $dirFile: if successful, a file object referring to the remote directory with the directory contents in the ClientFile::$entries array
 	 *
 	 * @link https://developer.mozilla.org/en/Code_snippets/File_I%2F%2FO#Getting_special_files
 	 * @param string		$id					ID of the special folder, see link
@@ -365,7 +365,7 @@ class ClientFileService extends Node
 	 * The handler receives these parameters:
 	 * - ClientFileService $fileService	- this object
 	 * - bool $status: indicates whether the operation was successful
-	 * - ClientFile $dirFile: if successful, a file object referring to the new remote directory
+	 * - ClientDirectory $dirFile: if successful, a file object referring to the new remote directory
 	 *
 	 * @param string		$path				The path on the client side to create
 	 * @param object|string	$handlerObj			The object or classname to call the handler on when the operation finishes
@@ -626,7 +626,10 @@ class ClientFileService extends Node
 
 
 /**
- * Client file base class
+ * Client filesystem class structure representing files (ClientFile) and directories (ClientDirectory) on the client side
+ * 
+ * These classes form the object representation of the filesystem of the client and can be created from the
+ * methods ClientFileService::getDirectory(), ClientFileService::getSpecialDirectory() and ClientFileService::createDirectory().
 */
 
 class ClientBaseFile
@@ -641,11 +644,6 @@ class ClientBaseFile
 	public $isHidden;
 	public $exists = FALSE;
 }
-
-
-/**
- * Client file
-*/
 
 class ClientFile extends ClientBaseFile
 {	
@@ -745,11 +743,6 @@ class ClientFile extends ClientBaseFile
 	}
 }
 
-
-/**
- * Client directory
-*/
-
 class ClientDirectory extends ClientBaseFile
 {
 	public $isDirectory = TRUE;
@@ -802,7 +795,7 @@ class ClientDirectory extends ClientBaseFile
 	 * The handler receives these parameters:
 	 * - ClientFileService $fileService	- this object
 	 * - bool $status: indicates whether the operation was successful
-	 * - ClientFile $dirFile: if successful, a file object referring to the new remote directory
+	 * - ClientDirectory $dirFile: if successful, a file object referring to the new remote directory
 	 *
 	 * @param string		$path				The path on the client side to create
 	 * @param object|string	$handlerObj			The object or classname to call the handler on when the operation finishes
@@ -820,7 +813,7 @@ class ClientDirectory extends ClientBaseFile
 	 * The handler receives these parameters:
 	 * - ClientFileService $fileService	- this object
 	 * - bool $status: indicates whether the operation was successful
-	 * - ClientFile $dirFile: if successful, a file object referring to the remote directory with the directory contents in the ClientFile::$entries array
+	 * - ClientDirectory $dirFile: if successful, a file object referring to the remote directory with the directory contents in the ClientFile::$entries array
 	 *
 	 * @param string		$path				The path on the client side to read
 	 * @param object|string	$handlerObj			The object or classname to call the handler on when the operation finishes
