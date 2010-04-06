@@ -387,7 +387,7 @@ class FileToStringUploader extends Node
 
 class FileToStreamUploader extends Node
 {
-	protected $stream = NULL;
+	public $stream = NULL;
 	public $fileSize = NULL;
 	public $clientPath;
 	public $remoteConstructor = 'FileUploader';
@@ -794,8 +794,8 @@ class FileFromStringDownloader extends Node
 class FileFromStreamDownloader extends Node
 {
 	public $destPath;
-	protected $stream = NULL;
-	protected $length = NULL;
+	public $stream = NULL;
+	public $length = NULL;
 	public $dataPos = NULL;
 	public $remoteConstructor = 'FileDownloader';
 	
@@ -1076,6 +1076,36 @@ class ClientFileService extends Node
 	
 	
 	/**
+	 * Stores data read from a stream in a file on the client side
+	 * 
+	 * Returns the FileFromStreamDownloader object to allow progress checking. The handler is attached to the 'finished', 'failed' and 'cancelled' events
+	 * of the FileFromStringDownloader.
+	 *
+	 * @param string		$clientPath			The path on the client side
+	 * @param resource		$stream				Stream to read from
+	 * @param int			$length				Amount of bytes to read from the stream and write to the file
+	 * @param object|string	$handlerObj			The object or classname to call the handler on when the operation finishes
+	 * @param string		$handlerMethod		The method to call on the handler object
+	 * @return FileFromStringDownloader $transfer			The transfer object keeping track of transfer progress
+	*/
+	
+	public function writeFileFromStream( $clientPath, $stream, $length, $handlerObj = NULL, $handlerMethod = NULL ) {
+		$this->hostWindow->addChild( $fdn = new FileFromStreamDownloader( $clientPath, $stream, $length ) );
+		if( $handlerObj && $handlerMethod ) {
+			$fdn->setEventHandler( 'finished', $handlerObj, $handlerMethod );
+			$fdn->setEventHandler( 'failed', $handlerObj, $handlerMethod );
+			$fdn->setEventHandler( 'cancelled', $handlerObj, $handlerMethod );
+		}
+		$fdn->setEventHandler( 'finished', $this, 'onDownloaderFinished' );
+		$fdn->setEventHandler( 'failed', $this, 'onDownloaderFinished' );
+		$fdn->setEventHandler( 'cancelled', $this, 'onDownloaderFinished' );
+		$fdn->startDownload();
+		
+		return $fdn;
+	}
+	
+	
+	/**
 	 * [INTERNAL FUNCTION] Event handler
 	*/
 	
@@ -1126,7 +1156,36 @@ class ClientFileService extends Node
 	*/
 	
 	public function readFileToString( $clientPath, $handlerObj = NULL, $handlerMethod = NULL ) {
-		$this->hostWindow->addChild( $fup = new FileUploader( $clientPath, $localPath ) );
+		$this->hostWindow->addChild( $fup = new FileToStringUploader( $clientPath ) );
+		if( $handlerObj && $handlerMethod ) {
+			$fup->setEventHandler( 'finished', $handlerObj, $handlerMethod );
+			$fup->setEventHandler( 'failed', $handlerObj, $handlerMethod );
+			$fup->setEventHandler( 'cancelled', $handlerObj, $handlerMethod );
+		}
+		$fup->setEventHandler( 'finished', $this, 'onUploaderFinished' );
+		$fup->setEventHandler( 'failed', $this, 'onUploaderFinished' );
+		$fup->setEventHandler( 'cancelled', $this, 'onUploaderFinished' );
+		$fup->startUpload();
+		
+		return $fup;
+	}
+	
+	
+	/**
+	 * Reads a file on the client side and writes it to a stream resource on the server
+	 * 
+	 * Returns the FileToStreamUploader object to allow progress checking. The handler is attached to the 'finished', 'failed' and 'cancelled' events
+	 * of the FileToStreamUploader.
+	 *
+	 * @param string		$clientPath			The path on the client side
+	 * @param resource		$stream				Stream to write to
+	 * @param object|string	$handlerObj			The object or classname to call the handler on when the operation finishes
+	 * @param string		$handlerMethod		The method to call on the handler object
+	 * @return FileToStreamUploader $transfer			The transfer object keeping track of transfer progress
+	*/
+	
+	public function readFileToStream( $clientPath, $stream, $handlerObj = NULL, $handlerMethod = NULL ) {
+		$this->hostWindow->addChild( $fup = new FileToStreamUploader( $clientPath, $stream ) );
 		if( $handlerObj && $handlerMethod ) {
 			$fup->setEventHandler( 'finished', $handlerObj, $handlerMethod );
 			$fup->setEventHandler( 'failed', $handlerObj, $handlerMethod );
@@ -1411,6 +1470,41 @@ class ClientFile extends ClientBaseFile
 	
 	public function readToString( $handlerObj = NULL, $handlerMethod = NULL ) {
 		return $this->fileService->readFileToString( $this->path, $handlerObj, $handlerMethod );
+	}
+	
+	
+	/**
+	 * Read from a stream and write to a file on the client side
+	 * 
+	 * Returns the FileFromStreamDownloader object to allow progress checking. The handler is attached to the 'finished', 'failed' and 'cancelled' events
+	 * of the FileFromStreamDownloader.
+	 *
+	 * @param resource		$stream				Stream to read from
+	 * @param int			$length				Amount of bytes to read from the stream and write to the file
+	 * @param object|string	$handlerObj			The object or classname to call the handler on when the operation finishes
+	 * @param string		$handlerMethod		The method to call on the handler object
+	 * @return FileFromStreamDownloader $transfer			The transfer object keeping track of transfer progress
+	*/
+	
+	public function writeFromStream( $stream, $length, $handlerObj = NULL, $handlerMethod = NULL ) {
+		return $this->fileService->writeFileFromStream( $this->path, $stream, $length, $handlerObj, $handlerMethod );
+	}
+	
+	
+	/**
+	 * Reads a file on the client side to a stream
+	 * 
+	 * Returns the FileToStreamUploader object to allow progress checking. The handler is attached to the 'finished', 'failed' and 'cancelled' events
+	 * of the FileToStreamUploader.
+	 *
+	 * @param resource		$stream				Stream to write to
+	 * @param object|string	$handlerObj			The object or classname to call the handler on when the operation finishes
+	 * @param string		$handlerMethod		The method to call on the handler object
+	 * @return FileToStringUploader $transfer			The transfer object keeping track of transfer progress
+	*/
+	
+	public function readToStream( $stream, $handlerObj = NULL, $handlerMethod = NULL ) {
+		return $this->fileService->readFileToStream( $this->path, $stream, $handlerObj, $handlerMethod );
 	}
 	
 	
