@@ -44,8 +44,10 @@ class Database
 		if( $db === NULL )
 			throw new SFException( "Database: No database name given", ERR_REPORT_APP );
 		
-		if( self::$connection === NULL )
+		if( self::$connection === NULL ) {
 			self::$connection = mysql_connect( self::$hostname, self::$username, self::$password, TRUE );
+			mysql_set_charset( "utf8", self::$connection );
+		}
 		
 		if(! self::$connection )
 			self::error();
