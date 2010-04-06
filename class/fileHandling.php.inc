@@ -310,7 +310,7 @@ class FileToStringUploader extends Node
 	
 	
 	/**
-	 * Set the destination paths
+	 * Set the source path
 	 *
 	 * @param string	$clientPath		Source file path on the client side
 	*/
@@ -370,6 +370,125 @@ class FileToStringUploader extends Node
 	}
 }
 
+
+
+/**
+ * Background file-to-stream uploader
+ * 
+ * This class creates an object that uploads a file from the client to a stream on the server.
+ * Construct it with a source (client) path and a stream resource. Then call the method startUpload(). This control fires the
+ * event 'finished' when the upload was successful, 'failed' when it went wrong or 
+ * 'cancelled' when the upload was cancelled through the cancelUpload() method. It
+ * also fires the event 'cycle' for every chunk received, allowing you to keep track
+ * of progress.
+ *
+ * @see XULFilePicker
+*/
+
+class FileToStreamUploader extends Node
+{
+	protected $stream = NULL;
+	public $fileSize = NULL;
+	public $clientPath;
+	public $remoteConstructor = 'FileUploader';
+	
+	
+	/**
+	 * Constructor
+	 *
+	 * @param string	$clientPath		Source file path on the client side
+	 * @param resource	$stream			Stream to write data to
+	*/
+	
+	public function __construct( $clientPath = NULL, $stream = NULL ) {
+		if( $clientPath ) $this->clientPath = $clientPath;
+		if( $stream ) $this->setStream( $stream );
+		
+		parent::__construct();
+	}
+	
+	public function attach() {
+		$this->createRemoteObject( array( $this->hostWindow ) );
+		
+		$this->setEvent( 'cycle', MSG_SEND, $this, 'handleFileChunk' );
+		$this->setEvent( 'cancelled', MSG_SEND, $this, 'handleError' );
+		$this->setEvent( 'failed', MSG_SEND, $this, 'handleError' );
+		$this->setEventType( 'finished', MSG_SEND );
+	}
+
+	public function detach() {
+		$this->unRegister();
+	}
+	
+	
+	/**
+	 * Set the source path
+	 *
+	 * @param string	$clientPath		Source file path on the client side
+	*/
+	
+	public function setSourcePath( $clientPath ) {
+		$this->clientPath = $clientPath;
+	}
+	
+	
+	/**
+	 * Set the stream to write to
+	 *
+	 * @param resource	$stream		Stream to write data to
+	*/
+	
+	public function setStream( $stream ) {
+		if( ! is_resource($stream) )
+			throw new SFException( "setStream(): not a stream resource", ERR_REPORT_APP );
+		
+		$this->stream = $stream;
+	}
+	
+	
+	/**
+	 * Start the upload
+	 * 
+	 * Starts the uploader which fires the 'started' event beforehand
+	*/
+	
+	public function startUpload() {
+		if( (!isset($this->clientPath)) || (!is_resource($this->stream)) )
+			throw new SFException( 'No source path given or no stream set. Use setSourcePath() and setStream()', ERR_REPORT_APP );
+		
+		$this->callMethod( 'startUpload', array( $this->clientPath ) );
+	}
+	
+	
+	/**
+	 * Cancel a running upload
+	 * 
+	 * Cancels the uploader which fires the 'cancelled' event
+	*/
+	
+	public function cancelUpload() {
+		$this->callMethod( 'cancelUpload' );
+	}
+	
+	
+	/**
+	 * Event handler for the 'failed' and 'cancelled' events
+	*/
+	
+	public function handleError( $e, $remotePath ) {
+		$this->fileSize = NULL;
+	}
+	
+	
+	/**
+	 * Event handler for the 'cycle' event
+	*/
+	
+	public function handleFileChunk( $e, $filesize, $progress, $cycle, $data ) {
+		fwrite( $this->stream, base64_decode($data) );
+		$this->fileSize = $filesize;
+	}
+}
 
 
 /**
@@ -653,6 +772,160 @@ class FileFromStringDownloader extends Node
 		$this->transferStarted = FALSE;
 		$this->transferSize = NULL;
 		$this->data = NULL;
+		$this->dataPos = NULL;
+	}
+}
+
+
+
+/**
+ * Background file-from-stream downloader
+ * 
+ * This class constructs a node that downloads from a stream resource on the server to a file on the client in 
+ * the background. Construct it with the remote (client) destination path as the first argument,
+ * the data stream as the second and the amount of bytes to read as the third, then call startDownload(). This control
+ * fires a 'started' event when the download starts, a 'cycle' event periodically with progress
+ * information, a 'finished' event when the download is finished and a 'cancelled' event when
+ * the download is cancelled.
+ * 
+ * @see XULFilePicker
+*/
+
+class FileFromStreamDownloader extends Node
+{
+	public $destPath;
+	protected $stream = NULL;
+	protected $length = NULL;
+	public $dataPos = NULL;
+	public $remoteConstructor = 'FileDownloader';
+	
+	private $transferStarted = FALSE;
+	private $transferSize = NULL;
+	
+	
+	/**
+	 * Constructor
+	 *
+	 * @param string	$destPath		Destination file path on the client side
+	 * @param resource	$stream			Stream to read from
+	 * @param int		$length			Amount of bytes to read from the stream and write to the file
+	*/
+	
+	public function __construct( $destPath = NULL, $stream = NULL, $length = NULL ) {
+		if( $destPath !== NULL ) $this->destPath = $destPath;
+		if( $stream !== NULL ) $this->setStream( $stream, (int) $length );
+		
+		parent::__construct();
+	}
+	
+	public function attach() {
+		$this->createRemoteObject( array( $this->hostWindow ) );
+		$this->setEventType( 'finished', MSG_SEND );
+		$this->setEventType( 'cancelled', MSG_SEND );
+		$this->setEventType( 'failed', MSG_SEND );
+	}
+	
+	public function detach() {
+		$this->unRegister();
+	}
+	
+	
+	/**
+	 * Set the destination path
+	 *
+	 * @param string	$destPath		Destination file path on the client side
+	*/
+	
+	public function setDestinationPath( $destPath ) {
+		$this->destPath = $destPath;
+	}
+	
+	
+	/**
+	 * Set the stream to read from
+	 *
+	 * @param resource	$stream		Stream to read from
+ 	 * @param int		$length		Amount of bytes to read from the stream and write to the file
+	*/
+	
+	public function setStream( $stream, $length ) {
+		if( ! is_resource($stream) )
+			throw new SFException( "setStream(): not a stream resource", ERR_REPORT_APP );
+		
+		$this->stream = $stream;
+		$this->length = (int) $length;
+	}
+	
+	
+	/**
+	 * Cancel a running download
+	 * 
+	 * Cancels the downloader which fires the 'cancelled' event
+	*/
+	
+	public function cancelDownload() {
+		$this->callMethod( 'cancelDownload' );
+	}
+	
+	
+	/**
+	 * Start the download
+	 * 
+	 * Starts the downloader which fires the 'started' event beforehand
+	*/
+	
+	public function startDownload() {
+		if( (!isset($this->destPath)) || $this->data === NULL )
+			throw new SFException( 'No destination path or data. Use setDestinationPath() and setData()', ERR_REPORT_APP );
+		
+		$this->callMethod( 'startDownload', array( $this->destPath ) );
+	}
+	
+	
+	/**
+	 * [INTERNAL FUNCTION]
+	 * This function is called by the daemon to start a transfer. It returns an array
+	 * of two elements, first is a string with the MIME content-type of the data, and
+	 * second is a integer number containing the size in bytes of the transfer.
+	 * 
+	 * @return array	Transfer descriptives
+	*/
+	
+	public function transferStart() {
+		$this->transferStarted = TRUE;
+		$this->transferSize = $this->length;
+		$this->dataPos = 0;
+		
+		return array( 'application/octet-stream', $this->transferSize );
+	}
+	
+	
+	/**
+	 * [INTERNAL FUNCTION]
+	 * This function is called by the daemon to get (a piece of) data of a transfer.
+	 * It should output this data to the output buffer, which will be intercepted
+	 * by the daemon.
+	*/
+	
+	public function transferGetData() {
+		if( !$this->transferStarted )
+			throw new SFException( "File transfer not started!" );
+		
+		echo fread( $this->stream, ($len = min(8192,$this->transferSize-$this->dataPos)) );
+		$this->dataPos += $len;
+	}
+	
+	
+	/**
+	 * [INTERNAL FUNCTION]
+	 * This function is called by the daemon when all data has been transferred.
+	 * It is used to close open filehandles and clean up.
+	*/
+	
+	public function transferEnd() {
+		$this->transferStarted = FALSE;
+		$this->transferSize = NULL;
+		$this->stream = NULL;
 		$this->dataPos = NULL;
 	}
 }
