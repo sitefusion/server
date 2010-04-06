@@ -203,11 +203,16 @@ class Application
 		
 		$this->window
 			->setEvent( 'close', MSG_SEND, $this, 'onWindowClose' )
-			->setEvent( 'clientInit', MSG_QUEUE, $this, 'onClientInit' )
-			->setEvent( 'clientComponentsInit', MSG_QUEUE, $this, 'onClientComponentsInit' )
 			->setEventType( 'initialized', MSG_SEND )
 			->setEventHandler( 'initialized', $this, 'init' )
 			->setEventHandler( 'initialized', $this, 'setDefaultEventGroup' );
+		
+		// Legacy code for clients 1.2.0, 1.2.1 and 1.2.2, will be removed in 5.2.3
+		if( ApplicationProcess::$ClientVersion == '1.2.0' ) {
+			$this->window
+				->setEvent( 'clientInit', MSG_QUEUE, $this, 'onClientInit' )
+				->setEvent( 'clientComponentsInit', MSG_QUEUE, $this, 'onClientComponentsInit' );
+		}
 	}
 	
 	
