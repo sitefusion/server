@@ -147,9 +147,9 @@ class TreeDataSupports
 	public $dataSet = NULL;
 	
 	public function insertRow( $row, $pos ) {
-		if( ! $this->_isContainer ) throw new SFException( "Can't insert row in a non-container" );
-		if( $row->isChild )	throw new SFException( "Row is already a child" );
-		if( $this->dataSet !== $row->dataSet ) throw new SFException( "Row is from a different dataset" );
+		if( ! $this->_isContainer ) throw new SFException( "Can't insert row in a non-container", ERR_REPORT_APP );
+		if( $row->isChild )	throw new SFException( "Row is already a child", ERR_REPORT_APP );
+		if( $this->dataSet !== $row->dataSet ) throw new SFException( "Row is from a different dataset", ERR_REPORT_APP );
 		
 		if( $pos === NULL )
 			$this->children[] = $row;
@@ -190,14 +190,14 @@ class TreeDataSupports
 	
 	public function insertRowBefore( $row, $before ) {
 		if( ($index = array_search( $before, $this->children, TRUE )) === FALSE )
-			throw new SFException( "Before-row is not a child of this row" );
+			throw new SFException( "Before-row is not a child of this row", ERR_REPORT_APP );
 		
 		$this->insertRow( $row, $index );
 	}
 	
 	public function insertRowAfter( $row, $after ) {
 		if( ($index = array_search( $after, $this->children, TRUE )) === FALSE )
-			throw new SFException( "After-row is not a child of this row" );
+			throw new SFException( "After-row is not a child of this row", ERR_REPORT_APP );
 		
 		$this->insertRow( $row, $index + 1 );
 	}
@@ -205,7 +205,7 @@ class TreeDataSupports
 	public function removeRow( $row ) {
 		if( ! $this->_isContainer ) throw new SFException( "Can't remove row from a non-container" );
 		if( ($index = array_search( $row, $this->children, TRUE )) === FALSE )
-			throw new SFException( "Can't find row in childset" );
+			throw new SFException( "Can't find row in childset", ERR_REPORT_APP );
 		
 		list($item) = array_splice( $this->children, $index, 1 );
 		
@@ -298,6 +298,8 @@ class TreeDataItem extends TreeDataSupports
 	public $id = NULL;
 	public $parentRow = NULL;
 	public $isSeparator = FALSE;
+	protected $_properties = NULL;
+	protected $_cellProperties = NULL;
 	protected $_isOpen = FALSE;
 	protected $_isContainer = FALSE;
 	protected $_isEmpty = TRUE;
@@ -305,7 +307,7 @@ class TreeDataItem extends TreeDataSupports
 
 	public function remove() {
 		if(! $this->isChild )
-			throw new SFException( "Item is not a child" );
+			throw new SFException( "Item is not a child", ERR_REPORT_APP );
 		
 		return $this->parentRow->removeRow( $this );
 	}
@@ -384,6 +386,10 @@ class TreeDataItem extends TreeDataSupports
 			$rowObject->isDraggable = $this->_isDraggable;
 		if( isset($this->_allowDrop) && $this->_allowDrop !== NULL )
 			$rowObject->allowDrop = $this->_allowDrop;
+		if( isset($this->_properties) && $this->_properties !== NULL )
+			$rowObject->properties = $this->_properties;
+		if( isset($this->_cellProperties) && $this->_cellProperties !== NULL )
+			$rowObject->cellProperties = $this->_cellProperties;
 		$rowObject->id = $this->id;
 		$rowObject->isContainer = $this->_isContainer;
 		$rowObject->isEmpty = $this->_isEmpty;
@@ -391,6 +397,35 @@ class TreeDataItem extends TreeDataSupports
 		$rowObject->parentId = ($this->parentRow instanceof TreeDataRow ? $this->parentRow->id : NULL);
 		
 		return json_encode($rowObject);
+	}
+	
+	public function setRowProperties( $properties ) {
+		if( ! is_array($properties) )
+			throw new SFException( "Properties should be supplied as an array", ERR_REPORT_APP );
+		
+		$this->_properties = array_values($properties);
+		
+		if( $this->_isSync )
+			$this->updateProperty( 'properties', $this->_properties );
+		
+		return $this;
+	}
+	
+	public function setCellProperties( $column, $properties ) {
+		if( ($index = $this->getColumnIndex($column)) === NULL )
+			throw new SFException( "No such column: $column", ERR_REPORT_APP );
+		if( ! is_array($properties) )
+			throw new SFException( "Properties should be supplied as an array", ERR_REPORT_APP );
+		
+		if( ! is_array($this->_cellProperties) )
+			$this->_cellProperties = array( $index => array_values( $properties ) );
+		else
+			$this->_cellProperties[$index] = array_values( $properties );
+		
+		if( $this->_isSync )
+			$this->updateProperty( 'cellProperties', $this->_cellProperties );
+		
+		return $this;
 	}
 }
 
@@ -458,7 +493,7 @@ class TreeDataRow extends TreeDataItem
 	
 	public function setImage( $column, $src ) {
 		if( ($index = $this->getColumnIndex($column)) === NULL )
-			throw new SFException( "No such column: $column" );
+			throw new SFException( "No such column: $column", ERR_REPORT_APP );
 		
 		if(! is_array($this->_images) ) $this->_images = array( $index => $src );
 		else $this->_images[$index] = $src;
@@ -471,9 +506,9 @@ class TreeDataRow extends TreeDataItem
 	
 	public function progressMode( $column, $mode ) {
 		if( ($index = $this->getColumnIndex($column)) === NULL )
-			throw new SFException( "No such column: $column" );
+			throw new SFException( "No such column: $column", ERR_REPORT_APP );
 		if( $this->dataSet->colTypes[$index] != 'progressmeter' )
-			throw new SFException( "Column $column is not of type 'progressmeter'" );
+			throw new SFException( "Column $column is not of type 'progressmeter'", ERR_REPORT_APP );
 		
 		if(! is_array($this->_progressModes) ) $this->_progressModes = array( $index => $mode );
 		else $this->_progressModes[$index] = $mode;
@@ -486,7 +521,7 @@ class TreeDataRow extends TreeDataItem
 	
 	public function setEditable( $column, $state ) {
 		if( ($index = $this->getColumnIndex($column)) === NULL )
-			throw new SFException( "No such column: $column" );
+			throw new SFException( "No such column: $column", ERR_REPORT_APP );
 		
 		if( (!is_array($this->_editableCells)) && $state ) $this->_editableCells = array( $index => $state );
 		elseif( $state ) $this->_editableCells[$index] = $state;
@@ -503,7 +538,7 @@ class TreeDataRow extends TreeDataItem
 		
 		if( $allow ) {
 			if( ! in_array($type,$types) )
-				throw new SFException( "Invalid type: $type" );
+				throw new SFException( "Invalid type: $type", ERR_REPORT_APP );
 			
 			$this->_isDraggable = $type;
 		}
@@ -521,7 +556,7 @@ class TreeDataRow extends TreeDataItem
 		
 		if( $allow ) {
 			if( ! in_array($type,$types) )
-				throw new SFException( "Invalid type: $type" );
+				throw new SFException( "Invalid type: $type", ERR_REPORT_APP );
 			
 			$this->_allowDrop = $type;
 		}
@@ -582,7 +617,7 @@ class TreeDataRow extends TreeDataItem
 		if( isset($this->_variables[$name]) )
 			return $this->_variables[$name];
 		else
-			throw new SFException( "No such column: $name" );
+			throw new SFException( "No such column: $name", ERR_REPORT_APP );
 	}
 	
 	public function __isset( $name ) {
@@ -685,6 +720,7 @@ class TreeDataSet extends TreeDataSupports
 	public $sortable = FALSE;
 	public $sortColumn = NULL;
 	public $sortDirection = 'asc';
+	public $columnProperties = array();
 	public $isSparse = FALSE;
 	public $preventCircularHeritage = TRUE;
 	
@@ -701,7 +737,7 @@ class TreeDataSet extends TreeDataSupports
 				continue;
 			
 			if( ! isset($col->dataId) )
-				throw new SFException( "XULTreeCol is missing dataId property" );
+				throw new SFException( "XULTreeCol is missing dataId property", ERR_REPORT_APP );
 			
 			$this->columns[] = $col->dataId;
 			$this->colTypes[] = $col->type();
@@ -724,9 +760,19 @@ class TreeDataSet extends TreeDataSupports
 	public function setColumnSortType( $col, $type ) {
 		$types = array( 'natural', 'alphanumeric', 'numeric', 'date' );
 		if(! in_array($type, $types) )
-			throw new SFException( "Invalid sort type: $type" );
+			throw new SFException( "Invalid sort type: $type", ERR_REPORT_APP );
 		
 		$this->colSortTypes[$this->getColumnIndex($col)] = $type;
+	}
+	
+	public function setColumnProperties( $column, $properties ) {
+		if( ($index = $this->getColumnIndex($column)) === NULL )
+			throw new SFException( "No such column: $column", ERR_REPORT_APP );
+		if( ! is_array($properties) )
+			throw new SFException( "Properties should be supplied as an array", ERR_REPORT_APP );
+		
+		$this->columnProperties[$index] = array_values( $properties );
+		$this->tree->callMethod( 'view.setColumnProperties', json_encode($this->columnProperties) );
 	}
 	
 	public function allowForeignDrop( $allow ) {
@@ -764,7 +810,7 @@ class TreeDataSet extends TreeDataSupports
 		
 		if( $allow ) {
 			if( ! in_array($type,$types) )
-				throw new SFException( "Invalid type: $type" );
+				throw new SFException( "Invalid type: $type", ERR_REPORT_APP );
 			
 			$this->tree->setProperty( 'isDraggable', $type );
 		}
@@ -777,7 +823,7 @@ class TreeDataSet extends TreeDataSupports
 		
 		if( $allow ) {
 			if( ! in_array($type,$types) )
-				throw new SFException( "Invalid type: $type" );
+				throw new SFException( "Invalid type: $type", ERR_REPORT_APP );
 			
 			$this->tree->setProperty( 'allowDrop', $type );
 		}

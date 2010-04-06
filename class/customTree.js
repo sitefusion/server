@@ -175,6 +175,7 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
 	this.visibleData = [];
 	this.idToRow = [];
 	this.rowCount = 0;
+	this.columnProperties = [];
 	
 	this.setTree = function( treebox ) { this.treeBox = treebox; };
 	
@@ -218,6 +219,10 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
 			else
 				row.allowDrop = update.allowDrop;
 		}
+		if( typeof(update.properties) != 'undefined' )
+			row.properties = update.properties;
+		if( typeof(update.cellProperties) != 'undefined' )
+			row.cellProperties = update.cellProperties;
 		
 		this.invalidateRow( idx );
 	};
@@ -608,15 +613,46 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
 		}
 	};
 	
+	this.getRowProperties = function( idx, prop ) {
+		var row = this.visibleData[idx];
+		if( row.properties ) {
+			var aserv = Cc["@mozilla.org/atom-service;1"].getService(Ci.nsIAtomService);
+			for( var n = 0; n < row.properties.length; n++ ) {
+				prop.AppendElement(aserv.getAtom(row.properties[n]));
+			}
+		}
+	};
+	
+	this.getColumnProperties = function( column, prop ) {
+		if( this.columnProperties[column.index] ) {
+			var aserv = Cc["@mozilla.org/atom-service;1"].getService(Ci.nsIAtomService);
+			for( var n = 0; n < this.columnProperties[column.index].length; n++ ) {
+				prop.AppendElement(aserv.getAtom(this.columnProperties[column.index][n]));
+			}
+		}
+	};
+	
+	this.getCellProperties = function( idx, column, prop ) {
+		var row = this.visibleData[idx];
+		if( row.cellProperties && row.cellProperties[column.index] ) {
+			var aserv = Cc["@mozilla.org/atom-service;1"].getService(Ci.nsIAtomService);
+			for( var n = 0; n < row.cellProperties[column.index].length; n++ ) {
+				prop.AppendElement(aserv.getAtom(row.cellProperties[column.index][n]));
+			}
+		}
+	};
+	
+	this.setColumnProperties = function( properties ) {
+		this.columnProperties = eval('('+properties+')');
+		this.invalidateTable();
+	};
+	
 	this.cycleHeader = function( col ) {
 		if( !this.sfTree.sortable ) return;
 		this.sfTree.fireEvent( 'sortColumn', [ col.index ] );
 	};
 	
-	this.isSorted = function() { return true; },
-	this.getRowProperties = function( row, props ) {},
-	this.getCellProperties = function( row, col, props ) {},
-	this.getColumnProperties = function( colid, col, props ) {},
+	this.isSorted = function() { return true; };
 	
 	this.isOpenRecursive = function( row ) {
 		var par = row;
