@@ -79,6 +79,18 @@ class XULButton extends BranchNode
 		$this->setEventType( 'command', MSG_SEND );
 	}
 	
+	
+	/**
+	 * Sets an image path
+	 * 
+	 * The path can either be a URL or a local path starting with /
+	 * In the case of a local path, the root is considered to be the sitefusion directory, so
+	 * the path "/app/testapp/myimage.png" points to this path within your sitefusion directory
+	 *
+	 * @param string	$src	The URL or path to the image
+	 * @return object|string	Returns a reference to the self for chaining method calls, or the current image value if called without arguments
+	*/
+	
 	public function image( $src = NULL ) {
 		if( $src === NULL )
 			return (isset($this->image) ? $this->image : NULL);
@@ -116,6 +128,18 @@ class XULProgressMeter extends Node
 		$this->insertElement();
 	}
 
+	
+	/**
+	 * Sets the progress mode
+	 * 
+	 * The supplied mode can be:
+	 * - 'determined': the progress meter is determined and shows the value set through the value() method
+	 * - 'undetermined': the progress meter shows undetermined activity
+	 *
+	 * @param string	$src	The URL or path to the image
+	 * @return object|string	Returns a reference to the self for chaining method calls, or the current mode if called without arguments
+	*/
+	
 	public function mode( $mode = NULL ) {
 		return $this->attributeMethod( 'mode', ($mode == 'determined' ? 'determined':'undetermined') );
 	}
