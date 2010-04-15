@@ -1110,7 +1110,8 @@ class ClientFileService extends Node
 	*/
 	
 	public function onDownloaderFinished( $event ) {
-		$event->sourceObject->removeNode();
+		if($event->sourceObject->isChild)
+			$event->sourceObject->removeNode();
 	}
 	
 	
@@ -1205,7 +1206,8 @@ class ClientFileService extends Node
 	*/
 	
 	public function onUploaderFinished( $event ) {
-		$event->sourceObject->removeNode();
+		if( $event->sourceObject->isChild )
+			$event->sourceObject->removeNode();
 	}
 	
 	
