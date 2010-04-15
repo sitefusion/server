@@ -394,23 +394,23 @@ SiteFusion.Classes.Node = Class.create( {
 	},
 
 	onDragGestureEvent: function( event ) {
-		nsDragAndDrop.startDrag( event, this.DragObserver );
-	},
-
-	DragObserver: {
-		onDragStart: function( event, transferData, action ) {
-			var obj = event.target.sfNode;
-			transferData.data = new TransferData();
-			transferData.data.addDataForFlavour( 'sfNode/'+obj.draggableClassname, obj.cid );
-
-			for( var n = 0; n < obj.draggableFlavours.length; n += 2 ) {
-				transferData.data.addDataForFlavour( obj.draggableFlavours[n], obj.draggableFlavours[n+1] );
-			}
-
-			obj.fireEvent( 'sfdragstart' );
-		}
-	},
+		var dragObserver = {
+			onDragStart: function( event, transferData, action ) {
+				var obj = event.target.sfNode;
+				transferData.data = new TransferData();
+				transferData.data.addDataForFlavour( 'sfNode/'+obj.draggableClassname, obj.cid );
 	
+				for( var n = 0; n < obj.draggableFlavours.length; n += 2 ) {
+					transferData.data.addDataForFlavour( obj.draggableFlavours[n], obj.draggableFlavours[n+1] );
+				}
+	
+				obj.fireEvent( 'sfdragstart' );
+			}
+		};
+		
+		nsDragAndDrop.startDrag( event, dragObserver );
+	},
+
 	DropObserver: Class.create( {
 		initialize: function( sfNode, flavours ) {
 			this.sfNode = sfNode;
