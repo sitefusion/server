@@ -1374,7 +1374,7 @@ class ClientFileService extends Node
 	}
 	
 	public function getDirSeparator() {
-		if( stripos(ApplicationProcess::$PlatformInfo['platform'],'win') != -1 )
+		if( stripos(ApplicationProcess::$PlatformInfo['platform'],'win') !== FALSE )
 			return "\\";
 		else
 			return "/";
