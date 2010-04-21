@@ -439,7 +439,7 @@ SiteFusion.Classes.Node = Class.create( {
 		onDrop: function( event, dropdata, session ) {
 			var data = dropdata.data;
 			if( dropdata.flavour.contentType.substr( 0, 7 ) == 'sfNode/' )
-				data = window.registry[data];
+				data = SiteFusion.Registry[data];
 			this.sfNode.fireEvent( 'sfdragdrop', [ data ] );
 		}
 	} ),
