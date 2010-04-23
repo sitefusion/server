@@ -1582,8 +1582,12 @@ class ClientDirectory extends ClientBaseFile
 	*/
 	
 	public function appendDirectory( $dirName ) {
-		if( isset($this->entries[$dirName]) )
-			throw new SFException( "File or directory $dirName already exists", ERR_REPORT_APP );
+		if( isset($this->entries[$dirName]) ) {
+			if( $this->entries[$dirName]->isDirectory )
+				return $this->entries[$dirName];
+			else
+				throw new SFException( "$dirName is a file", ERR_REPORT_APP );
+		}
 		
 		$file = new ClientDirectory;
 		$file->fileService = $this->fileService;
@@ -1602,8 +1606,12 @@ class ClientDirectory extends ClientBaseFile
 	*/
 	
 	public function appendFile( $fileName ) {
-		if( isset($this->entries[$fileName]) )
-			throw new SFException( "File or directory $fileName already exists", ERR_REPORT_APP );
+		if( isset($this->entries[$fileName]) ) {
+			if( !$this->entries[$fileName]->isDirectory )
+				return $this->entries[$fileName];
+			else
+				throw new SFException( "$fileName is a directory", ERR_REPORT_APP );
+		}
 		
 		$file = new ClientFile;
 		$file->fileService = $this->fileService;

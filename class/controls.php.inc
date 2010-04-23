@@ -275,7 +275,9 @@ class XULScale extends Node
 class XULTextBox extends BranchNode
 {
 	public $remoteConstructor = 'TextBox';
-	public $initAttributes = array( 'multiline', 'readonly', 'type', 'cols', 'rows', 'timeout', 'wrap', 'maxlength' );
+	public $initAttributes = array( 'multiline', 'readonly', 'type', 'cols', 'rows',
+		'timeout', 'wrap', 'maxlength', 'min', 'max', 'searchbutton', 'increment',
+		'emptytext', 'hidespinbuttons', 'decimalplaces', 'newlines', 'wraparound' );
 
 
 	public function __construct( $value = '', $multiline = FALSE, $width = NULL, $height = NULL ) {
@@ -327,12 +329,43 @@ class XULTextBox extends BranchNode
 	public function maxlength( $val = NULL ) {
 		return $this->attributeMethod( 'maxlength', $val );
 	}
-
-	public function size( $heightOrVal = NULL, $width = NULL ) {
-		if( $width === NULL )
-			return $this->attributeMethod( 'size', $heightOrVal );
-		else parent::size( $heightOrVal, $width );
+	
+	public function min( $val = NULL ) {
+		return $this->attributeMethod( 'min', $val );
 	}
+
+	public function max( $val = NULL ) {
+		return $this->attributeMethod( 'max', $val );
+	}
+
+	public function searchbutton( $val = NULL ) {
+		return $this->attributeMethod( 'searchbutton', $val );
+	}
+
+	public function increment( $val = NULL ) {
+		return $this->attributeMethod( 'increment', $val );
+	}
+
+	public function emptytext( $val = NULL ) {
+		return $this->attributeMethod( 'emptytext', $val );
+	}
+
+	public function hidespinbuttons( $val = NULL ) {
+		return $this->attributeMethod( 'hidespinbuttons', $val );
+	}
+
+	public function decimalplaces( $val = NULL ) {
+		return $this->attributeMethod( 'decimalplaces', $val );
+	}
+
+	public function newlines( $val = NULL ) {
+		return $this->attributeMethod( 'newlines', $val );
+	}
+
+	public function wraparound( $val = NULL ) {
+		return $this->attributeMethod( 'wraparound', $val );
+	}
+
 }
 
 
@@ -419,12 +452,7 @@ class XULDatePicker extends Node
 		$this->value = $value;
 		
 		if( $this->isRegistered ) {
-			$this->setProperty( 'value', $value );
-			$this->setProperty( 'serverValue', $value );
-			$d = explode( '-', $value );
-			$this->setProperty( 'element.year', (int) $d[0] );
-			$this->setProperty( 'element.month', ((int)$d[1]) - 1 );
-			$this->setProperty( 'element.date', (int) $d[2] );
+			$this->setAttribute( 'value', $value );
 		}
 	}
 }

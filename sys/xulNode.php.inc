@@ -956,7 +956,7 @@ class Node
 		$this->padding = $pix;
 		
 		if( $this->isRegistered )
-			$this->setProperty( 'element.style.padding', $this->padding );
+			$this->setStyle( 'padding', $this->padding.'px' );
 		
 		return $this;
 	}
@@ -976,7 +976,7 @@ class Node
 		$this->paddingTop = $pix;
 		
 		if( $this->isRegistered )
-			$this->setProperty( 'element.style.paddingTop', $this->paddingTop );
+			$this->setStyle( 'paddingTop', $this->paddingTop.'px' );
 		
 		return $this;
 	}
@@ -996,7 +996,7 @@ class Node
 		$this->paddingRight = $pix;
 		
 		if( $this->isRegistered )
-			$this->setProperty( 'element.style.paddingRight', $this->paddingRight );
+			$this->setStyle( 'paddingRight', $this->paddingRight.'px' );
 		
 		return $this;
 	}
@@ -1016,7 +1016,7 @@ class Node
 		$this->paddingBottom = $pix;
 		
 		if( $this->isRegistered )
-			$this->setProperty( 'element.style.paddingBottom', $this->paddingBottom );
+			$this->setStyle( 'paddingBottom', $this->paddingBottom.'px' );
 		
 		return $this;
 	}
@@ -1036,7 +1036,7 @@ class Node
 		$this->paddingLeft = $pix;
 		
 		if( $this->isRegistered )
-			$this->setProperty( 'element.style.paddingLeft', $this->paddingLeft );
+			$this->setStyle( 'paddingLeft', $this->paddingLeft.'px' );
 		
 		return $this;
 	}
@@ -1060,7 +1060,7 @@ class Node
 		$this->margin = $pix;
 		
 		if( $this->isRegistered )
-			$this->setProperty( 'element.style.margin', $this->margin );
+			$this->setStyle( 'margin', $this->margin.'px' );
 		
 		return $this;
 	}
@@ -1080,7 +1080,7 @@ class Node
 		$this->marginTop = $pix;
 		
 		if( $this->isRegistered )
-			$this->setProperty( 'element.style.marginTop', $this->marginTop );
+			$this->setStyle( 'marginTop', $this->marginTop.'px' );
 		
 		return $this;
 	}
@@ -1100,7 +1100,7 @@ class Node
 		$this->marginRight = $pix;
 		
 		if( $this->isRegistered )
-			$this->setProperty( 'element.style.marginRight', $this->marginRight );
+			$this->setStyle( 'marginRight', $this->marginRight.'px' );
 		
 		return $this;
 	}
@@ -1120,7 +1120,7 @@ class Node
 		$this->marginBottom = $pix;
 		
 		if( $this->isRegistered )
-			$this->setProperty( 'element.style.marginBottom', $this->marginBottom );
+			$this->setStyle( 'marginBottom', $this->marginBottom.'px' );
 		
 		return $this;
 	}
@@ -1140,7 +1140,7 @@ class Node
 		$this->marginLeft = $pix;
 		
 		if( $this->isRegistered )
-			$this->setProperty( 'element.style.marginLeft', $this->marginLeft );
+			$this->setStyle( 'marginLeft', $this->marginLeft.'px' );
 		
 		return $this;
 	}
