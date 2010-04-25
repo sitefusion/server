@@ -459,10 +459,7 @@ class TreeDataRow extends TreeDataItem
 		if( $state === NULL )
 			return $this->_isOpen;
 		
-		// Candidate fix for sparse tree open bug
-		//$this->_isOpen = (bool)$state;
 		$this->openStateChanged( $state );
-		// end fix
 		
 		if( $this->_isSync )
 			$this->updateProperty( 'isOpen', (bool)$state );
@@ -654,7 +651,7 @@ class TreeDataRow extends TreeDataItem
 		$oldState = $this->_isOpen;
 		$this->_isOpen = $state;
 		
-		if( $this->dataSet->isSparse && (!$oldState) && isset($this->children[0]) && (!$this->children[0]->_isSync) )
+		if( $this->dataSet->isSparse && (!$oldState) && $state && $this->_isSync && isset($this->children[0]) && (!$this->children[0]->_isSync) )
 			$this->addSparseBranch();
 	}
 	
