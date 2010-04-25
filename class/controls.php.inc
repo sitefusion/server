@@ -452,6 +452,7 @@ class XULDatePicker extends Node
 		$this->value = $value;
 		
 		if( $this->isRegistered ) {
+			$this->setProperty( 'serverValue', $value );
 			$this->setAttribute( 'value', $value );
 		}
 	}

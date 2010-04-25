@@ -202,6 +202,8 @@ SiteFusion.Classes.DatePicker = Class.create( SiteFusion.Classes.Node, {
 	
 	yield: function() {
 		var val = this.element.value;
+		if( typeof(val) == 'undefined' )
+			val = this.serverValue;
 		this.fireEvent( 'yield', [ val ] );
 	}
 } );
