@@ -690,9 +690,7 @@ class XULMenuList extends BranchNode
 			}
 		}
 		else {
-			$test = array();
 			foreach ( $this->children[0]->children as $item ) {
-				$test[] = $item->value; $test[] = $item->id;
 				if( $item->value() == $val ) {
 					return $this->selectItem( $item );
 				}
