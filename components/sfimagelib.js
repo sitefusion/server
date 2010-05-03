@@ -17,27 +17,35 @@ SiteFusion.Classes.SFImageLib = Class.create( SiteFusion.Classes.Node, {
 	initialize: function( win ) {
 		this.element = win.createElement( 'label' );
 		this.element.sfNode = this;
+		try {
+	    	this.obj = Components.classes["@sitefusion/sfimagelib;1"].createInstance();
+	    	this.obj = this.obj.QueryInterface(Components.interfaces.ISFImageLib);
+	    
+			this.hostWindow = win;
+			this.storedSelection = [];
+			
+			this.setEventHost( [
+				'afterImageLoaded',
+				'SFImageError',
+				'afterImageResampled',
+				'afterImageSaved',
+				'setImageDetails',
+				'createTempPath'
+				] );
 		
-    this.obj = Components.classes["@sitefusion/sfimagelib;1"].createInstance();
-    this.obj = this.obj.QueryInterface(Components.interfaces.ISFImageLib);
-    
-		this.hostWindow = win;
-		this.storedSelection = [];
-		
-		this.setEventHost( [
-			'afterImageLoaded',
-			'SFImageError',
-			'afterImageResampled',
-			'afterImageSaved',
-			'setImageDetails',
-			'createTempPath'
-			] );
-	
-		this.eventHost.afterImageLoaded.msgType = 0;
-		this.eventHost.SFImageError.msgType = 0;
-		this.eventHost.afterImageResampled.msgType = 0;
-		this.eventHost.afterImageSaved.msgType = 0;
-		this.eventHost.setImageDetails.msgType = 1;
+			this.eventHost.afterImageLoaded.msgType = 0;
+			this.eventHost.SFImageError.msgType = 0;
+			this.eventHost.afterImageResampled.msgType = 0;
+			this.eventHost.afterImageSaved.msgType = 0;
+			this.eventHost.setImageDetails.msgType = 1;
+		}
+		catch (e) {
+			var em = Components.classes["@mozilla.org/extensions/manager;1"].createInstance(Components.interfaces.nsIExtensionManager);
+			var PromptService = Cc["@mozilla.org/embedcomp/prompt-service;1"].getService(Ci.nsIPromptService);
+			em.disableItem( 'sfimagelib@sitefusion.org' );
+			PromptService.alert( window, "Client-side error", 'An error occured while loading a client-side extension. This application will now disable the extension and restart.' );
+			System.Restart()
+		}
 	},
 	
 	getTempFilePath: function()
