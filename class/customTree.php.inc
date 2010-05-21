@@ -792,11 +792,11 @@ class TreeDataSet extends TreeDataSupports
 			$this->sort( TRUE );
 		}
 		
-		$cols = $this->tree->children[0]->children;
+		$cols = $this->tree->children[0]->getDescendants( 'XULTreeCol' );
 		for( $n = 0; $n < count($cols); $n++ ) {
 			if( $n === $col ) {
 				$cols[$n]->setAttribute( 'sortActive', 'true' );
-				$cols[$n]->setAttribute( 'sortDirection', ($this->sortDirection == 'asc' ? 'descending':'ascending') );
+				$cols[$n]->setAttribute( 'sortDirection', ($this->sortDirection == 'desc' ? 'descending':'ascending') );
 			}
 			else {
 				$cols[$n]->setAttribute( 'sortActive', 'false' );
