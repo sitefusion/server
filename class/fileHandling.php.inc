@@ -1518,7 +1518,6 @@ class ClientFile extends ClientBaseFile
 	 * - bool $status: indicates whether the operation was successful
 	 * - string $path: the remote path
 	 *
-	 * @param string		$clientPath			The path on the client side to remove
 	 * @param object|string	$handlerObj			The object or classname to call the handler on when the operation finishes
 	 * @param string		$handlerMethod		The method to call on the handler object
 	*/
@@ -1538,7 +1537,6 @@ class ClientFile extends ClientBaseFile
 	 * - int $modificationTime: the modification time of the file
 	 * - int $size: file size
 	 *
-	 * @param string		$clientPath			The path on the client side to monitor
 	 * @param object|string	$handlerObj			The object or classname to call the handler on when the operation finishes
 	 * @param string		$handlerMethod		The method to call on the handler object
 	*/
@@ -1556,7 +1554,6 @@ class ClientFile extends ClientBaseFile
 	 * - bool $status: indicates whether the operation was successful
 	 * - string $path: the remote path
 	 *
-	 * @param string		$clientPath			The path on the client side to execute
 	 * @param array 		$args				Arguments for the executable
 	 * @param bool			$async				If TRUE, the file is executed in the background. If FALSE, the application blocks until the executable ends
 	 * @param object|string	$handlerObj			The object or classname to call the handler on when the operation finishes
@@ -1630,7 +1627,6 @@ class ClientDirectory extends ClientBaseFile
 	 * - bool $status: indicates whether the operation was successful
 	 * - ClientDirectory $dirFile: if successful, a file object referring to the new remote directory
 	 *
-	 * @param string		$path				The path on the client side to create
 	 * @param object|string	$handlerObj			The object or classname to call the handler on when the operation finishes
 	 * @param string		$handlerMethod		The method to call on the handler object
 	*/
@@ -1648,7 +1644,6 @@ class ClientDirectory extends ClientBaseFile
 	 * - bool $status: indicates whether the operation was successful
 	 * - ClientDirectory $dirFile: if successful, a file object referring to the remote directory with the directory contents in the ClientFile::$entries array
 	 *
-	 * @param string		$path				The path on the client side to read
 	 * @param object|string	$handlerObj			The object or classname to call the handler on when the operation finishes
 	 * @param string		$handlerMethod		The method to call on the handler object
 	*/
@@ -1666,7 +1661,6 @@ class ClientDirectory extends ClientBaseFile
 	 * - bool $status: indicates whether the operation was successful
 	 * - string $path: the remote path
 	 *
-	 * @param string		$clientPath			The path on the client side to remove
 	 * @param bool			$recursive			If TRUE, all underlying contents are removed as well. If FALSE, the directory needs to be empty
 	 * @param object|string	$handlerObj			The object or classname to call the handler on when the operation finishes
 	 * @param string		$handlerMethod		The method to call on the handler object
