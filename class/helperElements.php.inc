@@ -188,14 +188,17 @@ class XULSound extends Node
 	}
 	
 	public function play() {
-		$this->callMethod( 'play');
+		if($this->isRegistered)
+			$this->callMethod('play');
 	}
 	
 	public function playSystemSound($soundAlias) {
-		$this->callMethod( 'playSystemSound', array( $soundAlias  ) );
+		if($this->isRegistered)
+			$this->callMethod( 'playSystemSound', array( $soundAlias  ) );
 	}
 	
 	public function beep() {
-		$this->callMethod( 'beep' );
+		if($this->isRegistered)
+			$this->callMethod( 'beep' );
 	}
 }
