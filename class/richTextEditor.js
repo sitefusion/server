@@ -33,7 +33,7 @@ SiteFusion.Classes.RichTextEditor = Class.create( SiteFusion.Classes.Editor, {
 		var oThis = this;
 		
 		this.hostWindow = win;
-		
+
 		window.controllers.appendController(
 		{
 		  supportsCommand : function(cmd) {
@@ -96,9 +96,19 @@ SiteFusion.Classes.RichTextEditor = Class.create( SiteFusion.Classes.Editor, {
 			'attr_span',
 			'madeEditable'
 		] );
+		
+		this.eventHost.initialized.msgType = 0;
+		this.eventHost.madeEditable.msgType = 0;
+		this.eventHost.yield.msgType = 1;
+	},
 	
-		var myKey = win.createElement( 'key' );
-		var myKeySet = win.createElement( 'keyset' );
+	editorLoaded: function() {
+
+		var oThis = this;
+		var func = function() { oThis.checkDocumentState(); };
+		
+		var myKey = this.hostWindow.createElement( 'key' );
+		var myKeySet = this.hostWindow.createElement( 'keyset' );
 		myKey.setAttribute('key', "V");
 		myKey.setAttribute('modifiers', "accel");
 
@@ -107,15 +117,6 @@ SiteFusion.Classes.RichTextEditor = Class.create( SiteFusion.Classes.Editor, {
 		
 		myKeySet.appendChild(myKey);
 		this.element.appendChild(myKeySet);
-		
-		this.eventHost.initialized.msgType = 0;
-		this.eventHost.madeEditable.msgType = 0;
-		this.eventHost.yield.msgType = 1;
-	},
-	
-	editorLoaded: function() {
-		var oThis = this;
-		var func = function() { oThis.checkDocumentState(); };
 		
 		if (!this.editorElement)
 			this.editorElement = this.element;

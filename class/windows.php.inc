@@ -162,7 +162,7 @@ class XULChildWindow extends XULBasicWindow
 	public $alwaysLowered	= FALSE;
 	public $alwaysRaised	= FALSE;
 	public $modal		= FALSE;
-	public $centerscreen	= TRUE;
+	public $centerscreen	= FALSE;
 	public $dependent	= TRUE;
 	public $dialog		= FALSE;
 	public $resizable	= TRUE;
