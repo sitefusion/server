@@ -37,6 +37,7 @@ class XULEditor extends BranchNode
 	public $resultHTML = '';
 	protected $editable = FALSE;
 	protected $value = "";
+	public $disabled = FALSE;
 	
 	/**
 	 * Dynamic Constructor
@@ -76,6 +77,9 @@ class XULEditor extends BranchNode
 		$this->editable = TRUE;
 		
 		$this->callMethod( 'setValue', $this->value);
+		if($this->disabled)
+			$this->callMethod( 'disableInput', $this->disabled );
+
 	}
 	
 	public function afterInit() 
