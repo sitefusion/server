@@ -34,7 +34,7 @@ SiteFusion.Classes.RichTextEditor = Class.create( SiteFusion.Classes.Editor, {
 		
 		this.hostWindow = win;
 
-		window.controllers.appendController(
+		/*window.controllers.appendController(
 		{
 		  supportsCommand : function(cmd) {
 		    var isSupported = false;
@@ -65,7 +65,7 @@ SiteFusion.Classes.RichTextEditor = Class.create( SiteFusion.Classes.Editor, {
 		    }
 		  }
 		}
-		);
+		);*/
 		
 		this.setEventHost( [
 			'before_initialize',
@@ -113,7 +113,8 @@ SiteFusion.Classes.RichTextEditor = Class.create( SiteFusion.Classes.Editor, {
 		myKey.setAttribute('modifiers', "accel");
 
 		myKey.sfNode = this;
-		myKey.setAttribute("oncommand", "sfRootWindow.windowObject.SiteFusion.CommandUpdater.doCommand('cmd_pasteNoFormatting');");
+		//myKey.setAttribute("oncommand", "sfRootWindow.windowObject.SiteFusion.CommandUpdater.doCommand('cmd_pasteNoFormatting');");
+		myKey.setAttribute("oncommand", "sfRootWindow.windowObject.SiteFusion.Registry[" + oThis.cid + "].textEditor.QueryInterface(Components.interfaces.nsIHTMLEditor).pasteNoFormatting(1)");
 		
 		myKeySet.appendChild(myKey);
 		this.element.appendChild(myKeySet);
