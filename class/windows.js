@@ -155,10 +155,13 @@ SiteFusion.Classes.Window = Class.create( SiteFusion.Classes.BasicWindow, {
 		
 		var shutdownObserver = {
 			observe: function( subject, topic, data ) {
+				alert('test');
 				if( !oThis.onClose() )
 					subject.data = true;
 			}
 		};
+		
+		obsService.addObserver( shutdownObserver, 'profile-change-net-teardown', false );
 		
 		obsService.addObserver( shutdownObserver, 'quit-application-requested', false );
 		
@@ -476,3 +479,41 @@ SiteFusion.Classes.PromptService = Class.create( SiteFusion.Classes.Node, {
 	}
 } );
 
+
+SiteFusion.Classes.AlertNotification = Class.create( SiteFusion.Classes.Node, {
+	sfClassName: 'AlertNotification',
+	
+	initialize: function( win ) {
+		this.hostWindow = win;
+		this.element = win.createElement( 'box' );
+		this.element.hidden = true;
+		
+		this.setEventHost( [ 'finished' ] );
+	},
+	
+	showAlertNotification: function( imageUrl, title, text, name, textClickable ) {
+		try {
+			var alertsService = Cc["@mozilla.org/alerts-service;1"].getService(Ci.nsIAlertsService);
+			
+			var oThis = this;
+			var observer = {
+				observe: function( subject, topic, data ) {
+					switch ( topic ) {
+						case 'alertfinished':
+							oThis.fireEvent( 'finished' );
+						break;
+						
+						case 'alertclickcallback':
+							oThis.fireEvent( 'command' );
+						break;
+					}
+				}
+			};
+	        
+	        alertsService.showAlertNotification( (imageUrl != '' ? this.parseImageURL(imageUrl):''), title, text, textClickable, '', observer, (name == null ? 'SiteFusionAlertNotification' : name) );
+	    }
+	    catch( e ) {
+	    	this.fireEvent( 'finished' );
+	    }
+	}
+} );

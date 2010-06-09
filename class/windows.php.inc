@@ -748,3 +748,51 @@ class PromptService extends Node
 	}
 }
 
+
+/**
+ * OS-native alert notification node
+ * 
+ * This node displays taskbar style notification boxes in Windows and Growl notifications in MacOS X (when installed).
+ * Alert notifications can be made clickable, making them fire 'command' events when clicked. They also fire a 'finished'
+ * event when disappearing. The notification appears as soon as it's registered (added to a registered parent node).
+ */
+
+class AlertNotification extends Node
+{
+	public $remoteConstructor = 'AlertNotification';
+	
+	
+	/**
+	 * Constructor
+	 *
+	 * @param string	$image			Path to the image to display (empty string to display no image)
+	 * @param string	$title			Title of the alert
+	 * @param string	$text			Text of the alert
+	 * @param string	$name			Name of the notification type (if supplied, this can be used by f.e. Growl to disable certain messages)
+	 * @param bool		$textClickable	Boolean indicating whether the notification should be clickable. If TRUE, the notification fires a 'command' event when clicked.
+	 */
+	
+	public function __construct( $image, $title, $text, $name = NULL, $textClickable = FALSE ) {
+		$this->image = $image;
+		$this->title = $title;
+		$this->text = $text;
+		$this->name = $name;
+		$this->textClickable = $textClickable;
+	}
+	
+	public function attach() {
+		parent::attach();
+		$this->setEvent( 'finished', MSG_SEND, $this, 'onFinished' );
+		
+		$this->callMethod( 'showAlertNotification', array( $this->image, $this->title, $this->text, $this->name, $this->textClickable ) );
+	}
+	
+	
+	/**
+	 * Internal handler for the 'finished' event, removes the node
+	 */
+	
+	public function onFinished( $e ) {
+		$this->removeNode();
+	}
+}
