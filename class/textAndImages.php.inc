@@ -236,7 +236,8 @@ class XULDirectImage extends Node
 		$this->transferStarted = FALSE;
 		$this->transferSize = NULL;
 		
-		unlink( $this->tempImagePath );
+		if (file_exists($this->tempImagePath))
+			unlink( $this->tempImagePath );
 		$this->tempImagePath = NULL;
 	}
 }
