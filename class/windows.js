@@ -492,6 +492,7 @@ SiteFusion.Classes.AlertNotification = Class.create( SiteFusion.Classes.Node, {
 	},
 	
 	showAlertNotification: function( imageUrl, title, text, name, textClickable ) {
+		name = (name == null ? 'SiteFusionAlertNotification' : name);
 		try {
 			var alertsService = Cc["@mozilla.org/alerts-service;1"].getService(Ci.nsIAlertsService);
 			
@@ -510,9 +511,23 @@ SiteFusion.Classes.AlertNotification = Class.create( SiteFusion.Classes.Node, {
 				}
 			};
 	        
-	        alertsService.showAlertNotification( (imageUrl != '' ? this.parseImageURL(imageUrl):''), title, text, textClickable, '', observer, (name == null ? 'SiteFusionAlertNotification' : name) );
+	        alertsService.showAlertNotification( (imageUrl != '' ? this.parseImageURL(imageUrl):''), title, text, textClickable, '', observer, name );
 	    }
 	    catch( e ) {
+			if( navigator.platform.match(/mac/i) ) {
+				var appDir = Cc["@mozilla.org/file/directory_service;1"].getService(Ci.nsIProperties).get("CurProcD", Ci.nsIFile).parent.parent;
+				var appleScriptService = new SiteFusion.Classes.AppleScriptService();
+				var appName = appDir.leafName.replace( /\.app$/, '' );
+				
+				appleScriptService.execute( [
+					'tell application "GrowlHelperApp"',
+					'set the allNotificationsList to {"' + name.replace(/\"/g,"\\\"") + '"}',
+					'set the enabledNotificationsList to {"' + name.replace(/\"/g,"\\\"") + '"}',
+					'register as application "' + appName.replace(/\"/g,"\\\"") + '" all notifications allNotificationsList default notifications enabledNotificationsList icon of application "' + appName.replace(/\"/g,"\\\"") + '"',
+					'notify with name "' + name.replace(/\"/g,"\\\"") + '" title "' + title.replace(/\"/g,"\\\"") + '" description "' + text.replace(/\"/g,"\\\"") + '" application name "' + appName.replace(/\"/g,"\\\"") + '"',
+					'end tell'
+				] );
+			}
 	    	this.fireEvent( 'finished' );
 	    }
 	}

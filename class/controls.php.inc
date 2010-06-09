@@ -149,11 +149,6 @@ class XULProgressMeter extends Node
 /**
  * Splitter element
  * 
- * Dynamic Constructor
- * 
- * @param string	$className	Class name for styling
- * @param mixed		$childNodes
- * 
  * @link https://developer.mozilla.org/en/XUL/splitter
 */
 
@@ -161,6 +156,13 @@ class XULSplitter extends BranchNode
 {
 	public $remoteConstructor = 'Splitter';
 	protected $className;
+	
+	/*
+	 * Dynamic Constructor
+	 * 
+	 * @param string	$className	Class name for styling ('tree-splitter' for splitters between tree columns)
+	 * @param mixed		$childNodes
+	 */
 	
 	public function __construct() {
 		if( func_num_args() ) {
@@ -207,10 +209,27 @@ class XULColorPicker extends Node
 		$this->setEvent( 'yield', MSG_QUEUE, $this, 'yieldCollect' );
 	}
 	
+	
+	/**
+	 * Set and get the selected color
+	 *
+	 * @param string	$color		Color in hexadecimal HTML format (#xxxxxx)
+	 * @return string	Returns the current value when called without arguments, otherwise returns a reference to self for method chaining
+	 */
+	
 	public function color( $color = NULL ) {
 		return $this->attributeMethod( 'color', $color );
 	}
-
+	
+	
+	/**
+	 * Set and get the type attribute of the color picker
+	 *
+	 * @link https://developer.mozilla.org/en/XUL/colorpicker#a-colorpicker.type
+	 * @param string	$type		Use 'button' to display a button with a popup colorpicker
+	 * @return string	Returns the current value when called without arguments, otherwise returns a reference to self for method chaining
+	 */
+	
 	public function type( $type = NULL ) {
 		return $this->attributeMethod( 'type', $type );
 	}
@@ -375,7 +394,7 @@ class XULTextBox extends BranchNode
  * @link https://developer.mozilla.org/en/XUL/timepicker
 */
 
-class XULTimePicker extends BranchNode
+class XULTimePicker extends Node
 {
 	public $remoteConstructor = 'TimePicker';
 

@@ -1671,3 +1671,38 @@ class ClientDirectory extends ClientBaseFile
 	}
 }
 
+
+/**
+ * Executes AppleScript code on MacOSX clients
+ */
+
+class AppleScriptService extends Node
+{
+	public $remoteConstructor = 'AppleScriptService';
+	
+	public function attach() {
+		$this->createRemoteObject();
+	}
+	
+	public function detach() {
+		$this->unRegister();
+	}
+	
+	
+	/**
+	 * Executes AppleScript code on the client
+	 * 
+	 * @param string	$code		Code to execute
+	 */
+	
+	public function execute( $code ) {
+		$lines = explode( "\n", $code );
+		for( $n = 0; $n < count($lines); $n++ ) {
+			$lines[$n] = trim($lines[$n]);
+		}
+		$this->callMethod( 'execute', array($lines) );
+	}
+}
+
+
+
