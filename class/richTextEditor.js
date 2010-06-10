@@ -33,39 +33,6 @@ SiteFusion.Classes.RichTextEditor = Class.create( SiteFusion.Classes.Editor, {
 		var oThis = this;
 		
 		this.hostWindow = win;
-
-		/*window.controllers.appendController(
-		{
-		  supportsCommand : function(cmd) {
-		    var isSupported = false;
-		    switch (cmd) {
-		      case "cmd_pasteNoFormatting": 
-		        isSupported = true;
-		        break;
-		      default:
-		        isSupported = false;
-		        break;
-		    }
-		    return isSupported;
-		  },
-		  
-		  isCommandEnabled : function(cmd) {
-		    var textEditor = this.textEditor;
-		    if (textEditor) {
-					return textEditor.canPaste(textEditor.eNone);
-		    }
-		    return false;
-		  },
-		  
-		  doCommand : function(cmd) {
-		    var textEditor = this.textEditor;
-		    if (textEditor) {
-		      var htmlEditor = textEditor.QueryInterface(Components.interfaces.nsIHTMLEditor);
-		      htmlEditor.pasteNoFormatting(textEditor.eNone);
-		    }
-		  }
-		}
-		);*/
 		
 		this.setEventHost( [
 			'before_initialize',
@@ -107,18 +74,6 @@ SiteFusion.Classes.RichTextEditor = Class.create( SiteFusion.Classes.Editor, {
 		var oThis = this;
 		var func = function() { oThis.checkDocumentState(); };
 		
-		var myKey = this.hostWindow.createElement( 'key' );
-		var myKeySet = this.hostWindow.createElement( 'keyset' );
-		myKey.setAttribute('key', "V");
-		myKey.setAttribute('modifiers', "accel");
-
-		myKey.sfNode = this;
-		//myKey.setAttribute("oncommand", "sfRootWindow.windowObject.SiteFusion.CommandUpdater.doCommand('cmd_pasteNoFormatting');");
-		myKey.setAttribute("oncommand", "sfRootWindow.windowObject.SiteFusion.Registry[" + oThis.cid + "].textEditor.QueryInterface(Components.interfaces.nsIHTMLEditor).pasteNoFormatting(1)");
-		
-		myKeySet.appendChild(myKey);
-		this.element.appendChild(myKeySet);
-		
 		if (!this.editorElement)
 			this.editorElement = this.element;
 		
@@ -138,21 +93,38 @@ SiteFusion.Classes.RichTextEditor = Class.create( SiteFusion.Classes.Editor, {
 		}
 		else this.textEditor.selection.collapse( this.editorElement, 1 );
 			
+		this.element.contentWindow.onfocus= function() {
+			var myKey = oThis.hostWindow.createElement( 'key' );
+			oThis.element.myKeySet = oThis.hostWindow.createElement( 'keyset' );
+			myKey.setAttribute('key', "V");
+			myKey.setAttribute('modifiers', "accel");
+	
+			myKey.sfNode = oThis;
+			
+			myKey.setAttribute("oncommand", "sfRootWindow.windowObject.SiteFusion.Registry[" + oThis.cid + "].textEditor.QueryInterface(Components.interfaces.nsIHTMLEditor).pasteNoFormatting(1)");
+	
+			oThis.element.myKeySet.appendChild(myKey);
+			oThis.element.appendChild(oThis.element.myKeySet);
+		}
+		this.element.contentWindow.onblur= function() {
+			oThis.element.removeChild(oThis.element.myKeySet);
+		}
+		
 		this.checkDocumentState();
 	
 		this.fireEvent( 'after_loaddata' );
 	},
 	setValue: function( html ) {
 		var textEditor = this.textEditor;
-    textEditor.enableUndo(false);
-    textEditor.selectAll();
-    textEditor.deleteSelection(textEditor.eNone);
-    textEditor.enableUndo(true);
-    textEditor.resetModificationCount();
-    textEditor.document.title = "";
-		this.element.contentDocument.body.innerHTML = html;
+	    textEditor.enableUndo(false);
+	    textEditor.selectAll();
+	    textEditor.deleteSelection(textEditor.eNone);
+	    textEditor.enableUndo(true);
+	    textEditor.resetModificationCount();
+	    textEditor.document.title = "";
+		this.element.contentDocument.execCommand("inserthtml", false, html);
 	},
-  setBodyStyle: function (prop, value) {
+  	setBodyStyle: function (prop, value) {
 		var oThis = this;
 		setTimeout(function() { oThis.element.contentDocument.body.style[prop] = value; }, 100);
 	}

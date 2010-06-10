@@ -41,6 +41,14 @@ class XULRichTextEditor extends XULEditor
 		$this->callMethod( 'setBodyStyle', array($prop, $value) );
 	}
 	
+	public function afterMadeEditable()
+	{
+		$this->callMethod( 'editorLoaded');
+		$this->editable = TRUE;
+		
+		$this->callMethod( 'setValue', $this->value);
+	}
+	
 	public function yieldCollect( $e, $val = NULL ) {
 		$this->value = $val;
 	}

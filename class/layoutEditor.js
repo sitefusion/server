@@ -78,7 +78,8 @@ SiteFusion.Classes.Editor = Class.create( SiteFusion.Classes.Node, {
 	},
 	
 	setValue: function( html ) {
-		this.element.contentDocument.body.innerHTML = html;
+		//this.element.contentDocument.body.innerHTML = html;
+		this.element.contentDocument.execCommand("inserthtml", false, html);
 	},
 	
 	makeEditable: function() {
@@ -97,6 +98,7 @@ SiteFusion.Classes.Editor = Class.create( SiteFusion.Classes.Node, {
 		this.element.contentDocument.onkeyup = func;
 		this.element.contentDocument.onpaste = this.pasteHandler;
 		
+
 		this.htmlEditor = this.element.getHTMLEditor( this.element.contentWindow );
 		this.textEditor = this.element.getEditor( this.element.contentWindow );
 		
@@ -110,14 +112,14 @@ SiteFusion.Classes.Editor = Class.create( SiteFusion.Classes.Node, {
 		}
 		else this.textEditor.selection.collapse( this.editorElement, 1 );
 			
-		this.checkDocumentState();
+		//this.checkDocumentState();
 	
 		this.fireEvent( 'after_loaddata' );
 	},
 	
 	disableInput: function(state)
 	{
-		this.element.contentDocument.execCommand('contentReadOnly',false, state);
+		//this.element.contentDocument.execCommand('contentReadOnly',false, state);
 	},
 	
 	yield: function() {
@@ -364,9 +366,6 @@ SiteFusion.Classes.Editor = Class.create( SiteFusion.Classes.Node, {
 		}
 		
 		var doc = this.element.contentDocument;
-		
-		
-		
 		var currentDocState = {};
 		var tBold = false, tItalic = false, tUnderline = false, tJustifyLeft = false, tJustifyCenter = false, tJustifyRight = false, tJustifyFull = false, tOrderedList = false, tUnorderedList = false, tIndent = false, tOutdent = false;
 		
@@ -380,13 +379,12 @@ SiteFusion.Classes.Editor = Class.create( SiteFusion.Classes.Node, {
 			tJustifyFull = doc.queryCommandState( 'justifyfull' );
 			tOrderedList = doc.queryCommandState( 'insertorderedlist' );
 			tUnorderedList = doc.queryCommandState( 'insertunorderedlist' );
-			tIndent = doc.queryCommandState( 'indent' );
-			tOutdent = doc.queryCommandState( 'outdent' );
+			//tIndent = doc.queryCommandState( 'indent' );
+			//tOutdent = doc.queryCommandState( 'outdent' );
 		}
 		catch( e ) {
+			alert(e);
 		}
-		
-		
 		
 		var spanState = false, spanAttr = [], spanElement = null, linkState = false, linkElement = null, linkAttr = [], imageState = false, imageElement = null, imageAttr = [];
 		var tableState = false, tableElement = null, tableAttr = [], tableRowState = false, tableRowElement = null, tableRowAttr = [], tableCellState = false, tableCellElement = null, tableCellAttr = [];
@@ -452,6 +450,7 @@ SiteFusion.Classes.Editor = Class.create( SiteFusion.Classes.Node, {
 			}
 		}
 		catch( e ) {
+			alert(e);
 		}
 	
 		
