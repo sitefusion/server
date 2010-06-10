@@ -78,8 +78,14 @@ SiteFusion.Classes.Editor = Class.create( SiteFusion.Classes.Node, {
 	},
 	
 	setValue: function( html ) {
-		//this.element.contentDocument.body.innerHTML = html;
-		this.element.contentDocument.execCommand("inserthtml", false, html);
+		var textEditor = this.textEditor;
+	    textEditor.enableUndo(false);
+	    textEditor.selectAll();
+	    textEditor.deleteSelection(textEditor.eNone);
+	    textEditor.enableUndo(true);
+	    textEditor.resetModificationCount();
+		if (html)
+			this.element.contentDocument.execCommand("inserthtml", false, html);
 	},
 	
 	makeEditable: function() {

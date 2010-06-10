@@ -122,7 +122,8 @@ SiteFusion.Classes.RichTextEditor = Class.create( SiteFusion.Classes.Editor, {
 	    textEditor.enableUndo(true);
 	    textEditor.resetModificationCount();
 	    textEditor.document.title = "";
-		this.element.contentDocument.execCommand("inserthtml", false, html);
+	    if (html)
+			this.element.contentDocument.execCommand("inserthtml", false, html);
 	},
   	setBodyStyle: function (prop, value) {
 		var oThis = this;
