@@ -155,13 +155,17 @@ SiteFusion.Classes.Window = Class.create( SiteFusion.Classes.BasicWindow, {
 		
 		var shutdownObserver = {
 			observe: function( subject, topic, data ) {
-				alert('test');
+				
+				if (topic == 'wake_notification') {
+					//TODO: wake handling? Close with message?
+					return;	
+				}
 				if( !oThis.onClose() )
 					subject.data = true;
 			}
 		};
 		
-		obsService.addObserver( shutdownObserver, 'profile-change-net-teardown', false );
+		obsService.addObserver( shutdownObserver, 'wake_notification', false );
 		
 		obsService.addObserver( shutdownObserver, 'quit-application-requested', false );
 		
