@@ -524,4 +524,12 @@ class Application
 	public function checkForUpdates() {
 		ApplicationProcess::$Application->sendCommand('SiteFusion.Updates.openUpdates();');
 	}
+	
+	/**
+	 * Sets the message that is displayed by the client before after-wake-shutdown
+	*/
+	public function setWakeMessage ($msg, $title = "Sleep") {
+		ApplicationProcess::$Application->sendCommand('SiteFusion.wakeTitle = '.json_encode($title));
+		ApplicationProcess::$Application->sendCommand('SiteFusion.wakeMessage = '.json_encode($msg));
+	}
 }
