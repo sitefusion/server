@@ -118,14 +118,14 @@ SiteFusion.Classes.Editor = Class.create( SiteFusion.Classes.Node, {
 		}
 		else this.textEditor.selection.collapse( this.editorElement, 1 );
 			
-		//this.checkDocumentState();
+		this.checkDocumentState();
 	
 		this.fireEvent( 'after_loaddata' );
 	},
 	
 	disableInput: function(state)
 	{
-		//this.element.contentDocument.execCommand('contentReadOnly',false, state);
+		this.element.contentDocument.execCommand('contentReadOnly',false, state);
 	},
 	
 	yield: function() {
@@ -385,11 +385,10 @@ SiteFusion.Classes.Editor = Class.create( SiteFusion.Classes.Node, {
 			tJustifyFull = doc.queryCommandState( 'justifyfull' );
 			tOrderedList = doc.queryCommandState( 'insertorderedlist' );
 			tUnorderedList = doc.queryCommandState( 'insertunorderedlist' );
-			//tIndent = doc.queryCommandState( 'indent' );
-			//tOutdent = doc.queryCommandState( 'outdent' );
+			tIndent = doc.queryCommandState( 'indent' );
+			tOutdent = doc.queryCommandState( 'outdent' );
 		}
 		catch( e ) {
-			alert(e);
 		}
 		
 		var spanState = false, spanAttr = [], spanElement = null, linkState = false, linkElement = null, linkAttr = [], imageState = false, imageElement = null, imageAttr = [];
@@ -456,7 +455,6 @@ SiteFusion.Classes.Editor = Class.create( SiteFusion.Classes.Node, {
 			}
 		}
 		catch( e ) {
-			alert(e);
 		}
 	
 		
