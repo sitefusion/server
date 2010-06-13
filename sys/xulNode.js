@@ -420,18 +420,18 @@ SiteFusion.Classes.Node = Class.create( {
 			this.sfNode.element.addEventListener( 'dragover', function(event) { oThis.onFileDragOver(event) || nsDragAndDrop.dragOver(event,oThis); }, true );
 			this.sfNode.element.addEventListener( 'dragdrop', function(event) { oThis.onFileDrop(event) || nsDragAndDrop.drop(event,oThis); }, true );
 
-			var flavorSet = new FlavourSet();
+			var flavourSet = new FlavourSet();
 
 			for( var n = 0; n < flavors.length; n++ ) {
-				flavorSet.appendFlavour( flavors[n] );
+				flavourSet.appendFlavour( flavors[n] );
 				this.flavorNames.push( flavors[n] );
 			}
 			
-			this.flavors = flavorSet;
+			this.flavours = flavourSet;
 		},
 		
 		getSupportedFlavours: function() {
-			return this.flavors;
+			return this.flavours;
 		},
 
 		onDragOver: function( event, flavour, session ) {
