@@ -412,20 +412,22 @@ SiteFusion.Classes.Node = Class.create( {
 	},
 
 	DropObserver: Class.create( {
-		initialize: function( sfNode, flavours ) {
+		initialize: function( sfNode, flavors ) {
 			this.sfNode = sfNode;
-
+			this.flavorNames = [];
+			
 			var oThis = this;
-			this.sfNode.element.addEventListener( 'dragover', function(event) { nsDragAndDrop.dragOver(event,oThis); }, true );
-			this.sfNode.element.addEventListener( 'dragdrop', function(event) { nsDragAndDrop.drop(event,oThis); }, true );
+			this.sfNode.element.addEventListener( 'dragover', function(event) { oThis.onFileDragOver(event) || nsDragAndDrop.dragOver(event,oThis); }, true );
+			this.sfNode.element.addEventListener( 'dragdrop', function(event) { oThis.onFileDrop(event) || nsDragAndDrop.drop(event,oThis); }, true );
 
-			var flavourSet = new FlavourSet();
+			var flavorSet = new FlavourSet();
 
-			for( var n = 0; n < flavours.length; n++ ) {
-				flavourSet.appendFlavour( flavours[n] );
+			for( var n = 0; n < flavors.length; n++ ) {
+				flavorSet.appendFlavour( flavors[n] );
+				this.flavorNames.push( flavors[n] );
 			}
-
-			this.flavours = flavourSet;
+			
+			this.flavors = flavorSet;
 		},
 		
 		getSupportedFlavours: function() {
@@ -441,6 +443,69 @@ SiteFusion.Classes.Node = Class.create( {
 			if( dropdata.flavour.contentType.substr( 0, 7 ) == 'sfNode/' )
 				data = SiteFusion.Registry[data];
 			this.sfNode.fireEvent( 'sfdragdrop', [ data ] );
+		},
+		
+		onFileDragOver: function( event ) {
+			var dragService = Cc["@mozilla.org/widget/dragservice;1"].getService(Ci.nsIDragService);
+		    var dragSession = dragService.getCurrentSession();
+			var flavor;
+			
+		    var supported = (dragSession.isDataFlavorSupported(flavor = "text/x-moz-url") && this.flavorNames.indexOf("text/x-moz-url") != -1);
+		    if (!supported)
+		    	supported = (dragSession.isDataFlavorSupported(flavor = "application/x-moz-file") && this.flavorNames.indexOf("application/x-moz-file") != -1);
+
+		    if (supported) {
+		    	dragSession.canDrop = true;
+				this.sfNode.fireEvent( 'sfdragover', [ flavor ] );
+			}
+			
+			return supported;
+		},
+		
+		onFileDrop: function( event ) {
+			var dragService = Cc["@mozilla.org/widget/dragservice;1"].getService(Ci.nsIDragService);
+		    var dragSession = dragService.getCurrentSession();
+		    var _ios = Cc['@mozilla.org/network/io-service;1'].getService(Ci.nsIIOService);
+	    	var uris = [];
+
+		    // If sourceNode is not null, then the drop was from inside the application
+		    if (dragSession.sourceNode)
+		    	return false;
+
+		    // Setup a transfer item to retrieve the file data
+		    var trans = Cc["@mozilla.org/widget/transferable;1"].createInstance(Ci.nsITransferable);
+		    trans.addDataFlavor("text/x-moz-url");
+		    trans.addDataFlavor("application/x-moz-file");
+
+		    for (var i=0; i<dragSession.numDropItems; i++) {
+		    	var uri = null;
+
+			   	dragSession.getData(trans, i);
+			   	var flavor = {}, data = {}, length = {};
+			   	trans.getAnyTransferData(flavor, data, length);
+			   	if (data) {
+			     	try {
+			       		var str = data.value.QueryInterface(Components.interfaces.nsISupportsString);
+			     	}
+			     	catch(ex) {
+			     	}
+				
+			     	if (str) {
+			       		uri = _ios.newURI(str.data.split("\n")[0], null, null).spec;
+			     	}
+			     	else {
+			       		var file = data.value.QueryInterface(Components.interfaces.nsIFile);
+			       		if (file)
+			         	uri = file.path;
+			     	}
+			   	}
+				
+				if (uri)
+					uris.push(uri);
+			}
+			
+			this.sfNode.fireEvent( 'sfdragdrop', [ uris ] );
+			return true;
 		}
 	} ),
 	
