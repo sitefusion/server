@@ -200,11 +200,6 @@ class SFCustomTreeDemo extends Application
 				$subrow->setEditable( 'check', TRUE )->setEditable( 'name', TRUE )->setEditable( 'description', TRUE );
 			}
 		}
-		
-		// This is a workaround. If we want the right tree to be initially empty, but still accept 
-		// dropped rows, it needs to have a placeholder row. It can be removed as soon as real rows
-		// are dropped into it.
-		$this->rightData->addRow( $this->placeHolderRow = $this->rightData->createRow( array( 'name' => '', 'description' => '' ) ) );
 	}
 	
 	
@@ -259,20 +254,19 @@ class SFCustomTreeDemo extends Application
 				$newRow = $this->rightData->createRow( array( 'name' => $row->name, 'description' => $row->description ) );
 			}
 			
-			if( $orientation == -1 ) {
-				// Dropped above target
-				$this->rightData->insertRowBefore( $newRow, $targetRow );
+			if( $targetRow ) {
+				if( $orientation == -1 ) {
+					// Dropped above target
+					$this->rightData->insertRowBefore( $newRow, $targetRow );
+				}
+				else {
+					// Dropped below target
+					$this->rightData->insertRowAfter( $newRow, $targetRow );
+				}
 			}
-			else {
-				// Dropped below target
-				$this->rightData->insertRowAfter( $newRow, $targetRow );
-			}
+			else
+				$this->rightData->addRow( $newRow );
 		}
-		
-		// Check if the placeholder was used, if so remove the placeholder because now we have actual
-		// rows in the tree
-		
-		if( $targetRow === $this->placeHolderRow ) $targetRow->remove();
 	}
 }
 

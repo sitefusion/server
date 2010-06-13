@@ -37,9 +37,10 @@ SiteFusion.Classes.CustomTree = Class.create( SiteFusion.Classes.Node, {
 		this.isDraggable = false;
 		this.allowDrop = false;
 		this.allowForeignDrop = false;
+		this.allowFileDrop = false;
 		this.sortable = false;
 		
-		this.setEventHost( [ 'yield', 'openStateChange', 'cellValueChange', 'treeDrop', 'nodeDrop', 'sortColumn' ] );
+		this.setEventHost( [ 'yield', 'openStateChange', 'cellValueChange', 'treeDrop', 'nodeDrop', 'fileDrop', 'sortColumn' ] );
 		
 		this.eventHost.yield.msgType = 1;
 	},
@@ -553,11 +554,14 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
 			
 			allowedOrient = row.allowDrop;
 		}
+
+		var ds = Cc["@mozilla.org/widget/dragservice;1"].getService(Ci.nsIDragService);
+		var session = ds.getCurrentSession();
+		
+		if( session.isDataFlavorSupported("text/x-moz-url") || session.isDataFlavorSupported("application/x-moz-file") )
+	    	return session.canDrop = this.sfTree.allowFileDrop;
 		
 		if( this.sfTree.preventCircularHeritage || !this.sfTree.allowForeignDrop ) {
-			var ds = Cc["@mozilla.org/widget/dragservice;1"].getService(Ci.nsIDragService);
-			var session = ds.getCurrentSession();
-
 			if( this.sfTree.preventCircularHeritage ) {
 				if( session.sourceNode && session.sourceNode.tagName == 'treechildren' && session.sourceNode.parentNode.sfNode == this.sfTree ) {
 					var selection = session.sourceNode.parentNode.sfNode.draggedSelection;
@@ -590,6 +594,7 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
 	this.drop = function( idx, orientation ) {
 		var ds = Cc["@mozilla.org/widget/dragservice;1"].getService(Ci.nsIDragService);
 		var session = ds.getCurrentSession();
+		var id = (idx == -1 ? null : this.visibleData[idx].id);
 		
 		if( session.sourceNode ) {
 			switch ( session.sourceNode.tagName ) {
@@ -597,7 +602,7 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
 					this.sfTree.fireEvent( 'treeDrop', [
 						session.sourceNode.parentNode.sfNode,
 						session.sourceNode.parentNode.sfNode.draggedSelection.join(','),
-						this.visibleData[idx].id,
+						id,
 						orientation
 					] );
 					break;
@@ -605,11 +610,53 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
 				default:
 					this.sfTree.fireEvent( 'nodeDrop', [
 						session.sourceNode.sfNode,
-						this.visibleData[idx].id,
+						id,
 						orientation
 					] );
 					break;
 			}
+		}
+		else {
+			var _ios = Cc['@mozilla.org/network/io-service;1'].getService(Ci.nsIIOService);
+	    	var uris = [];
+
+		    // Setup a transfer item to retrieve the file data
+		    var trans = Cc["@mozilla.org/widget/transferable;1"].createInstance(Ci.nsITransferable);
+		    trans.addDataFlavor("text/x-moz-url");
+		    trans.addDataFlavor("application/x-moz-file");
+
+		    for (var i=0; i<session.numDropItems; i++) {
+		    	var uri = null;
+
+			   	session.getData(trans, i);
+			   	var flavor = {}, data = {}, length = {};
+			   	trans.getAnyTransferData(flavor, data, length);
+			   	if (data) {
+			     	try {
+			       		var str = data.value.QueryInterface(Components.interfaces.nsISupportsString);
+			     	}
+			     	catch(ex) {
+			     	}
+				
+			     	if (str) {
+			       		uri = _ios.newURI(str.data.split("\n")[0], null, null).spec;
+			     	}
+			     	else {
+			       		var file = data.value.QueryInterface(Components.interfaces.nsIFile);
+			       		if (file)
+			         	uri = file.path;
+			     	}
+			   	}
+				
+				if (uri)
+					uris.push(uri);
+			}
+			
+			this.sfTree.fireEvent( 'fileDrop', [
+				uris,
+				id,
+				orientation
+			] );
 		}
 	};
 	

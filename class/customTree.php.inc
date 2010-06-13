@@ -75,6 +75,7 @@ class XULCustomTree extends XULTree
 		$this->setEvent( 'cellValueChange', MSG_SEND, $this, 'cellValueYieldCollect' );
 		$this->setEvent( 'treeDrop', MSG_SEND, $this, 'treeDropHandler' );
 		$this->setEvent( 'nodeDrop', MSG_SEND, $this, 'nodeDropHandler' );
+		$this->setEvent( 'fileDrop', MSG_SEND, $this, 'fileDropHandler' );
 		$this->setEvent( 'openStateChange', MSG_SEND, $this, 'openStateCollector' );
 		$this->setEvent( 'sortColumn', MSG_SEND, $this, 'sortColumnHandler' );
 		
@@ -95,13 +96,24 @@ class XULCustomTree extends XULTree
 			$selectedRows[] = $sourceTree->dataSet->idToRow[$rowId];
 		}
 		
-		$targetRow = $this->dataSet->idToRow[$targetRow];
+		if( $targetRow !== NULL )
+			$targetRow = $this->dataSet->idToRow[$targetRow];
 		
 		$this->fireLocalEvent( 'treeItemDropped', array( $sourceTree, $selectedRows, $targetRow, $orientation ) );
 	}
 	
 	public function nodeDropHandler( $e, $sourceNode, $targetRow, $orientation ) {
-		$this->fireLocalEvent( 'nodeDropped', array( $sourceNode, $this->dataSet->idToRow[$targetRow], $orientation ) );
+		if( $targetRow !== NULL )
+			$targetRow = $this->dataSet->idToRow[$targetRow];
+		
+		$this->fireLocalEvent( 'nodeDropped', array( $sourceNode, $targetRow, $orientation ) );
+	}
+	
+	public function fileDropHandler( $e, $files, $targetRow, $orientation ) {
+		if( $targetRow !== NULL )
+			$targetRow = $this->dataSet->idToRow[$targetRow];
+		
+		$this->fireLocalEvent( 'fileDropped', array( $files, $targetRow, $orientation ) );
 	}
 	
 	public function sortColumnHandler( $e, $colIndex ) {
@@ -777,6 +789,10 @@ class TreeDataSet extends TreeDataSupports
 	
 	public function allowForeignDrop( $allow ) {
 		$this->tree->setProperty( 'allowForeignDrop', (bool)$allow );
+	}
+	
+	public function allowFileDrop( $allow ) {
+		$this->tree->setProperty( 'allowFileDrop', (bool)$allow );
 	}
 		
 	public function sortColumn( $col, $dir = NULL ) {
