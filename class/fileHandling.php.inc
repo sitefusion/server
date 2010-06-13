@@ -1358,7 +1358,7 @@ class ClientFileService extends Node
 		}
 	}
 	
-	private function fileFromResult( $path, $file ) {
+	public function fileFromResult( $path, $file ) {
 		$cf = ($file[1] ? new ClientDirectory() : new ClientFile());
 		$cf->fileService = $this;
 		$cf->path = $path;

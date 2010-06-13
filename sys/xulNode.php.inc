@@ -61,6 +61,8 @@ class Node
 	public $eventType		= array();
 	public $handlerFor		= array();
 	public $yielderFor		= array();
+	private $_dropHandlerObj = NULL;
+	private $_dropHandlerMethod = NULL;
 	
 	
 	/**
@@ -1667,7 +1669,7 @@ class Node
 	 * @param string		$eventHandler	Method to call on the handler object or class
 	*/
 	
-	public function setDroppable( $flavours, $eventObj = NULL, $eventHandler = NULL ) {
+	public function setDroppable( $flavours, $eventObj, $eventHandler ) {
 		if( ! $this->isRegistered )
 			throw new SFException( "Can't call setDroppable() on unregistered node", ERR_REPORT_APP );
 		if( (! is_array($flavours)) || count($flavours) < 1 )
@@ -1675,9 +1677,28 @@ class Node
 		
 		$this->callMethod( 'setDroppable', $flavours );
 		
-		if( $eventObj && $eventHandler ) {
-			$this->setEvent( 'sfdragdrop', MSG_SEND, $eventObj, $eventHandler );
+		$this->_dropHandlerObj = $eventObj;
+		$this->_dropHandlerMethod = $eventHandler;
+		$this->setEvent( 'sfdragdrop', MSG_SEND, $this, '_dropHandler' );
+	}
+	
+	
+	public function _dropHandler( $event, $data ) {
+		$files = array();
+		$fileService = new ClientFileService();
+		
+		if( ! $data instanceof Node ) {
+			foreach ( $data as $item ) {
+				if( is_string($item) )
+					$files[] = $item;
+				else
+					$files[] = $fileService->fileFromResult($item[0],$item[1]);
+			}
+			
+			call_user_func_array( array($this->_dropHandlerObj,$this->_dropHandlerMethod), array( $event, $files ) );
 		}
+		else
+			call_user_func_array( array($this->_dropHandlerObj,$this->_dropHandlerMethod), array( $event, $data ) );
 	}
 	
 	

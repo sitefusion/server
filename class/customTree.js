@@ -619,6 +619,7 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
 		else {
 			var _ios = Cc['@mozilla.org/network/io-service;1'].getService(Ci.nsIIOService);
 	    	var uris = [];
+			var fileService = new SiteFusion.Classes.FileService( window.sfNode );
 
 		    // Setup a transfer item to retrieve the file data
 		    var trans = Cc["@mozilla.org/widget/transferable;1"].createInstance(Ci.nsITransferable);
@@ -644,7 +645,7 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
 			     	else {
 			       		var file = data.value.QueryInterface(Components.interfaces.nsIFile);
 			       		if (file)
-			         	uri = file.path;
+			         		uri = [file.path, fileService.resultFromFile(file)];
 			     	}
 			   	}
 				

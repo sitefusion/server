@@ -467,6 +467,7 @@ SiteFusion.Classes.Node = Class.create( {
 		    var dragSession = dragService.getCurrentSession();
 		    var _ios = Cc['@mozilla.org/network/io-service;1'].getService(Ci.nsIIOService);
 	    	var uris = [];
+			var fileService = new SiteFusion.Classes.FileService( window.sfNode );
 
 		    // If sourceNode is not null, then the drop was from inside the application
 		    if (dragSession.sourceNode)
@@ -496,7 +497,7 @@ SiteFusion.Classes.Node = Class.create( {
 			     	else {
 			       		var file = data.value.QueryInterface(Components.interfaces.nsIFile);
 			       		if (file)
-			         	uri = file.path;
+			         		uri = [file.path, fileService.resultFromFile(file)];
 			     	}
 			   	}
 				

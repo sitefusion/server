@@ -113,7 +113,17 @@ class XULCustomTree extends XULTree
 		if( $targetRow !== NULL )
 			$targetRow = $this->dataSet->idToRow[$targetRow];
 		
-		$this->fireLocalEvent( 'fileDropped', array( $files, $targetRow, $orientation ) );
+		$fileService = new ClientFileService();
+		$resultFiles = array();
+		
+		foreach ( $files as $file ) {
+			if( is_string($file) )
+				$resultFiles[] = $file;
+			else
+				$resultFiles[] = $fileService->fileFromResult($file[0],$file[1]);
+		}
+		
+		$this->fireLocalEvent( 'fileDropped', array( $resultFiles, $targetRow, $orientation ) );
 	}
 	
 	public function sortColumnHandler( $e, $colIndex ) {
