@@ -431,7 +431,7 @@ SiteFusion.Classes.Node = Class.create( {
 		},
 		
 		getSupportedFlavours: function() {
-			return this.flavours;
+			return this.flavors;
 		},
 
 		onDragOver: function( event, flavour, session ) {
