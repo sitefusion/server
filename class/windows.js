@@ -164,7 +164,7 @@ SiteFusion.Classes.Window = Class.create( SiteFusion.Classes.BasicWindow, {
 						wakeTitle = SiteFusion.wakeTitle;
 						wakeMessage = SiteFusion.wakeMessage;
 					}
-					promptService.alert(this.windowObject, wakeTitle, wakeMessage);
+					promptService.alert(oThis.windowObject, wakeTitle, wakeMessage);
 					System.Shutdown();
 					return;	
 				}
