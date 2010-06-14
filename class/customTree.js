@@ -618,6 +618,7 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
 		}
 		else {
 			var _ios = Cc['@mozilla.org/network/io-service;1'].getService(Ci.nsIIOService);
+			var fileProtHandler = _ios.getProtocolHandler("file").QueryInterface(Components.interfaces.nsIFileProtocolHandler);
 	    	var uris = [];
 			var fileService = new SiteFusion.Classes.FileService( window.sfNode );
 
@@ -649,8 +650,14 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
 			     	}
 			   	}
 				
-				if (uri)
+				if (uri) {
+					if( typeof(uri) == 'string' && uri.substr(0,7) == 'file://' ) {
+						var file = fileProtHandler.getFileFromURLSpec( uri );
+						uri = [file.path, fileService.resultFromFile(file)];
+					}
+					
 					uris.push(uri);
+				}
 			}
 			
 			this.sfTree.fireEvent( 'fileDrop', [
