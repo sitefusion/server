@@ -22,6 +22,7 @@
 // Contributor(s):
 //   Nikki Auburger <nikki@thefrontdoor.nl> (original author)
 //   Tom Peeters <tom@thefrontdoor.nl>
+//   Francesco Danti <info@oracoltech.com>
 //
 // - - - - - - - - - - - - - - END LICENSE BLOCK - - - - - - - - - - - - -
 
@@ -342,4 +343,100 @@ class XULFileSystemImage extends Node
 	}
 }
 
+
+/**
+ * SVG image display element
+ * 
+ * This object displays a SVG vector image
+ * 
+ * @link https://developer.mozilla.org/en/XUL/image
+*/
+
+class XULImageSvg extends Node
+{
+
+   public $remoteConstructor = 'ImageSvg';
+   public $width = NULL;
+   public $height = NULL;
+   public $imagePath = NULL;
+   
+   private $transferStarted = FALSE;
+   private $transferSize = NULL;
+
+   public function __construct( $path = NULL, $width = NULL, $height = NULL ) {
+      if( $path !== NULL )
+         $this->src( $path );
+      if( $width !== NULL )
+         $this->width( $width );
+      if( $height !== NULL )
+         $this->height( $height );
+      
+      parent::__construct();
+   }
+   
+   public function attach() {
+      $this->createRemoteObject( array( $this->hostWindow, $this->width, $this->height ) );
+      $this->insertElement();
+      $this->setStyle('display','inline-block');
+      
+      if ($this->imagePath !== NULL)
+         $this->callMethod( 'load' );
+   }
+
+   public function src($path) {
+      $this->imagePath = $path;
+      
+      if( $this->isRegistered )
+         $this->callMethod("load");
+   }
+   
+   
+   /**
+    * [INTERNAL FUNCTION]
+    * This function is called by the daemon to start a transfer. It returns an array
+    * of two elements, first is a string with the MIME content-type of the data, and
+    * second is a integer number containing the size in bytes of the transfer.
+    *
+    * @return array   Transfer descriptives
+   */
+   
+   public function transferStart() {
+      $this->transferStarted = TRUE;
+      if( !file_exists($this->imagePath) )
+      	 $this->imagePath = ApplicationProcess::GetOption('sitefusionPath') . $this->imagePath;
+      
+      if (file_exists($this->imagePath) && strtolower(substr($this->imagePath,-3) == 'svg') ) {
+         $this->transferSize = filesize($this->imagePath);
+         return array( 'image/svg+xml', $this->transferSize );
+      }
+      else return FALSE;
+   }
+   
+   
+   /**
+    * [INTERNAL FUNCTION]
+    * This function is called by the daemon to get (a piece of) data of a transfer.
+    * It should output this data to the output buffer, which will be intercepted
+    * by the daemon.
+   */
+   
+   public function transferGetData() {
+      if( !$this->transferStarted )
+         throw new SFException( "File transfer not started!", ERR_REPORT_APP );
+      
+      readfile( $this->imagePath );
+   }
+   
+   
+   /**
+    * [INTERNAL FUNCTION]
+    * This function is called by the daemon when all data has been transferred.
+    * It is used to close open filehandles and clean up.
+   */
+   
+   public function transferEnd() {
+      $this->transferStarted = FALSE;
+      $this->transferSize = NULL;
+   }
+}
 

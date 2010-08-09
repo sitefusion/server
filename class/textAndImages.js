@@ -21,6 +21,7 @@
 // Contributor(s):
 //   Nikki Auburger <nikki@thefrontdoor.nl> (original author)
 //   Tom Peeters <tom@thefrontdoor.nl>
+//   Francesco Danti <info@oracoltech.com>
 //
 // - - - - - - - - - - - - - - END LICENSE BLOCK - - - - - - - - - - - - -
 
@@ -123,5 +124,66 @@ SiteFusion.Classes.FileSystemImage = Class.create( SiteFusion.Classes.Node, {
 		var d = new Date();
 		this.element.setAttribute( 'src', SiteFusion.Address + '/filestream.php?app=' + SiteFusion.Application + '&args=' + SiteFusion.Arguments + '&sid=' + SiteFusion.SID + '&ident=' + SiteFusion.Ident + '&cid=' + this.cid + '&cycle=' + d.getTime() );
 	}
+} );
+
+
+SiteFusion.Classes.ImageSvg = Class.create( SiteFusion.Classes.Node, {
+   sfClassName: 'XULImageSvg',
+   
+   initialize: function( win, width, height ) {
+      this.element = win.createElement( 'bbox' );
+      this.element.sfNode = this;
+      this.hostWindow = win;
+      
+      this.setEventHost();
+      
+      if( width )
+         this.width( width );
+      if( height )
+         this.height( height );
+   },
+   
+   load: function() {
+      var d = new Date();
+      var xmlDoc = new XMLHttpRequest();
+      xmlDoc.open(
+         "GET"
+         , SiteFusion.Address + '/filestream.php?app=' + SiteFusion.Application + '&args=' + SiteFusion.Arguments + '&sid=' + SiteFusion.SID + '&ident=' + SiteFusion.Ident + '&cid=' + this.cid + '&cycle=' + d.getTime()
+         , false
+      );
+      xmlDoc.send(null);
+      
+      var eXml = xmlDoc.responseXML.getElementsByTagName('svg')[0];
+      
+      if(eXml.getAttributeNode("width") != null && eXml.getAttributeNode("height") != null) {
+         
+         var othisWidth = parseInt(this.element.getAttributeNode("width").nodeValue);
+         var othisHeight = parseInt(this.element.getAttributeNode("height").nodeValue);
+         
+         var svgOriWidth = parseInt(eXml.getAttributeNode("width").nodeValue);
+         var svgOriHeight = parseInt(eXml.getAttributeNode("height").nodeValue);
+         
+         var scaleFactorWidth =  othisWidth / svgOriWidth;
+         var scaleFactorHeight = othisHeight / svgOriHeight;
+         
+         eXml.removeAttribute("width");
+         eXml.removeAttribute("height");
+         
+         eXml.setAttribute("viewBox",'0 0 '+svgOriWidth+' '+svgOriHeight+'');
+         
+         var transform = xmlDoc.responseXML.createElement('g');
+         transform.setAttribute('transform','scale('+scaleFactorWidth+', '+scaleFactorHeight+')');
+         
+         while(eXml.length > 0) {
+            transform.appendChild(eXml.childNodes[0]);
+            eXml.removeChild(eXml.childNodes[0]);      
+         }
+         
+         eXml.appendChild(transform);
+      }
+      
+      var node = this.hostWindow.windowObject.document.importNode(eXml, true);
+      this.element.appendChild( node );
+   }
 } );
 
