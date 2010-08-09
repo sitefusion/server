@@ -78,17 +78,20 @@ SiteFusion.Classes.Editor = Class.create( SiteFusion.Classes.Node, {
 	},
 	
 	setValue: function( html ) {
+		if (!this.textEditor) return;
 		var textEditor = this.textEditor;
 	    textEditor.enableUndo(false);
 	    textEditor.selectAll();
 	    textEditor.deleteSelection(textEditor.eNone);
 	    textEditor.enableUndo(true);
 	    textEditor.resetModificationCount();
-		if (html)
+		if (html && typeof this.element.contentDocument != 'undefined' )
 			this.element.contentDocument.execCommand("inserthtml", false, html);
 	},
 	
 	makeEditable: function() {
+		if (typeof this.element.contentDocument == 'undefined' )
+			return;
 		this.element.contentDocument.designMode = "on";
 		this.fireEvent( 'madeEditable' );
 	},
@@ -99,7 +102,10 @@ SiteFusion.Classes.Editor = Class.create( SiteFusion.Classes.Node, {
 		
 		if (!this.editorElement)
 			this.editorElement = this.element;
-		
+			
+		if (typeof this.element.contentDocument == 'undefined' )
+			return;
+			
 		this.element.contentDocument.onmouseup = function() { window.setTimeout( func, 1 ); };
 		this.element.contentDocument.onkeyup = func;
 		this.element.contentDocument.onpaste = this.pasteHandler;
@@ -125,11 +131,15 @@ SiteFusion.Classes.Editor = Class.create( SiteFusion.Classes.Node, {
 	
 	disableInput: function(state)
 	{
+		if (typeof this.element.contentDocument == 'undefined' )
+			return;
 		this.element.contentDocument.execCommand('contentReadOnly',false, state);
 	},
 	
 	yield: function() {
 		if(! this.editorElement )
+			return;
+		if (typeof this.element.contentDocument == 'undefined' )
 			return;
 		this.fireEvent( 'yield', [ this.element.contentDocument.body.innerHTML + '' ] );
 	},
@@ -371,6 +381,9 @@ SiteFusion.Classes.Editor = Class.create( SiteFusion.Classes.Node, {
 			};
 		}
 		
+		if (typeof this.element.contentDocument == 'undefined' )
+			return;
+			
 		var doc = this.element.contentDocument;
 		var currentDocState = {};
 		var tBold = false, tItalic = false, tUnderline = false, tJustifyLeft = false, tJustifyCenter = false, tJustifyRight = false, tJustifyFull = false, tOrderedList = false, tUnorderedList = false, tIndent = false, tOutdent = false;
@@ -732,7 +745,11 @@ SiteFusion.Classes.LayoutEditor = Class.create( SiteFusion.Classes.Editor, {
 	sfClassName: 'XULLayoutEditor',
 
 	loadLayoutHTML: function( html, frameid ) {
+		if (typeof this.element.contentDocument == 'undefined' )
+			return;
 		this.element.contentWindow.document.write( html );	
+		
+		
 		this.editorElement = this.element.contentDocument.getElementById( frameid );
 	},
 
@@ -741,13 +758,17 @@ SiteFusion.Classes.LayoutEditor = Class.create( SiteFusion.Classes.Editor, {
 			this._loadBody = html;
 			return;
 		}
-		
+		if (typeof this.element.contentDocument == 'undefined' )
+			return;
+			
 		this.editorElement.innerHTML = html;
 		
 		this.makeEditable();
 	},
 
 	makeEditable: function() {
+		if (typeof this.element.contentDocument == 'undefined' )
+			return;
 		this.element.contentDocument.body.contentEditable = false;
 		this.editorElement.contentEditable = true;
 		this.fireEvent( 'madeEditable' );

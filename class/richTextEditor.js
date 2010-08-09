@@ -28,7 +28,9 @@ SiteFusion.Classes.RichTextEditor = Class.create( SiteFusion.Classes.Editor, {
 	sfClassName: 'XULRichTextEditor',
 	
 	initialize: function( win ) {
+
 		this.element = win.createElement( 'editor' );
+		
 		this.element.sfNode = this;
 		var oThis = this;
 		
@@ -77,6 +79,9 @@ SiteFusion.Classes.RichTextEditor = Class.create( SiteFusion.Classes.Editor, {
 		if (!this.editorElement)
 			this.editorElement = this.element;
 		
+		if (typeof this.element.contentDocument == 'undefined' )
+			return;
+
 		this.element.contentDocument.onmouseup = function() { window.setTimeout( func, 1 ); };
 		this.element.contentDocument.onkeyup = func;
 		
@@ -85,7 +90,7 @@ SiteFusion.Classes.RichTextEditor = Class.create( SiteFusion.Classes.Editor, {
 		
 		this.htmlEditor.returnInParagraphCreatesNewParagraph = false;
 		
-		this.editorElement.focus();
+		//this.editorElement.focus();
 		if (this.editorElement == this.element)
 		{
 			var body = this.element.contentDocument.getElementsByTagName("body")[0];
@@ -115,6 +120,7 @@ SiteFusion.Classes.RichTextEditor = Class.create( SiteFusion.Classes.Editor, {
 		this.fireEvent( 'after_loaddata' );
 	},
 	setValue: function( html ) {
+		if (!this.textEditor) return;
 		var textEditor = this.textEditor;
 	    textEditor.enableUndo(false);
 	    textEditor.selectAll();
@@ -122,11 +128,11 @@ SiteFusion.Classes.RichTextEditor = Class.create( SiteFusion.Classes.Editor, {
 	    textEditor.enableUndo(true);
 	    textEditor.resetModificationCount();
 	    textEditor.document.title = "";
-	    if (html)
+	    if (html && typeof this.element.contentDocument != 'undefined')
 			this.element.contentDocument.execCommand("inserthtml", false, html);
 	},
   	setBodyStyle: function (prop, value) {
 		var oThis = this;
-		setTimeout(function() { oThis.element.contentDocument.body.style[prop] = value; }, 100);
+		setTimeout(function() {if (typeof this.element.contentDocument == 'undefined' )return; oThis.element.contentDocument.body.style[prop] = value; }, 100);
 	}
 });
