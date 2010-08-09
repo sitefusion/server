@@ -286,15 +286,15 @@ SiteFusion.Classes.Node = Class.create( {
 	},
 
 	width: function( val ) {
-		this.element.setAttribute( 'width', val + 0 );
+		this.element.setAttribute( 'width', parseInt(val) );
 	},
 
 	height: function( val ) {
-		this.element.setAttribute( 'height', val + 0 );
+		this.element.setAttribute( 'height', parseInt(val) );
 	},
 
 	flex: function( val ) {
-		this.element.setAttribute( 'flex', val + 0 );
+		this.element.setAttribute( 'flex', parseInt(val) );
 	},
 
 	label: function( text ) {
