@@ -78,7 +78,11 @@ SiteFusion.Classes.Editor = Class.create( SiteFusion.Classes.Node, {
 	},
 	
 	setValue: function( html ) {
-		if (!this.textEditor) return;
+		if (!this.textEditor) {
+			SiteFusion.consoleMessage('this.textEditor is undefined in setValue()');
+			return;
+		}
+		
 		var textEditor = this.textEditor;
 	    textEditor.enableUndo(false);
 	    textEditor.selectAll();
@@ -90,8 +94,10 @@ SiteFusion.Classes.Editor = Class.create( SiteFusion.Classes.Node, {
 	},
 	
 	makeEditable: function() {
-		if (typeof this.element.contentDocument == 'undefined' )
+		if (typeof this.element.contentDocument == 'undefined' ) {
+			SiteFusion.consoleMessage('this.element.contentDocument is undefined in makeEditable()');
 			return;
+		}
 		this.element.contentDocument.designMode = "on";
 		this.fireEvent( 'madeEditable' );
 	},
@@ -103,8 +109,10 @@ SiteFusion.Classes.Editor = Class.create( SiteFusion.Classes.Node, {
 		if (!this.editorElement)
 			this.editorElement = this.element;
 			
-		if (typeof this.element.contentDocument == 'undefined' )
+		if (typeof this.element.contentDocument == 'undefined' ){
+			SiteFusion.consoleMessage('this.element.contentDocument is undefined in editorLoaded()');
 			return;
+		}
 			
 		this.element.contentDocument.onmouseup = function() { window.setTimeout( func, 1 ); };
 		this.element.contentDocument.onkeyup = func;
@@ -119,10 +127,20 @@ SiteFusion.Classes.Editor = Class.create( SiteFusion.Classes.Node, {
 		this.editorElement.focus();
 		if (this.editorElement == this.element)
 		{
+			if (typeof this.textEditor == 'undefined') {
+		 	 	SiteFusion.consoleMessage('this.textEditor is undefined in editorLoaded()');
+		 	 	return;
+		     }
 			var body = this.element.contentDocument.getElementsByTagName("body")[0];
 			this.textEditor.selection.collapse( body, 1 );
 		}
-		else this.textEditor.selection.collapse( this.editorElement, 1 );
+		else {
+		 	 if (typeof this.textEditor == 'undefined') {
+		 	 	SiteFusion.consoleMessage('this.textEditor is undefined in editorLoaded()');
+		 	 	return;
+		     }
+			 this.textEditor.selection.collapse( this.editorElement, 1 );
+		}
 			
 		this.checkDocumentState();
 	
@@ -131,20 +149,30 @@ SiteFusion.Classes.Editor = Class.create( SiteFusion.Classes.Node, {
 	
 	disableInput: function(state)
 	{
-		if (typeof this.element.contentDocument == 'undefined' )
+		if (typeof this.element.contentDocument == 'undefined' ){
+			SiteFusion.consoleMessage('this.element.contentDocument is undefined in disableInput()');
 			return;
+		}
 		this.element.contentDocument.execCommand('contentReadOnly',false, state);
 	},
 	
 	yield: function() {
-		if(! this.editorElement )
+		if(! this.editorElement ){
+			SiteFusion.consoleMessage('this.editorElement is not set in in yield()');
 			return;
-		if (typeof this.element.contentDocument == 'undefined' )
+		}
+		if (typeof this.element.contentDocument == 'undefined' ){
+			SiteFusion.consoleMessage('this.element.contentDocument is undefined in in yield()');
 			return;
+		}
 		this.fireEvent( 'yield', [ this.element.contentDocument.body.innerHTML + '' ] );
 	},
 	
 	storeSelection: function() {
+		if (typeof this.textEditor == 'undefined') {
+		 	 	SiteFusion.consoleMessage('this.textEditor is undefined in storeSelection()');
+		 	 	return;
+		}
 		var sel = this.textEditor.selection;
 		this.storedSelection = [];
 		
@@ -154,6 +182,10 @@ SiteFusion.Classes.Editor = Class.create( SiteFusion.Classes.Node, {
 	},
 
 	restoreSelection: function() {
+		if (typeof this.textEditor == 'undefined') {
+		 	 	SiteFusion.consoleMessage('this.textEditor is undefined in restoreSelection()');
+		 	 	return;
+		}
 		var sel = this.textEditor.selection;
 		sel.removeAllRanges();
 		
@@ -294,6 +326,10 @@ SiteFusion.Classes.Editor = Class.create( SiteFusion.Classes.Node, {
 		}
 		else {
 			if( (!el) || el.tagName != 'SPAN' ) {
+				if (typeof this.textEditor == 'undefined') {
+		 	 		SiteFusion.consoleMessage('this.textEditor is undefined in setTextClass()');
+		 	 		return;
+				}
 				var content = this.textEditor.selection.toString();
 				if(! content.length )
 					return;
@@ -381,8 +417,10 @@ SiteFusion.Classes.Editor = Class.create( SiteFusion.Classes.Node, {
 			};
 		}
 		
-		if (typeof this.element.contentDocument == 'undefined' )
+		if (typeof this.element.contentDocument == 'undefined' ){
+			SiteFusion.consoleMessage('this.element.contentDocument is undefined in in checkDocumentState()');
 			return;
+		}
 			
 		var doc = this.element.contentDocument;
 		var currentDocState = {};
@@ -661,12 +699,12 @@ SiteFusion.Classes.Editor = Class.create( SiteFusion.Classes.Node, {
 				
 			strMSHtml = new String(strMSHtml.value.QueryInterface(Components.interfaces.nsISupportsCString));
 			
-			//alert (utfConv.ConvertToUnicode(strMSHtml));
+			//SiteFusion.consoleMessage (utfConv.ConvertToUnicode(strMSHtml));
 			//var utfStream = utfConv.convertToInputStream( strMSHtml );
 			
 			//var avb = utfStream.available();
 			//var str = utfStream.read(avb);
-			//alert(str);
+			//SiteFusion.consoleMessage(str);
 			/*
 			var scs = Components.classes["@mozilla.org/streamConverters;1"].getService( Components.interfaces.nsIStreamConverterService );
 			var compressor = scs.asynComponents.classesonvertData( "uncompressed", "deflate", this, null );
@@ -678,7 +716,7 @@ SiteFusion.Classes.Editor = Class.create( SiteFusion.Classes.Node, {
 			
 			//strMSHtml = utfConv.ConvertToUnicode(strMSHtml);
 			}
-			catch(e) {alert(e); }
+			catch(e) {SiteFusion.consoleMessage(e); }
 			
 	    	var tempmshtml = strMSHtml;
 	    	
@@ -745,8 +783,10 @@ SiteFusion.Classes.LayoutEditor = Class.create( SiteFusion.Classes.Editor, {
 	sfClassName: 'XULLayoutEditor',
 
 	loadLayoutHTML: function( html, frameid ) {
-		if (typeof this.element.contentDocument == 'undefined' )
+		if (typeof this.element.contentDocument == 'undefined' ) {
+			SiteFusion.consoleMessage('this.element.contentDocument is undefined in loadLayoutHTML()');
 			return;
+		}
 		this.element.contentWindow.document.write( html );	
 		
 		
@@ -758,17 +798,23 @@ SiteFusion.Classes.LayoutEditor = Class.create( SiteFusion.Classes.Editor, {
 			this._loadBody = html;
 			return;
 		}
-		if (typeof this.element.contentDocument == 'undefined' )
+		if (typeof this.element.contentDocument == 'undefined' ) {
+			SiteFusion.consoleMessage('this.element.contentDocument is undefined in loadBody()');
 			return;
-			
+		}
+		if (!this.editorElement )
+			return;
+				
 		this.editorElement.innerHTML = html;
 		
 		this.makeEditable();
 	},
 
 	makeEditable: function() {
-		if (typeof this.element.contentDocument == 'undefined' )
+		if (typeof this.element.contentDocument == 'undefined' ) {
+			SiteFusion.consoleMessage('this.element.contentDocument is undefined in makeEditable()');
 			return;
+		}
 		this.element.contentDocument.body.contentEditable = false;
 		this.editorElement.contentEditable = true;
 		this.fireEvent( 'madeEditable' );
@@ -780,8 +826,10 @@ SiteFusion.Classes.LayoutEditor = Class.create( SiteFusion.Classes.Editor, {
 	},
 	
 	yield: function() {
-		if(! this.editorElement )
+		if(! this.editorElement ) {
+			SiteFusion.consoleMessage('this.element.contentDocument is undefined in yield()');
 			return;
+		}
 		this.fireEvent( 'yield', [ this.editorElement.innerHTML + '' ] );
 	}
 } );
