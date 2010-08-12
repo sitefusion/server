@@ -802,8 +802,10 @@ SiteFusion.Classes.LayoutEditor = Class.create( SiteFusion.Classes.Editor, {
 			SiteFusion.consoleMessage('this.element.contentDocument is undefined in loadBody()');
 			return;
 		}
-		if (!this.editorElement )
+		if (!this.editorElement ) {
+			SiteFusion.consoleMessage('this.editorElement is not set in loadBody()');
 			return;
+		}
 				
 		this.editorElement.innerHTML = html;
 		
