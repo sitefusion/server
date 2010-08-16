@@ -39,9 +39,10 @@ SiteFusion.Classes.ListBox = Class.create( SiteFusion.Classes.Node, {
 	
 	selectItem: function( items ) {
 		this.element.clearSelection();
-		
+		var oThis = this;
 		for( var n = 0; n < items.length; n++ ) {
-			this.element.addItemToSelection( items[n].element );
+			var item = items[n];
+			window.setTimeout(function(){oThis.element.addItemToSelection( item.element );}, 100);
 		}
 	},
 	

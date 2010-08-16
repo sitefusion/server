@@ -84,7 +84,7 @@ class XULListBox extends BranchNode
 			$this->selectedItems = (is_array($items) ? $items:array($items));
 			return;
 		}
-		
+		$items = (is_array($items) ? $items:array($items));
 		$this->callMethod( 'selectItem', array( $items ) );
 	}
 	
