@@ -43,7 +43,7 @@ echo "Create database '$dbname' if it doesn't exist...\n";
 if( ! mysql_query( "CREATE DATABASE IF NOT EXISTS `".mysql_escape_string($dbname)."`" ) )
 	die( "Error: Could not create database: " . mysql_error() );
 
-mysql_select_db( 'sitefusion' );
+mysql_select_db( $dbname );
 
 echo "Create table 'processes' if it doesn't exist...\n";
 
