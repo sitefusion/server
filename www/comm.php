@@ -53,7 +53,7 @@ catch ( Exception $ex ) {
 
 try {
 	$db = mysql_connect( $WEBCONFIG['databaseHost'], $WEBCONFIG['databaseUsername'], $WEBCONFIG['databasePassword'] );
-	mysql_select_db( 'sitefusion' );
+	mysql_select_db( $WEBCONFIG['databaseName'] );
 	$res = mysql_query( "SELECT * FROM `processes` WHERE `id` = '".mysql_escape_string($_GET['sid'])."'" );
 	if(! $res )
 		die( mysql_error() );
@@ -122,5 +122,3 @@ if( substr($cmd->data,-16) != '"EXEC_COMPLETE";' )
 else
 	ReturnResult( $cmd->data );
 
-//header( 'Content-Type: application/x-javascript; charset=utf-8' );
-//echo $cmd->data;

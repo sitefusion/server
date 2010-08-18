@@ -31,6 +31,10 @@ $WEBCONFIG['databaseHost'] = 'localhost';
 $WEBCONFIG['databaseUsername'] = 'root';
 $WEBCONFIG['databasePassword'] = 'dev';
 
+// Database name
+// The name of the database that SiteFusion uses to hold process information
+$WEBCONFIG['databaseName'] = 'sitefusion';
+
 
 // Seconds for a reverse-communication connection to keep polling before recycling
 

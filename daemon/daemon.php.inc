@@ -60,6 +60,7 @@ class DaemonProcess extends SiteFusionProcess
 		'databaseHost' => 'localhost',
 		'databaseUsername' => '',
 		'databasePassword' => '',
+		'databaseName' => 'sitefusion',
 		'sitefusionPath' => '',
 		'debug' => FALSE,
 		'daemonize' => TRUE,
@@ -393,7 +394,7 @@ class DaemonProcess extends SiteFusionProcess
 		
 		$res = self::DatabaseQuery(
 			"SELECT `owner`,`job`,`args`,`mail_output`
-			FROM `sitefusion`.`jobs`
+			FROM `".self::$Options['databaseName']."`.`jobs`
 			WHERE
 			(`minute` = -1 || `minute` = $minute) &&
 			(`hour` = -1 || `hour` = $hour) &&
@@ -422,7 +423,7 @@ class DaemonProcess extends SiteFusionProcess
 		if( $child->type == 'app' )
 			$child->extendedInfo = unserialize($param->data);
 		
-		$res = self::DatabaseQuery( "INSERT INTO `sitefusion`.`processes` (
+		$res = self::DatabaseQuery( "INSERT INTO `".self::$Options['databaseName']."`.`processes` (
 		`id` ,
 		`type` ,
 		`ident` ,
@@ -459,7 +460,7 @@ class DaemonProcess extends SiteFusionProcess
 	}
 	
 	static private function ChildEnded( $child ) {
-		$res = self::DatabaseQuery( "DELETE FROM `sitefusion`.`processes` WHERE `id` = '".$child->sessionId."' LIMIT 1" );
+		$res = self::DatabaseQuery( "DELETE FROM `".self::$Options['databaseName']."`.`processes` WHERE `id` = '".$child->sessionId."' LIMIT 1" );
 		
 		if( ! $res )
 			throw new SFException( 'ChildEnded: MySQL Error: '.mysql_error() );
@@ -593,7 +594,7 @@ class DaemonProcess extends SiteFusionProcess
 			case 'getlist':
 				$res = self::DatabaseQuery(
 					"SELECT *
-					FROM `sitefusion`.`jobs`
+					FROM `".self::$Options['databaseName']."`.`jobs`
 					" . ($child->app == 'sitefusion/admin' ? '':"WHERE `owner` = '".mysql_escape_string(self::GetApplicationOwnerName($child->app))."'")
 				);
 				$num = mysql_num_rows($res);
@@ -607,7 +608,7 @@ class DaemonProcess extends SiteFusionProcess
 			case 'addjob':
 				$param = unserialize( $cmd->data );
 				self::DatabaseQuery(
-					"INSERT INTO `sitefusion`.`jobs`
+					"INSERT INTO `".self::$Options['databaseName']."`.`jobs`
 					(`owner`,`job`,`args`,`minute`,`hour`,`monthday`,`month`,`weekday`,`mail_output`)
 					VALUES (
 					'".mysql_escape_string($child->app == 'sitefusion/admin' ? $param['owner'] : self::GetApplicationOwnerName($child->app))."',
@@ -627,12 +628,12 @@ class DaemonProcess extends SiteFusionProcess
 			case 'changejob':
 				$param = unserialize( $cmd->data );
 				if( $child->app != 'sitefusion/admin' ) {
-					$res = self::DatabaseQuery( "SELECT count(*) FROM `sitefusion`.`jobs` WHERE `owner` = '".mysql_escape_string(self::GetApplicationOwnerName($child->app))."' && `id` = ".(int)$cmd->id );
+					$res = self::DatabaseQuery( "SELECT count(*) FROM `".self::$Options['databaseName']."`.`jobs` WHERE `owner` = '".mysql_escape_string(self::GetApplicationOwnerName($child->app))."' && `id` = ".(int)$cmd->id );
 					list($num) = mysql_fetch_row($res);
 					if( ! $num ) return;
 				}
 				self::DatabaseQuery(
-					"UPDATE `sitefusion`.`jobs`
+					"UPDATE `".self::$Options['databaseName']."`.`jobs`
 					SET
 					`owner` = '".mysql_escape_string($child->app == 'sitefusion/admin' ? $param['owner'] : self::GetApplicationOwnerName($child->app))."',
 					`job` = '".mysql_escape_string($param['job'])."',
@@ -652,12 +653,12 @@ class DaemonProcess extends SiteFusionProcess
 			case 'deletejob':
 				$id = (int) $cmd->id;
 				if( $child->app != 'sitefusion/admin' ) {
-					$res = self::DatabaseQuery( "SELECT count(*) FROM `sitefusion`.`jobs` WHERE `owner` = '".mysql_escape_string(self::GetApplicationOwnerName($child->app))."' && `id` = ".(int)$cmd->id );
+					$res = self::DatabaseQuery( "SELECT count(*) FROM `".self::$Options['databaseName']."`.`jobs` WHERE `owner` = '".mysql_escape_string(self::GetApplicationOwnerName($child->app))."' && `id` = ".(int)$cmd->id );
 					list($num) = mysql_fetch_row($res);
 					if( ! $num ) return;
 				}
 				self::DatabaseQuery(
-					"DELETE FROM `sitefusion`.`jobs` WHERE `id` = ".(int)$cmd->id
+					"DELETE FROM `".self::$Options['databaseName']."`.`jobs` WHERE `id` = ".(int)$cmd->id
 				);
 				
 				self::WriteCommand( $child->socket, 'OK' );
@@ -672,7 +673,7 @@ class DaemonProcess extends SiteFusionProcess
 			case 'getlist':
 				$res = self::DatabaseQuery(
 					"SELECT *
-					FROM `sitefusion`.`services`
+					FROM `".self::$Options['databaseName']."`.`services`
 					" . ($child->app == 'sitefusion/admin' ? '':"WHERE `owner` = '".mysql_escape_string(self::GetApplicationOwnerName($child->app))."'")
 				);
 				$num = mysql_num_rows($res);
@@ -686,7 +687,7 @@ class DaemonProcess extends SiteFusionProcess
 			case 'addservice':
 				$param = unserialize( $cmd->data );
 				self::DatabaseQuery(
-					"INSERT INTO `sitefusion`.`services`
+					"INSERT INTO `".self::$Options['databaseName']."`.`services`
 					(`owner`,`service`,`args`,`daemon`)
 					VALUES (
 					'".mysql_escape_string($child->app == 'sitefusion/admin' ? $param['owner'] : self::GetApplicationOwnerName($child->app))."',
@@ -703,12 +704,12 @@ class DaemonProcess extends SiteFusionProcess
 			case 'changeservice':
 				$param = unserialize( $cmd->data );
 				if( $child->app != 'sitefusion/admin' ) {
-					$res = self::DatabaseQuery( "SELECT count(*) FROM `sitefusion`.`services` WHERE `owner` = '".mysql_escape_string(self::GetApplicationOwnerName($child->app))."' && `id` = ".(int)$cmd->id );
+					$res = self::DatabaseQuery( "SELECT count(*) FROM `".self::$Options['databaseName']."`.`services` WHERE `owner` = '".mysql_escape_string(self::GetApplicationOwnerName($child->app))."' && `id` = ".(int)$cmd->id );
 					list($num) = mysql_fetch_row($res);
 					if( ! $num ) return;
 				}
 				self::DatabaseQuery(
-					"UPDATE `sitefusion`.`services`
+					"UPDATE `".self::$Options['databaseName']."`.`services`
 					SET
 					`owner` = '".mysql_escape_string($child->app == 'sitefusion/admin' ? $param['owner'] : self::GetApplicationOwnerName($child->app))."',
 					`service` = '".mysql_escape_string($param['service'])."',
@@ -725,18 +726,18 @@ class DaemonProcess extends SiteFusionProcess
 			case 'deleteservice':
 				$id = (int) $cmd->id;
 				if( $child->app != 'sitefusion/admin' ) {
-					$res = self::DatabaseQuery( "SELECT count(*) FROM `sitefusion`.`services` WHERE `owner` = '".mysql_escape_string(self::GetApplicationOwnerName($child->app))."' && `id` = ".(int)$cmd->id );
+					$res = self::DatabaseQuery( "SELECT count(*) FROM `".self::$Options['databaseName']."`.`services` WHERE `owner` = '".mysql_escape_string(self::GetApplicationOwnerName($child->app))."' && `id` = ".(int)$cmd->id );
 					list($num) = mysql_fetch_row($res);
 					if( ! $num ) return;
 				}
 
-				$res = self::DatabaseQuery( "SELECT * FROM `sitefusion`.`services` WHERE `id` = ".(int)$cmd->id );
+				$res = self::DatabaseQuery( "SELECT * FROM `".self::$Options['databaseName']."`.`services` WHERE `id` = ".(int)$cmd->id );
 				$num = mysql_num_rows($res);
 				if( ! $num ) return;
 				$param = mysql_fetch_assoc( $res );
 				
 				self::DatabaseQuery(
-					"DELETE FROM `sitefusion`.`services` WHERE `id` = ".(int)$cmd->id
+					"DELETE FROM `".self::$Options['databaseName']."`.`services` WHERE `id` = ".(int)$cmd->id
 				);
 				if( intval($param['daemon']) )
 					self::StopService( (int)$cmd->id );
@@ -749,7 +750,7 @@ class DaemonProcess extends SiteFusionProcess
 	static private function HandleGetServiceCmd( $child, $cmd ) {
 		$id = (int) $cmd->id;
 		
-		$res = self::DatabaseQuery( "SELECT * FROM `sitefusion`.`services` WHERE `id` = ".$id );
+		$res = self::DatabaseQuery( "SELECT * FROM `".self::$Options['databaseName']."`.`services` WHERE `id` = ".$id );
 		$num = mysql_num_rows($res);
 		if( ! $num ) {
 			self::WriteCommand( $child->socket, 'ERROR' );
@@ -882,7 +883,7 @@ class DaemonProcess extends SiteFusionProcess
 	static private function StartService( $id, $master = NULL ) {
 		self::VerifyDatabaseState();
 		
-		$res = self::DatabaseQuery( "SELECT * FROM `sitefusion`.`services` WHERE `id` = ".(int)$id );
+		$res = self::DatabaseQuery( "SELECT * FROM `".self::$Options['databaseName']."`.`services` WHERE `id` = ".(int)$id );
 		$num = mysql_num_rows($res);
 		if( !$num ) return;
 		$srv = mysql_fetch_assoc( $res );
@@ -957,7 +958,7 @@ class DaemonProcess extends SiteFusionProcess
 	static private function StartDaemonServices() {
 		self::VerifyDatabaseState();
 		
-		$res = self::DatabaseQuery( "SELECT `id` FROM `sitefusion`.`services` WHERE `daemon` = 1" );
+		$res = self::DatabaseQuery( "SELECT `id` FROM `".self::$Options['databaseName']."`.`services` WHERE `daemon` = 1" );
 		
 		$num = mysql_num_rows( $res );
 		
@@ -1122,8 +1123,8 @@ class SiteFusionProcess
 		if( ! self::$Database )
 			throw new SFException( 'Database connection failed: ' . mysql_error() );
 		
-		if( ! mysql_select_db( 'sitefusion', self::$Database ) )
-			throw new SFException( "Failed to select database 'sitefusion': " . mysql_error() );
+		if( ! mysql_select_db( self::$Options['databaseName'], self::$Database ) )
+			throw new SFException( "Failed to select database: " . mysql_error() );
 		
 		if( ! mysql_query( "TRUNCATE TABLE `processes`", self::$Database ) )
 			throw new SFException( "Failed to truncate table 'processes': " . mysql_error() );
@@ -1133,8 +1134,8 @@ class SiteFusionProcess
 		if( ! self::$Database )
 			throw new SFException( 'Database connection failed: ' . mysql_error() );
 		
-		if( ! mysql_select_db( 'sitefusion', self::$Database ) )
-			throw new SFException( "Failed to select database 'sitefusion': " . mysql_error() );
+		if( ! mysql_select_db( self::$Options['databaseName'], self::$Database ) )
+			throw new SFException( "Failed to select database: " . mysql_error() );
 		
 		if( ! mysql_query( "TRUNCATE TABLE `processes`", self::$Database ) )
 			throw new SFException( "Failed to truncate table 'processes': " . mysql_error() );
@@ -1147,8 +1148,8 @@ class SiteFusionProcess
 		if( ! self::$Database )
 			throw new SFException( 'Database connection failed: ' . mysql_error() );
 		
-		if( ! mysql_select_db( 'sitefusion', self::$Database ) )
-			throw new SFException( "Failed to select database 'sitefusion': " . mysql_error() );
+		if( ! mysql_select_db( self::$Options['databaseName'], self::$Database ) )
+			throw new SFException( "Failed to select database: " . mysql_error() );
 	}
 	
 	static protected function ResetDatabase() {
@@ -1162,8 +1163,8 @@ class SiteFusionProcess
 		if( ! self::$Database )
 			throw new SFException( 'Database connection failed: ' . mysql_error() );
 		
-		if( ! mysql_select_db( 'sitefusion', self::$Database ) )
-			throw new SFException( "Failed to select database 'sitefusion': " . mysql_error() );
+		if( ! mysql_select_db( self::$Options['databaseName'], self::$Database ) )
+			throw new SFException( "Failed to select database: " . mysql_error() );
 	}
 	
 	static protected function DatabaseQuery( $sql ) {

@@ -690,7 +690,7 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 			return;
 		
 		self::VerifyDatabaseState();
-		self::DatabaseQuery( "UPDATE `sitefusion`.`processes` SET `memory` = ".memory_get_usage().", `memory_peak` = ".memory_get_peak_usage().", `nodes` = ".count(self::$Application->registry->all)." WHERE `id` = '".self::$SessionID."' LIMIT 1" );
+		self::DatabaseQuery( "UPDATE `".self::$Options['databaseName']."`.`processes` SET `memory` = ".memory_get_usage().", `memory_peak` = ".memory_get_peak_usage().", `nodes` = ".count(self::$Application->registry->all)." WHERE `id` = '".self::$SessionID."' LIMIT 1" );
 	}
 	
 	static public function Header( $text ) {

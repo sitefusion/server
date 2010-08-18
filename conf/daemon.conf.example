@@ -35,13 +35,18 @@ $SFCONFIG['childTimeout'] = 300;
 $SFCONFIG['sessionTimeout'] = 60 * 30;
 
 // Database hostname or IP address
-// This should be the database server that contains the 'sitefusion' database
+// This should be the database server that contains the SiteFusion database
 $SFCONFIG['databaseHost'] = 'localhost';
 
 // Username and password for the database server
 // This login is only used by the daemon, not by the child processes
 $SFCONFIG['databaseUsername'] = 'root';
 $SFCONFIG['databasePassword'] = 'dev';
+
+// Database name
+// The name of the database that SiteFusion uses to hold process information
+$SFCONFIG['databaseName'] = 'sitefusion';
+
 
 // Path to the SiteFusion directory
 $SFCONFIG['sitefusionPath'] = '/usr/local/sitefusion';

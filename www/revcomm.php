@@ -38,7 +38,7 @@ try {
 	if( substr_count($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') ) ob_start("ob_gzhandler");
 
 	$db = mysql_connect( $WEBCONFIG['databaseHost'], $WEBCONFIG['databaseUsername'], $WEBCONFIG['databasePassword'] );
-	mysql_select_db( 'sitefusion' );
+	mysql_select_db( $WEBCONFIG['databaseName'] );
 	$res = mysql_query( "SELECT * FROM `processes` WHERE `id` = '".mysql_escape_string($_GET['sid'])."'" );
 	if(! $res )
 		throw new Exception( mysql_error() );
@@ -89,8 +89,6 @@ try {
 				ReturnError( 'php_error', $cmd->data );
 			else
 				ReturnResult( $cmd->data );
-			//header( 'Content-Type: application/x-javascript; charset=utf-8' );
-			//echo $cmd->data;
 			break;
 		}
 		
