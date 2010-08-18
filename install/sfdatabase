@@ -30,15 +30,17 @@
 $dbhost = readline( 'Database hostname (leave empty for localhost): ' );
 $dbuser = readline( 'Database username: ' );
 $dbpass = readline( 'Database password: ' );
+$dbname = readline( 'Database name (leave empty for "sitefusion"): ' );
+$dbname = ($dbname == '' ? 'sitefusion':$dbname);
 
 $db = mysql_connect( ($dbhost == '' ? 'localhost':$dbhost), $dbuser, $dbpass );
 
 if( ! $db )
 	die( "Error: Could not connect to server: " . mysql_error() );
 
-echo "Create database 'sitefusion' if it doesn't exist...\n";
+echo "Create database '$dbname' if it doesn't exist...\n";
 
-if( ! mysql_query( "CREATE DATABASE IF NOT EXISTS `sitefusion`" ) )
+if( ! mysql_query( "CREATE DATABASE IF NOT EXISTS `".mysql_escape_string($dbname)."`" ) )
 	die( "Error: Could not create database: " . mysql_error() );
 
 mysql_select_db( 'sitefusion' );
