@@ -198,7 +198,6 @@ class ExtendedSiteFusionProcess extends SiteFusionProcess
 	}
 	
 	static public function GetDaemonProcessList() {
-		self::VerifyDatabaseState();
 		$res = self::DatabaseQuery( "SELECT * FROM `".self::$Options['databaseName']."`.`processes`" );
 		$num = mysql_num_rows( $res );
 		$ret = array();

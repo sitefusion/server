@@ -61,6 +61,8 @@ class DaemonProcess extends SiteFusionProcess
 		'databaseUsername' => '',
 		'databasePassword' => '',
 		'databaseName' => 'sitefusion',
+		'databaseFailureRetries' => 5,
+		'databaseFailureRetryInterval' => 1000,
 		'sitefusionPath' => '',
 		'debug' => FALSE,
 		'daemonize' => TRUE,
@@ -390,8 +392,6 @@ class DaemonProcess extends SiteFusionProcess
 	}
 	
 	static private function CheckJobSchedule( $minute, $hour, $monthday, $month, $weekday ) {
-		self::VerifyDatabaseState();
-		
 		$res = self::DatabaseQuery(
 			"SELECT `owner`,`job`,`args`,`mail_output`
 			FROM `".self::$Options['databaseName']."`.`jobs`
@@ -588,8 +588,6 @@ class DaemonProcess extends SiteFusionProcess
 	}
 	
 	static private function HandleJobCmd( $child, $cmd ) {
-		self::VerifyDatabaseState();
-		
 		switch ( $cmd->action ) {
 			case 'getlist':
 				$res = self::DatabaseQuery(
@@ -667,8 +665,6 @@ class DaemonProcess extends SiteFusionProcess
 	}
 	
 	static private function HandleServiceCmd( $child, $cmd ) {
-		self::VerifyDatabaseState();
-		
 		switch ( $cmd->action ) {
 			case 'getlist':
 				$res = self::DatabaseQuery(
@@ -881,8 +877,6 @@ class DaemonProcess extends SiteFusionProcess
 	}
 	
 	static private function StartService( $id, $master = NULL ) {
-		self::VerifyDatabaseState();
-		
 		$res = self::DatabaseQuery( "SELECT * FROM `".self::$Options['databaseName']."`.`services` WHERE `id` = ".(int)$id );
 		$num = mysql_num_rows($res);
 		if( !$num ) return;
@@ -956,8 +950,6 @@ class DaemonProcess extends SiteFusionProcess
 	}
 	
 	static private function StartDaemonServices() {
-		self::VerifyDatabaseState();
-		
 		$res = self::DatabaseQuery( "SELECT `id` FROM `".self::$Options['databaseName']."`.`services` WHERE `daemon` = 1" );
 		
 		$num = mysql_num_rows( $res );
@@ -1117,39 +1109,38 @@ class SiteFusionProcess
 			fwrite( self::$Log, date('d-m-Y H:i:s: ').$text."\n" );
 	}
 	
-	static protected function InitDatabase() {
-		self::$Database = mysql_connect( self::$Options['databaseHost'], self::$Options['databaseUsername'], self::$Options['databasePassword'] );
+	static protected function GetDatabaseConnection() {
+		$tries = 0;
+		
+		while( $tries++ <= self::$Options['databaseFailureRetries'] ) {
+			self::$Database = mysql_connect( self::$Options['databaseHost'], self::$Options['databaseUsername'], self::$Options['databasePassword'], TRUE );
+			if( ! self::$Database ) {
+				self::Log( 'Database connection failed, retry '.$tries.' in '.self::$Options['databaseFailureRetryInterval'].'ms' );
+				usleep( self::$Options['databaseFailureRetryInterval'] * 1000 );
+			}
+			else break;
+		}
 		
 		if( ! self::$Database )
 			throw new SFException( 'Database connection failed: ' . mysql_error() );
 		
 		if( ! mysql_select_db( self::$Options['databaseName'], self::$Database ) )
 			throw new SFException( "Failed to select database: " . mysql_error() );
+	}
+	
+	static protected function InitDatabase() {
+		self::GetDatabaseConnection();
 		
-		if( ! mysql_query( "TRUNCATE TABLE `processes`", self::$Database ) )
+		if( ! mysql_query( "TRUNCATE TABLE `".self::$Options['databaseName']."`.`processes`", self::$Database ) )
 			throw new SFException( "Failed to truncate table 'processes': " . mysql_error() );
 	}
 	
 	static protected function CloseDatabase() {
 		if( ! self::$Database )
-			throw new SFException( 'Database connection failed: ' . mysql_error() );
+			self::GetDatabaseConnection();
 		
-		if( ! mysql_select_db( self::$Options['databaseName'], self::$Database ) )
-			throw new SFException( "Failed to select database: " . mysql_error() );
-		
-		if( ! mysql_query( "TRUNCATE TABLE `processes`", self::$Database ) )
+		if( ! mysql_query( "TRUNCATE TABLE `".self::$Options['databaseName']."`.`processes`", self::$Database ) )
 			throw new SFException( "Failed to truncate table 'processes': " . mysql_error() );
-	}
-	
-	static protected function VerifyDatabaseState() {
-		if( ! self::$Database )
-			self::$Database = mysql_connect( self::$Options['databaseHost'], self::$Options['databaseUsername'], self::$Options['databasePassword'], TRUE );
-		
-		if( ! self::$Database )
-			throw new SFException( 'Database connection failed: ' . mysql_error() );
-		
-		if( ! mysql_select_db( self::$Options['databaseName'], self::$Database ) )
-			throw new SFException( "Failed to select database: " . mysql_error() );
 	}
 	
 	static protected function ResetDatabase() {
@@ -1158,19 +1149,24 @@ class SiteFusionProcess
 		}
 		catch ( SFException $ex ) {}
 		
-		self::$Database = mysql_connect( self::$Options['databaseHost'], self::$Options['databaseUsername'], self::$Options['databasePassword'], TRUE );
-		
-		if( ! self::$Database )
-			throw new SFException( 'Database connection failed: ' . mysql_error() );
-		
-		if( ! mysql_select_db( self::$Options['databaseName'], self::$Database ) )
-			throw new SFException( "Failed to select database: " . mysql_error() );
+		self::GetDatabaseConnection();
 	}
 	
 	static protected function DatabaseQuery( $sql ) {
-		self::VerifyDatabaseState();
+		$res = FALSE;
+		try {
+			$res = @mysql_query( $sql, self::$Database );
+		}
+		catch ( Exception $ex ) {}
 		
-		return mysql_query( $sql, self::$Database );
+		if( ! $res )
+			self::GetDatabaseConnection();
+	
+		$res = mysql_query( $sql, self::$Database );
+		if( ! $res )
+			throw new SFException( "Database Query Error: " . mysql_error() );
+	
+		return $res;
 	}
 	
 	static protected function OpenSocket( $address, $port ) {

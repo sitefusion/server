@@ -355,7 +355,6 @@ class ServiceProcess extends ExtendedSiteFusionProcess
 		if( !self::$Service )
 			return;
 		
-		self::VerifyDatabaseState();
 		self::DatabaseQuery( "UPDATE `".self::$Options['databaseName']."`.`processes` SET `memory` = ".memory_get_usage().", `memory_peak` = ".memory_get_peak_usage()." WHERE `id` = '".self::$SessionID."' LIMIT 1" );
 	}
 }
