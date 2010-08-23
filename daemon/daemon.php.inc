@@ -1155,17 +1155,17 @@ class SiteFusionProcess
 	static protected function DatabaseQuery( $sql ) {
 		$res = FALSE;
 		try {
-			$res = @mysql_query( $sql, self::$Database );
+			$res = mysql_query( $sql, self::$Database );
 		}
 		catch ( Exception $ex ) {}
 		
-		if( ! $res )
+		if( ! $res ) {
 			self::GetDatabaseConnection();
-	
-		$res = mysql_query( $sql, self::$Database );
-		if( ! $res )
-			throw new SFException( "Database Query Error: " . mysql_error() );
-	
+			$res = mysql_query( $sql, self::$Database );
+			if( ! $res )
+				throw new SFException( "Database Query Error: " . mysql_error() );
+		}
+		
 		return $res;
 	}
 	
