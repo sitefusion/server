@@ -37,6 +37,8 @@ class Database
 	public static $hostname = 'localhost';
 	public static $username = '';
 	public static $password = '';
+	public static $failureRetries = 5;
+	public static $failureRetryInterval = 1000;
 	public static $connection = NULL;
 	private static $activeDb = NULL;
 	
@@ -44,15 +46,8 @@ class Database
 		if( $db === NULL )
 			throw new SFException( "Database: No database name given", ERR_REPORT_APP );
 		
-		if( self::$connection === NULL ) {
-			self::$connection = mysql_connect( self::$hostname, self::$username, self::$password, TRUE );
-			mysql_set_charset( "utf8", self::$connection );
-		}
-		
-		if(! self::$connection )
-			self::error();
-		
-		$this->selectDb( $db );
+		if( ! self::$connection )
+			$this->initialize( $db );
 	}
 	
 	public function selectDb( $db = NULL ) {
@@ -64,6 +59,24 @@ class Database
 	
 		self::$activeDb = $db;
 		$this->db = $db;
+	}
+	
+	public function initialize( $db = NULL ) {
+		$tries = 0;
+		
+		while( $tries++ <= self::$failureRetries ) {
+			self::$connection = mysql_connect( self::$hostname, self::$username, self::$password, TRUE );
+			if( ! self::$connection ) {
+				usleep( self::$failureRetryInterval * 1000 );
+			}
+			else break;
+		}
+		
+		if( ! self::$connection )
+			throw new SFException( 'Database connection failed: ' . mysql_error(), ERR_REPORT_APP );
+		
+		if( $db && (! mysql_select_db( $db, self::$connection )) )
+			throw new SFException( "Failed to select database: " . mysql_error(), ERR_REPORT_APP );
 	}
 	
 	static public function DatabaseExists ($db)
@@ -446,85 +459,5 @@ class DatabaseObject
 
 	public function getId() {
 		return $this->{$this->_id_field};
-	}
-}
-
-
-class XMLData
-{
-	private $_data = array();
-	private $_name;
-	
-	public function __construct( $name, $xml = NULL ) {
-		$reader = simplexml_load_string( $xml == NULL ? "<$name></$name>":$xml );
-		
-		$this->_name = $name;
-		
-		foreach ( $reader->children() as $tag => $value ) {
-			$str = (string) $value;
-			$attr = $value->attributes();
-			
-			if( isset($attr['index']) ) {
-				$index = (string) $attr['index'];
-				
-				if(! isset($this->_data[$tag]) )
-					$this->_data[$tag] = array( $index => $str );
-				elseif( is_array($this->_data[$tag]) )
-					$this->_data[$tag][$index] = $str;
-				else
-					$this->_data[$tag] = array( $index => $str );
-			}
-			else
-				$this->_data[$tag] = $str;
-		}
-	}
-	
-	public function __set( $tag, $value ) {
-		$this->_data[$tag] = $value;
-	}
-	
-	public function __get( $tag ) {
-		if( isset($this->_data[$tag]) )
-			return $this->_data[$tag];
-		else
-			return NULL;
-	}
-	
-	public function __isset( $tag ) {
-		return isset( $this->_data[$tag] );
-	}
-	
-	public function __unset( $tag ) {
-		unset( $this->_data[$tag] );
-	}
-	
-	public function getXML() {
-		$writer = new XMLWriter();
-		$writer->openMemory();
-		$writer->setIndent( TRUE );
-		$writer->setIndentString( ' ' );
-		$writer->startDocument('1.0', 'UTF-8');
-		$writer->startElement( $this->_name );
-		
-		foreach ( $this->_data as $tag => $value ) {
-			if( is_array($value) ) {
-				foreach ( $value as $index => $subval ) {
-					$writer->startElement( $tag );
-					$writer->writeAttribute( 'index', $index );
-					$writer->text( (string) $subval );
-					$writer->endElement();
-				}
-			}
-			else {
-				$writer->startElement( $tag );
-				$writer->text( (string) $value );
-				$writer->endElement();
-			}
-		}
-		
-		$writer->endElement();
-		$writer->endDocument();
-		
-		return $writer->outputMemory();
 	}
 }
