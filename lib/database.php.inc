@@ -46,22 +46,26 @@ class Database
 		if( $db === NULL )
 			throw new SFException( "Database: No database name given", ERR_REPORT_APP );
 		
+		$this->db = $db;
+		
 		if( ! self::$connection )
 			$this->initialize( $db );
+		else
+			$this->selectDb( $db );
 	}
 	
-	public function selectDb( $db = NULL ) {
-		if( $db === NULL )
-			$db = $this->db;
+	public function selectDb( $db ) {
+		if( self::$activeDb == $db )
+			return;
 		
 		if(! mysql_select_db( $db, self::$connection ) )
-			self::error();
+			$this->initialize( $db );
 	
-		self::$activeDb = $db;
 		$this->db = $db;
+		self::$activeDb = $db;
 	}
 	
-	public function initialize( $db = NULL ) {
+	public function initialize( $db ) {
 		$tries = 0;
 		
 		while( $tries++ <= self::$failureRetries ) {
@@ -75,17 +79,14 @@ class Database
 		if( ! self::$connection )
 			throw new SFException( 'Database connection failed: ' . mysql_error(), ERR_REPORT_APP );
 		
+		$this->db = $db;
+		
 		if( $db && (! mysql_select_db( $db, self::$connection )) )
 			throw new SFException( "Failed to select database: " . mysql_error(), ERR_REPORT_APP );
+		
+		self::$activeDb = $db;
 	}
 	
-	static public function DatabaseExists ($db)
-	{
-		if(! mysql_select_db( $db) )
-			return FALSE;
-		else return TRUE;
-	}
-    
 	public function getCol( $table, $col, $where ) {
 		$where = (array) $where;
 		$str = array();
@@ -111,13 +112,26 @@ class Database
 	}
 	
 	public function query( $sql ) {
-		$this->selectDb();
+		$this->selectDb( $this->db );
 		
-		return mysql_query( $sql, self::$connection );
+		$res = FALSE;
+		try {
+			$res = mysql_query( $sql, self::$connection );
+		}
+		catch ( Exception $ex ) {}
+		
+		if( ! $res ) {
+			$this->initialize( $this->db );
+			$res = mysql_query( $sql, self::$connection );
+			if( ! $res )
+				self::error();
+		}
+		
+		return $res;
 	}
 	
 	public function insert( $table, $array1, $array2 = NULL ) {
-		$this->selectDb();
+		$this->selectDb( $this->db );
 		
 		$sql = 'REPLACE INTO `'.$table.'` ';
 		
@@ -131,7 +145,7 @@ class Database
 	}
 
 	public function update( $table, $idfield, $id, $array1, $array2 ) {
-		$this->selectDb();
+		$this->selectDb( $this->db );
 		
 		$sql = 'UPDATE `'.$table.'` SET ';
 		
@@ -146,7 +160,7 @@ class Database
 	}
 	
 	public function delete( $table, $field, $value ) {
-		$this->selectDb();
+		$this->selectDb( $this->db );
 		
 		if(! $this->query( "DELETE FROM `".$table."` WHERE `".$field."` = '".mysql_escape_string($value)."' LIMIT 1" ) )
 			self::error();
@@ -185,30 +199,6 @@ class Database
 		}
 		
 		return '(' . join( ', ', $res ) . ') ';
-	}
-	
-	static function validateList( $array ) {
-		$narr = array();
-		
-		foreach ( $array as $el ) {
-			if( $el == '' || $el == ' ' ) continue;
-			$narr[] = $el;
-		}
-		
-		return $narr;
-	}
-	
-	static public function GetTable( $db, $table ) {
-		$db = new Database( $db );
-		
-		$res = $db->query( 'SELECT * FROM `'.$table.'`' );
-		$ret = array();
-		
-		while( $row = mysql_fetch_row($res) ) {
-			$ret[$row[0]] = $row[1];
-		}
-		
-		return $ret;
 	}
 }
 
