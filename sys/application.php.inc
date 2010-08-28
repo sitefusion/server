@@ -170,6 +170,7 @@ class Application
 	public $window;
 	public $registry;
 	public $applicationName;
+	public $applicationArguments;
 	public $globalEventHandlers = array();
 	public $commandBuffer = array();
 	public $handlerFor = array();
