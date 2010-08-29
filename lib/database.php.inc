@@ -58,8 +58,13 @@ class Database
 		if( self::$activeDb == $db )
 			return;
 		
-		if(! mysql_select_db( $db, self::$connection ) )
+		try {
+			if(! mysql_select_db( $db, self::$connection ) )
+				throw new SFException( 'Select DB failed' );
+		}
+		catch ( SFException $ex ) {
 			$this->initialize( $db );
+		}
 	
 		$this->db = $db;
 		self::$activeDb = $db;
