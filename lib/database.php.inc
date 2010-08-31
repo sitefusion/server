@@ -89,6 +89,7 @@ class Database
 		if( $db && (! mysql_select_db( $db, self::$connection )) )
 			throw new SFException( "Failed to select database: " . mysql_error(), ERR_REPORT_APP );
 		
+		mysql_set_charset( 'utf8', self::$connection );
 		self::$activeDb = $db;
 	}
 	
