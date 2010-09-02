@@ -342,7 +342,40 @@ SiteFusion.Classes.Editor = Class.create( SiteFusion.Classes.Node, {
 			el.className = className;
 		}
 	},
-
+	
+	setTextID: function( id ) {
+		var el = this.getNearestElement( 'SPAN' );
+		
+		if( id == '' ) {
+			if( (!el) || el.tagName != 'SPAN' )
+				return;
+			
+			while( el.hasChildNodes() ) {
+				var c = el.removeChild( el.lastChild );
+				el.parentNode.insertBefore( c, el );
+			}
+			
+			el.parentNode.removeChild( el );
+		}
+		else {
+			if( (!el) || el.tagName != 'SPAN' ) {
+				if (typeof this.textEditor == 'undefined') {
+		 	 		SiteFusion.consoleMessage('this.textEditor is undefined in setTextClass()');
+		 	 		return;
+				}
+				var content = this.textEditor.selection.toString();
+				if(! content.length )
+					return;
+				
+				el = this.element.contentDocument.createElement( 'SPAN' );
+				el.innerHTML = content;
+				this.htmlEditor.insertElementAtSelection( el, true );
+			}
+			
+			el.id = id;
+		}
+	},
+	
 	getNearestElement: function( tag ) {
 		this.restoreSelection();
 		
@@ -451,7 +484,7 @@ SiteFusion.Classes.Editor = Class.create( SiteFusion.Classes.Node, {
 			if( el.tagName == 'SPAN' && this.elementIsEditable(el) ) {
 				spanState = true;
 				spanElement = el;
-				spanAttr = [ el.className ];
+				spanAttr = [ el.className, el.id ];
 			}
 			
 			

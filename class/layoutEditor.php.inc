@@ -153,6 +153,9 @@ class XULEditor extends BranchNode
 	public function setTextClass( $class ) {
 		$this->callMethod( 'setTextClass', array($class) );
 	}
+	public function setTextID( $id ) {
+		$this->callMethod( 'setTextID', array($id) );
+	}
 	
 	public function deleteElement( $tagName ) {
 		$this->callMethod( 'removeElement', array($tagName) );
