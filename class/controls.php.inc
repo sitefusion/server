@@ -654,6 +654,7 @@ class XULMenuList extends BranchNode
 	public $initAttributes = array( 'editable' );
 	public $selectedItem = NULL;
 	public $selectedValue = NULL;
+	public $inputField = NULL;
 	
 	
 	/**
@@ -672,9 +673,10 @@ class XULMenuList extends BranchNode
 		$this->setEventHandler( 'yield', $this, 'yieldCollect' );
 	}
 	
-	public function yieldCollect( $e, $item ) {
+	public function yieldCollect( $e, $item, $inputField = NULL ) {
 		$this->selectedItem = $item;
 		$this->selectedValue = ($item ? $item->value() : NULL);
+		$this->inputField = $inputField;
 	}
 	
 	public function editable( $state ) {

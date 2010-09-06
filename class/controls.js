@@ -378,12 +378,15 @@ SiteFusion.Classes.MenuList = Class.create( SiteFusion.Classes.Node, {
 	// /FIXME: end of workaround function
 	
 	yield: function() {
-		var item, idx;
+		var item, idx, elInputField;
 		
+		if( this.element.editable )
+			elInputField = this.element.inputField.value;
+
 		idx = (typeof(this.element.selectedIndex) == 'undefined' || this.element.selectedIndex == -1)  ? 0 : this.element.selectedIndex;
 		item = this.element.childNodes[0].childNodes[idx].sfNode;
 		
-		this.fireEvent( 'yield', new Array( item ) );
+		this.fireEvent( 'yield', new Array( item, elInputField ) );
 	},
 
 	selectedItem: function( item ) {
