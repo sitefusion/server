@@ -240,19 +240,6 @@ class Application
 		foreach ( array_keys(ApplicationProcess::$ExtensionInfo) as $id ) { $arr = (array) ApplicationProcess::$ExtensionInfo[$id]; ApplicationProcess::$ExtensionInfo[$id] = $arr; }
 	}
 	
-	
-	/**
-	 * [INTERNAL FUNCTION] This function handles the clientComponentsInit event
-	 * 
-	 * @param Event			$event			Event object
-	 * @param array			$components		Components info assoc. array
-	*/
-	
-	public function onClientComponentsInit( $event, $components ) {
-		$this->clientComponents = (array) $components;
-	}
-	
-	
 	/**
 	 * Send raw JavaScript to the client
 	 *
