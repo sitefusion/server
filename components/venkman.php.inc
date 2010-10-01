@@ -38,6 +38,6 @@
 class Venkman
 {
 	static public function Open() {
-		ApplicationProcess::$Application->sendCommand('SiteFusion.ClientComponents.Venkman.Venkman();');
+		ApplicationProcess::$Application->sendCommand('SiteFusion.Classes.Venkman.Venkman();');
 	}
 }

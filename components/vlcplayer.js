@@ -1,21 +1,3 @@
-SiteFusion.ClientComponents.VlcPlayer = {
-	AssertSelf: function() {
-		// Can we display Adobe Flash movies?
-		var mimetype = navigator.mimeTypes["application/x-vlc-plugin"];
-
-		if (mimetype) {
-		   // Yes, so can we display with a plug-in?
-		   var plugin = mimetype.enabledPlugin;
-		   if (plugin) {
-					return true;
-		   } else {
-		      return false;
-		   }
-		}
-		else return false;
-	}	
-}
-
 SiteFusion.Classes.VlcPlayer = Class.create( SiteFusion.Classes.Node, {
 	sfClassName: 'VlcPlayer',
 	

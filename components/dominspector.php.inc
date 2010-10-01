@@ -38,6 +38,6 @@
 class DOMInspector
 {
 	static public function Open() {
-		ApplicationProcess::$Application->sendCommand('SiteFusion.ClientComponents.DOMInspector.DOMInspector();');
+		ApplicationProcess::$Application->sendCommand('SiteFusion.Classes.DOMInspector.DOMInspector();');
 	}
 }

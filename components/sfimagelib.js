@@ -1,16 +1,3 @@
-SiteFusion.ClientComponents.SFImageLib = {
-	AssertSelf: function() {
-		try {
-	    var obj = Components.classes["@sitefusion/sfimagelib;1"].createInstance();
-	    obj = obj.QueryInterface(Components.interfaces.ISFImageLib);
-	    return true;
-	  }
-	  catch (err) {
-	    return false;
-		}
-	}	
-}
-
 SiteFusion.Classes.SFImageLib = Class.create( SiteFusion.Classes.Node, {
 	sfClassName: 'SFImageLib',
 	

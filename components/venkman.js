@@ -3,10 +3,7 @@ function toOpenWindowByType(inType, uri) {
   window.open(uri, "_blank", winopts);
 }
 
-SiteFusion.ClientComponents.Venkman = {
-	AssertSelf: function() {
-		return true;
-	},
+SiteFusion.Classes.Venkman = {
 	Venkman: function() {
 		var windowDS = Components.classes["@mozilla.org/rdf/datasource;1?name=window-mediator"].getService(Components.interfaces.nsIWindowDataSource);
 		var tmpNameSpace = {};                         
@@ -14,9 +11,4 @@ SiteFusion.ClientComponents.Venkman = {
 		sl.loadSubScript("chrome://venkman/content/venkman-overlay.js", tmpNameSpace);
 		tmpNameSpace.start_venkman();
 	}
-}
-
-
-SiteFusion.ClientComponents.Henk = {
-	
 }
