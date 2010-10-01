@@ -109,6 +109,7 @@ SiteFusion.Classes.HTMLBox = Class.create( SiteFusion.Classes.Node, {
 	initialize: function( win ) {
 		this.element = win.createElement( 'browser' );
 		this.element.sfNode = this;
+		this.element.setAttribute('disablehistory', true);
 		this.element.setAttribute( 'src', 'about:blank' );
 		
 		this.setEventHost();
