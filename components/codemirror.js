@@ -4,6 +4,7 @@ SiteFusion.Classes.CodeMirror = Class.create( SiteFusion.Classes.Browser, {
 	initialize: function( win ) {
 		this.element = win.createElement( 'browser' );
 		this.element.sfNode = this;
+		this.element.setAttribute('disablehistory', true);
 		var oThis = this;
 		
 		this.hostWindow = win;
