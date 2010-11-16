@@ -279,7 +279,7 @@ class XULDialog extends XULChildWindow
 
 	public $buttons		= 'accept,cancel';
 	public $remoteConstructor = 'Dialog';
-	public $initAttributes = array( 'buttonlabelaccept', 'buttonlabelcancel', 'buttonlabelhelp', 'buttonlabeldisclosure' );
+	public $initAttributes = array( 'buttonlabelaccept', 'buttonlabelcancel', 'buttonlabelhelp', 'buttonlabeldisclosure', 'buttonlabelextra1', 'buttonlabelextra2' );
 	
 	
 	public function initWindow() {
@@ -333,6 +333,30 @@ class XULDialog extends XULChildWindow
 		
 		if( $this->isRegistered )
 			$this->setProperty( 'element.getButton("disclosure").label', $label );
+		
+		return $this;
+	}
+	
+	public function buttonlabelextra1( $label = NULL ) {
+		if( $label === NULL )
+			return $this->buttonlabelextra1;
+		
+		$this->buttonlabelextra1 = $label;
+		
+		if( $this->isRegistered )
+			$this->setProperty( 'element.getButton("extra1").label', $label );
+		
+		return $this;
+	}
+	
+	public function buttonlabelextra2( $label = NULL ) {
+		if( $label === NULL )
+			return $this->buttonlabelextra2;
+		
+		$this->buttonlabelextra2 = $label;
+		
+		if( $this->isRegistered )
+			$this->setProperty( 'element.getButton("extra2").label', $label );
 		
 		return $this;
 	}
