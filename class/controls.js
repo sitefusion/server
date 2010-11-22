@@ -102,6 +102,11 @@ SiteFusion.Classes.TextBox = Class.create( SiteFusion.Classes.Node, {
 	
 	initialize: function( win ) {
 		this.element = win.createElement( 'textbox' );
+		this.element.type = 'autocomplete';
+		this.element.setAttribute('autocompletesearch','history');
+		this.element.setAttribute('enablehistory','true');
+		this.element.setAttribute("autocompletesearchparam",'[{"value":"mark","comment":"cool dude"},{"value":"mary","comment":"nice lady"},{"value":"jimmy","comment":"very uncool guy"},{"value":"jimbo","comment":null}]');
+
 		this.element.sfNode = this;
 		
 	//	this.element.onkeypress = this._keypressHandler;

@@ -450,7 +450,15 @@ class XULDatePicker extends Node
 	public function __construct( $type = NULL, $value = NULL ) {
 		if( $type !== NULL )
 			$this->type( $type );
-		$this->value( $value === NULL ? date('Y-m-d') : $value );
+		
+		// Fixed so it accepts timestamped ints (4-11-2010)	
+		if(is_int($value))
+			$this->value(date('Y-m-d', $value));
+		else if( $value === NULL )
+			$this->value(date('Y-m-d'));
+		else
+			$this->value($value);
+			
 		$this->setEventHandler( 'yield', $this, 'yieldCollect' );
 		
 		parent::__construct();
