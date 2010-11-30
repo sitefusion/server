@@ -54,6 +54,11 @@ class Database
 			$this->selectDb( $db );
 	}
 	
+	public static function Disconnect() {
+		if( self::$connection )
+			mysql_close( self::$connection );
+	}
+	
 	public function selectDb( $db ) {
 		if( self::$activeDb == $db )
 			return;
