@@ -442,7 +442,7 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
 	};
 	
 	this.getParentIndex = function( idx ) {
-		if( this.visibleData[idx].parentId === null ) return -1;
+		if( typeof(this.visibleData[idx]) == 'undefined' || this.visibleData[idx].parentId === null ) return -1;
 		
 		for( var n = 0; n < this.visibleData.length; n++ ) {
 			if( this.visibleData[n].id == this.visibleData[idx].parentId ) {

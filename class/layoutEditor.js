@@ -643,7 +643,7 @@ SiteFusion.Classes.Editor = Class.create( SiteFusion.Classes.Node, {
 	},
 	
 	pasteHandler: function (e) {
-		dump('init paste!\n');
+		SiteFusion.consoleMessage('init paste!\n');
 
 		var xferableplain = Components.classes["@mozilla.org/widget/transferable;1"].createInstance(Components.interfaces.nsITransferable);
 		var xferablehtml = Components.classes["@mozilla.org/widget/transferable;1"].createInstance(Components.interfaces.nsITransferable);
@@ -682,32 +682,32 @@ SiteFusion.Classes.Editor = Class.create( SiteFusion.Classes.Node, {
 
 		try {
 			xferablemshtml.getTransferData("application/x-moz-nativehtml", strMSHtml, strMSHtmlLength);
-			dump("parsing Microsoft XML...\n");
+			SiteFusion.consoleMessage("parsing Microsoft XML...\n");
 		}
 		catch(e)
 		{
-			dump("Microsoft XML not found on clipboard\n");
+			SiteFusion.consoleMessage("Microsoft XML not found on clipboard\n");
 			hasMicrosoftHtml = false;
 		}
 		
 		try {
 			xferablehtml.getTransferData("text/html", strHtml, strHtmlLength);
-			dump("parsing html...\n");
+			SiteFusion.consoleMessage("parsing html...\n");
 		}
 		catch(e)
 		{
-			dump("html not found on clipboard\n");
+			SiteFusion.consoleMessage("html not found on clipboard\n");
 			hasHtml = false;
 		}
 		
 		
 		try {
 			xferableplain.getTransferData("text/unicode", str, strLength);
-			dump("parsing plaintext...\n");
+			SiteFusion.consoleMessage("parsing plaintext...\n");
 		}
 		catch(e)
 		{
-			dump("plaintext not found on clipboard\n");
+			SiteFusion.consoleMessage("plaintext not found on clipboard\n");
 			hasText = false;
 		}
 		
@@ -720,9 +720,9 @@ SiteFusion.Classes.Editor = Class.create( SiteFusion.Classes.Node, {
 	    	strHtml = strHtml.value.QueryInterface(Components.interfaces.nsISupportsString);
 	    	pastehtml = strHtml.data.substring(0, strHtmlLength.value / 2);
 	    	
-				//office 2004 mac
+			//office 2004 mac
 	    	htmlIsOfficeHtml = ((pastehtml.indexOf("Version:1.0") != -1) && (pastehtml.indexOf("StartHTML:") != -1) && (pastehtml.indexOf("EndHTML:") != -1));
-				//office 2008 mac
+			//office 2008 mac
 			if (!htmlIsOfficeHtml) htmlIsOfficeHtml = (pastehtml.indexOf("urn:schemas-microsoft-com:office:office") != -1);
 	    }
 	
@@ -808,7 +808,7 @@ SiteFusion.Classes.Editor = Class.create( SiteFusion.Classes.Node, {
 			clipboard.setData(xferableplain, null, Components.interfaces.nsIClipboard.kGlobalClipboard);
 			dump ("setData() plaintext\n");
 		}
-		dump("End of clipboard parsing!\n");
+		SiteFusion.consoleMessage("End of clipboard parsing!\n");
 	}
 });
 

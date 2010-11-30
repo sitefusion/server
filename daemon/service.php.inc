@@ -100,6 +100,23 @@ class ServiceProcess extends ExtendedSiteFusionProcess
 			socket_close( self::$DebugSocket );
 	}
 	
+	static public function ForkAndIsolate() {
+		$pid = pcntl_fork();
+		
+		if( $pid == -1 )
+			throw new SFException( "Could not fork" );
+		
+		if( !$pid ) {
+			socket_close( self::$Socket );
+			socket_close( self::$ParentSocket );
+			socket_close( self::$EventPipe );
+			if( self::$Options['debug'] )
+				socket_close( self::$DebugSocket );
+		}
+		
+		return $pid;
+	}
+	
 	static protected function ServiceLoop( $subloop = FALSE ) {
 		try {
 			while(1) {

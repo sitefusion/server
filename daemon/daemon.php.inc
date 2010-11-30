@@ -961,16 +961,6 @@ class DaemonProcess extends SiteFusionProcess
 		}
 	}
 	
-	static private function ChangeIdentity() {
-		if( ! (($uinfo = posix_getpwnam( DaemonProcess::$Options['systemUser'] )) && posix_setuid( $uinfo['uid'] )) ) {
-			self::Log( 'Cannot change identity to user '.DaemonProcess::$Options['systemUser'] );
-		}
-		
-		if( ! (($ginfo = posix_getgrnam( DaemonProcess::$Options['systemGroup'] )) && posix_setuid( $ginfo['gid'] )) ) {
-			self::Log( 'Cannot change identity to group '.DaemonProcess::$Options['systemGroup'] );
-		}
-	}
-	
 	static private function GetChildBySocket( $socket ) {
 		foreach ( self::$Children as $child ) {
 			if( isset($child->socket) && ($socket == $child->socket || $socket == $child->eventPipe) )
@@ -1113,7 +1103,13 @@ class SiteFusionProcess
 		$tries = 0;
 		
 		while( $tries++ <= self::$Options['databaseFailureRetries'] ) {
-			self::$Database = mysql_connect( self::$Options['databaseHost'], self::$Options['databaseUsername'], self::$Options['databasePassword'], TRUE );
+			try {
+				self::$Database = mysql_connect( self::$Options['databaseHost'], self::$Options['databaseUsername'], self::$Options['databasePassword'], TRUE );
+			}
+			catch ( Exception $ex ) {
+				self::$Database = NULL;
+			}
+			
 			if( ! self::$Database ) {
 				self::Log( 'Database connection failed, retry '.$tries.' in '.self::$Options['databaseFailureRetryInterval'].'ms' );
 				usleep( self::$Options['databaseFailureRetryInterval'] * 1000 );
@@ -1241,6 +1237,16 @@ class SiteFusionProcess
 			case SIGCHLD:
 				pcntl_waitpid(-1, $status);
 				break;
+		}
+	}
+	
+	static public function ChangeIdentity( $user = NULL, $group = NULL ) {
+		if( ! (($ginfo = posix_getgrnam( $group = ($group !== NULL ? $group : DaemonProcess::$Options['systemGroup']) )) && posix_setgid( $ginfo['gid'] )) ) {
+			self::Log( 'Cannot change identity to group '.$group );
+		}
+		
+		if( ! (($uinfo = posix_getpwnam( $user = ($user !== NULL ? $user : DaemonProcess::$Options['systemUser']) )) && posix_setuid( $uinfo['uid'] )) ) {
+			self::Log( 'Cannot change identity to user '.$user );
 		}
 	}
 	
