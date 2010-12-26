@@ -189,6 +189,24 @@ SiteFusion.Interface = {
 		SiteFusion.Interface.SetCursor( 'auto' );
 	},
 	
+	SetClipboardText: function(copytext) {
+		var str = Components.classes["@mozilla.org/supports-string;1"].createInstance(Components.interfaces.nsISupportsString);
+		if (!str) return false;
+		str.data=copytext;
+		
+		var trans = Components.classes["@mozilla.org/widget/transferable;1"].createInstance(Components.interfaces.nsITransferable);
+		if (!trans) return false;
+		
+		trans.addDataFlavor("text/unicode");
+		trans.setTransferData("text/unicode",str,copytext.length*2);
+		
+		var clip = Components.classes["@mozilla.org/widget/clipboard;1"].createInstance(Components.interfaces.nsIClipboard);
+		if (!clip) return false;
+		
+		clip.emptyClipboard(clip.kGlobalClipboard);
+		clip.setData(trans,null,clip.kGlobalClipboard);
+	},
+	
 	RegisterChildWindow: function( win ) {
 		SiteFusion.Interface.ChildWindows.push( win );
 	},

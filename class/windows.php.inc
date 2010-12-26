@@ -222,7 +222,7 @@ class XULChildWindow extends XULBasicWindow
 		$this->closeWindow();
 	}
 	
-	public function initWindow() {
+	public function initWindow( $event ) {
 		$this->title( $this->title );
 		$this->setEventHandler( 'hasClosed', $this, 'closeWindow' );
 		$this->focus();
@@ -282,7 +282,7 @@ class XULDialog extends XULChildWindow
 	public $initAttributes = array( 'buttonlabelaccept', 'buttonlabelcancel', 'buttonlabelhelp', 'buttonlabeldisclosure', 'buttonlabelextra1', 'buttonlabelextra2' );
 	
 	
-	public function initWindow() {
+	public function initWindow( $event ) {
 		$this->title( $this->title );
 		$this->setProperty( 'element.buttons', $this->buttons );
 		$this->setEventHandler( 'hasClosed', $this, 'closeWindow' );

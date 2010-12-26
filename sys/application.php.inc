@@ -513,4 +513,8 @@ class Application
 		ApplicationProcess::$Application->sendCommand('SiteFusion.wakeTitle = '.json_encode($title));
 		ApplicationProcess::$Application->sendCommand('SiteFusion.wakeMessage = '.json_encode($msg));
 	}
+	
+	public function setClipboardText($text) {
+		ApplicationProcess::$Application->sendCommand('SiteFusion.Interface.SetClipboardText('.json_encode($text).');');
+	}
 }
