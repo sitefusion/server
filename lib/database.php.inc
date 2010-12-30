@@ -59,6 +59,13 @@ class Database
 			mysql_close( self::$connection );
 	}
 	
+	public static function DatabaseExists ($db)
+	{
+		if(! mysql_select_db( $db) )
+			return FALSE;
+		else return TRUE;
+	}
+	
 	public function selectDb( $db ) {
 		if( self::$activeDb == $db )
 			return;
