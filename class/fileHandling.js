@@ -28,7 +28,7 @@
 SiteFusion.Classes.FilePicker = Class.create( SiteFusion.Classes.Node, {
 	sfClassName: 'XULFilePicker',
 	
-	initialize: function ( win, title, mode, defaultString ) {
+	initialize: function ( win, title, mode, defaultString, defaultExtension ) {
 		this.element = win.createElement( 'label' );
 		this.setEventHost( [ 'yield' ] );
 		this.eventHost.yield.msgType = 0;
@@ -45,6 +45,7 @@ SiteFusion.Classes.FilePicker = Class.create( SiteFusion.Classes.Node, {
 		this.filters = new Array();
 		this.title = title;
 		this.defaultString = defaultString;
+		this.defaultExtension = defaultExtension;
 		this.win = win;
 	},
 	
@@ -53,17 +54,24 @@ SiteFusion.Classes.FilePicker = Class.create( SiteFusion.Classes.Node, {
 		
 		var fp = Cc["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
 		fp.defaultString = this.defaultString;
+		fp.defaultExtension = this.defaultExtension;
 
 		for (var n=0; n < this.filters.length; n++)
 		{
 			fp.appendFilter(this.filters[n][0], this.filters[n][1]);
 		}
+		
 		fp.init(this.win.windowObject, this.title, this.mode);
 		var res = fp.show();
 		
 		if( res == nsIFilePicker.returnCancel ) {
-			this.fireEvent( 'yield', [ 'cancel', null ] );
+			this.fireEvent( 'yield', [ 'cancel', null, null ] );
 		}
+		var selectedFilter = false;
+		if (this.filters.length) {
+			selectedFilter = this.filters[fp.filterIndex];
+		}
+		
 		if( res == nsIFilePicker.returnOK ) {
 			if( this.mode == nsIFilePicker.modeOpenMultiple ) {
 				var files = [ 'ok' ];
@@ -77,11 +85,11 @@ SiteFusion.Classes.FilePicker = Class.create( SiteFusion.Classes.Node, {
 				this.fireEvent( 'yield', files );
 			}
 			else {
-				this.fireEvent( 'yield', [ 'ok', fp.file.path ] );
+				this.fireEvent( 'yield', [ 'ok', fp.file.path, selectedFilter ] );
 			}
 		}
 		if( res == nsIFilePicker.returnReplace ) {
-			this.fireEvent( 'yield', [ 'replace', fp.file.path ] );
+			this.fireEvent( 'yield', [ 'replace', fp.file.path, selectedFilter ] );
 		}
 	},
 	

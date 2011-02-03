@@ -50,7 +50,7 @@ class XULFilePicker extends Node
 	public $file = NULL;
 	public $files = NULL;
 	public $returnCode = 'cancel';
-	
+	public $selectedFilter = FALSE;
 	
 	/**
 	 * Constructor
@@ -58,11 +58,13 @@ class XULFilePicker extends Node
 	 * @param string	$title			Title for the file picker dialog
 	 * @param string	$mode			Type of file picker ('open' = open single file, 'save' = save a file, 'getfolder' = select a folder, 'openmultiple' = open multiple files
 	 * @param string	$defaultString	Default value (file/folder path)
+	 * @param string	$defaultExtension	Default extension value. Needs to be set in order to enable reading the filter extensions.
 	*/
 	
-	public function __construct( $title, $mode = 'open', $defaultString = '' ) {
+	public function __construct( $title, $mode = 'open', $defaultString = '', $defaultExtension = '' ) {
 		$this->title = $title;
 		$this->defaultString = (string) $defaultString;
+		$this->defaultExtension = $defaultExtension;
 		
 		if( $mode == 'open' || $mode == 'save' || $mode == 'getfolder' || $mode == 'openmultiple' )
 			$this->mode = $mode;
@@ -75,7 +77,7 @@ class XULFilePicker extends Node
 	}
 	
 	public function attach() {
-		$this->createRemoteObject( array( $this->hostWindow, $this->title, $this->mode, $this->defaultString ) );
+		$this->createRemoteObject( array( $this->hostWindow, $this->title, $this->mode, $this->defaultString, $this->defaultExtension ) );
 	}
 	
 	public function detach() {
@@ -110,7 +112,7 @@ class XULFilePicker extends Node
 	 * Event handler for the yield event
 	*/
 	
-	public function yieldCollect( $e, $returnCode, $path ) {
+	public function yieldCollect( $e, $returnCode, $path, $selectedFilter ) {
 		$args = func_get_args();
 		$e = array_shift($args);
 		$this->returnCode = array_shift($args);
@@ -123,6 +125,9 @@ class XULFilePicker extends Node
 		}
 		else {
 			$this->file = (count($args) ? array_shift($args) : NULL);
+			$this->selectedFilter = array();
+			list($this->selectedFilter['filterName'],$this->selectedFilter['filterContents']) = (count($args) ? array_shift($args) : NULL);
+			$this->selectedFilter['filterContents'] = explode(";",$this->selectedFilter['filterContents']);
 			$this->files = NULL;
 
 			$this->fireLocalEvent( 'closed', array( $this->returnCode, $this->file ) );
@@ -1031,6 +1036,7 @@ class ClientFileService extends Node
 	*/
 	
 	public function writeFile( $localPath, $clientPath, $handlerObj = NULL, $handlerMethod = NULL ) {
+
 		$this->hostWindow->addChild( $fdn = new FileDownloader( $localPath, $clientPath ) );
 		if( $handlerObj && $handlerMethod ) {
 			$fdn->setEventHandler( 'finished', $handlerObj, $handlerMethod );

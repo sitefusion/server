@@ -360,6 +360,13 @@ class XULDialog extends XULChildWindow
 		
 		return $this;
 	}
+	
+	public function disableButton($button = "accept", $disabled = TRUE) {
+		if ($disabled)
+			$this->callMethod("element.getButton('".$button."').setAttribute", "disabled" ,"true");
+		else
+			$this->callMethod("element.getButton('".$button."').removeAttribute", "disabled");
+	}
 }
 
 
