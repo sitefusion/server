@@ -175,8 +175,6 @@ SiteFusion.Classes.Window = Class.create( SiteFusion.Classes.BasicWindow, {
 		
 		obsService.addObserver( shutdownObserver, 'wake_notification', false );
 		
-		obsService.addObserver( shutdownObserver, 'quit-application-requested', false );
-		
 		SiteFusion.Comm.RevComm();
 	},
 	
