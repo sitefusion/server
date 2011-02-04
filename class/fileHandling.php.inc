@@ -112,7 +112,7 @@ class XULFilePicker extends Node
 	 * Event handler for the yield event
 	*/
 	
-	public function yieldCollect( $e, $returnCode, $path, $selectedFilter ) {
+	public function yieldCollect( $e, $returnCode, $path, $selectedFilter = FALSE ) {
 		$args = func_get_args();
 		$e = array_shift($args);
 		$this->returnCode = array_shift($args);
