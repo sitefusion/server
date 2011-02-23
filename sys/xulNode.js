@@ -303,7 +303,7 @@ SiteFusion.Classes.Node = Class.create( {
 
 	disabled: function( state ) {
 		if( state )
-			this.element.setAttribute( 'disabled' );
+			this.element.setAttribute( 'disabled', 'true' );
 		else
 			this.element.removeAttribute( 'disabled' );
 	},
