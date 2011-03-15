@@ -342,8 +342,12 @@ class XULFileSystemImage extends Node
 		$this->transferStarted = FALSE;
 		$this->transferSize = NULL;
 		
-		if( $this->removeAfterTransfer )
-			@unlink( $this->imagePath );
+		if( $this->removeAfterTransfer ) {
+			try {
+				unlink( $this->imagePath );
+			}
+			catch( SFException $ex ) {}
+		}
 	}
 }
 
