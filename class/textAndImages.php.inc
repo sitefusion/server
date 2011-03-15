@@ -258,6 +258,7 @@ class XULFileSystemImage extends Node
 	public $width = NULL;
 	public $height = NULL;
 	public $imagePath = NULL;
+	public $removeAfterTransfer = FALSE;
 	
 	private $transferStarted = FALSE;
 	private $transferSize = NULL;
@@ -340,6 +341,9 @@ class XULFileSystemImage extends Node
 	public function transferEnd() {
 		$this->transferStarted = FALSE;
 		$this->transferSize = NULL;
+		
+		if( $this->removeAfterTransfer )
+			@unlink( $this->imagePath );
 	}
 }
 
