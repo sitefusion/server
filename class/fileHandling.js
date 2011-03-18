@@ -135,7 +135,7 @@ SiteFusion.Classes.FileUploader = Class.create( SiteFusion.Classes.Node, {
 			.createInstance(Components.interfaces.nsIBinaryInputStream);
 		this.binary.setInputStream (stream);
 		
-		this.fileSize = this.binary.available();
+		this.fileSize = file.fileSize;
 		this.progress = 0;
 		this.cancelled = false;
 		
@@ -169,18 +169,18 @@ SiteFusion.Classes.FileUploader = Class.create( SiteFusion.Classes.Node, {
 		
 		var data, len;
 		
-		if( this.binary.available() < this.chunkSize )
-			len = this.binary.available();
+		if( (this.fileSize - this.progress) < this.chunkSize )
+			len = (this.fileSize - this.progress);
 		else
 			len = this.chunkSize;
-	
+		
 		data = btoa(this.binary.readBytes(len));
 		this.progress += len;
 		this.cycle++;
 		
 		var transmission = this.fireEvent( 'cycle', [ this.fileSize, this.progress, this.cycle, data ] );
 		
-		if( this.binary.available() ) {
+		if( this.fileSize > this.progress ) {
 			var oThis = this;
 			transmission.onstatechange = function() { if( this.state == this.STATE_FINISHED ) oThis._uploadCycle(); };
 		}
