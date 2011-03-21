@@ -74,7 +74,7 @@ SiteFusion.Classes.FilePicker = Class.create( SiteFusion.Classes.Node, {
 		
 		if( res == nsIFilePicker.returnOK ) {
 			if( this.mode == nsIFilePicker.modeOpenMultiple ) {
-				var files = [ 'ok' ];
+				var files = [];
 				var enum = fp.files;
 				
 				while( enum.hasMoreElements() ) {
