@@ -232,7 +232,6 @@ SiteFusion.Classes.Editor = Class.create( SiteFusion.Classes.Node, {
 		this.restoreSelection();
 		
 		var img, newel = false;
-		
 		if(! (img = this.htmlEditor.getSelectedElement( 'IMG' )) ) {
 			var html = '<img src="'+src+'" border="0" style="width: '+width+'px; height: '+height+'px;"'+(align != null ? ' align="'+align+'"' : '')+' alt="'+(alt != null ? alt:'')+'">';
 			this.htmlEditor.insertHTML( html );

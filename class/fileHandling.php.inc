@@ -112,24 +112,22 @@ class XULFilePicker extends Node
 	 * Event handler for the yield event
 	*/
 	
-	public function yieldCollect( $e, $returnCode, $path, $selectedFilter = FALSE ) {
-		$args = func_get_args();
-		$e = array_shift($args);
-		$this->returnCode = array_shift($args);
-		
-		if( $this->mode == 'openmultiple' ) {
-			$this->files = $args;
-			$this->file = NULL;
+	public function yieldCollect( $e, $returnCode, $path = NULL, $selectedFilter = FALSE ) {
+		$this->returnCode = $returnCode;
+		$this->selectedFilter = array();
+		if (isset($selectedFilter) && count($selectedFilter) > 1) {
+				$this->selectedFilter['filterName'] = $selectedFilter[0];
+				$this->selectedFilter['filterContents'] = explode(";",$selectedFilter[1]);
+		}
 			
+		if( $this->mode == 'openmultiple' ) {
+			$this->files = $path;
+			$this->file = NULL;
 			$this->fireLocalEvent( 'closed', array( $this->returnCode, $this->files ) );
 		}
 		else {
-			$this->file = (count($args) ? array_shift($args) : NULL);
-			$this->selectedFilter = array();
-			list($this->selectedFilter['filterName'],$this->selectedFilter['filterContents']) = (count($args) ? array_shift($args) : NULL);
-			$this->selectedFilter['filterContents'] = explode(";",$this->selectedFilter['filterContents']);
+			$this->file = $path;
 			$this->files = NULL;
-
 			$this->fireLocalEvent( 'closed', array( $this->returnCode, $this->file ) );
 		}
 		

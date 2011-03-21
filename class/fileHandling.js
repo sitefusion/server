@@ -82,7 +82,7 @@ SiteFusion.Classes.FilePicker = Class.create( SiteFusion.Classes.Node, {
 					files.push( file.path );
 				}
 				
-				this.fireEvent( 'yield', files );
+				this.fireEvent( 'yield', ['ok', files, selectedFilter] );
 			}
 			else {
 				this.fireEvent( 'yield', [ 'ok', fp.file.path, selectedFilter ] );
