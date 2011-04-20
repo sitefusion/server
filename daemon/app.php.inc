@@ -52,8 +52,10 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 	static private $DebugWindows = array();
 	
 	static public $ServerHost;
+	static public $ServerPath;
 	static public $ServerSecure;
 	
+	static public $Ident;
 	static public $AppInfo;
 	static public $PlatformInfo;
 	static public $ExtensionInfo;
@@ -101,7 +103,8 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 		}
 		
 		self::$ApplicationPath = $param['app'];
-		self::$ServerHost = $param['server'];
+		self::$ServerHost = $param['serverHost'];
+		self::$ServerPath = $param['serverPath'];
 		self::$ServerSecure = $param['secure'];
 		
 		self::SetSignalHandlers();
@@ -471,7 +474,8 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 			$error = NULL;
 			$user = $loginObject->username;
 			$pass = $loginObject->password;
-			$server = $loginObject->server;
+			$serverHost = $loginObject->serverHost;
+			$serverPath = $loginObject->serverPath;
 			$secure = $loginObject->secure;
 			$ip = $loginObject->ip;
 			self::$AppInfo = (array) $loginObject->appInfo;
@@ -527,7 +531,7 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 		
 		$extensionPolicy = array();
 		
-		if( version_compare( self::$ClientVersion, '1.2.1' ) >= 0 ) {
+		if(( version_compare( self::$ClientVersion, '1.2.1' ) >= 0 ) && ( version_compare( self::$ClientVersion, '2.0.0' ) < 0 ) ) {
 			foreach ( self::$ExtensionPolicy['require'] as $requireExtension ) {
 				if( (!isset(self::$ExtensionInfo[$requireExtension['id']]))
 				 	or ($requireExtension['minVersion'] !== NULL && version_compare(self::$ExtensionInfo[$requireExtension['id']]['version'],$requireExtension['minVersion']) == -1)
@@ -545,6 +549,26 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 					$extensionPolicy[] = array( $disableExtension['id'], 'disable' );
 			}
 		}
+
+		else if (version_compare( self::$ClientVersion, '2.0.0' ) >= 0) {
+			foreach ( self::$ExtensionPolicy['require'] as $requireExtension ) {
+				
+				//TODO: add minversion / maxversion subsystem
+				if(!isset(self::$ExtensionInfo[$requireExtension['id']]))				 	
+				{
+					$extensionPolicy[] = array( $requireExtension['id'], 'get', $requireExtension['fileName'] );
+				}
+				elseif( !self::$ExtensionInfo[$requireExtension['id']]['enabled'] ) {
+					$extensionPolicy[] = array( $requireExtension['id'], 'enable' );
+				}
+				
+			}
+
+			foreach ( self::$ExtensionPolicy['disable'] as $disableExtension ) {
+				if( isset(self::$ExtensionInfo[$disableExtension['id']]) && self::$ExtensionInfo[$disableExtension['id']]['enabled'] )
+					$extensionPolicy[] = array( $disableExtension['id'], 'disable' );
+			}
+		}
 		
 		$loginParam = array(
 			'success' => 1,
@@ -554,7 +578,8 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 			'app' => $app,
 			'args' => join(',',$args),
 			'user' => $user,
-			'server' => $server,
+			'serverHost' => $serverHost,
+			'serverPath' => $serverPath,
 			'secure' => ($secure == 1 ? TRUE : FALSE),
 			'includeJs' => implode( ",", self::$JSLibraries ),
 			'alwaysLowered' => self::$Application->alwaysLowered,
@@ -563,6 +588,8 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 			'resizable' => self::$Application->resizable,
 			'extensionPolicy' => $extensionPolicy
 		);
+		
+		self::$Ident = $ident;
 		
 		if( is_int(self::$Application->width) && is_int(self::$Application->height) ) {
 			$loginParam['width'] = self::$Application->width;

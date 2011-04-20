@@ -153,7 +153,7 @@ SiteFusion.Classes.Window = Class.create( SiteFusion.Classes.BasicWindow, {
 		
 		var obsService = Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService);
 		
-		var shutdownObserver = {
+		var wakeObserver = {
 			observe: function( subject, topic, data ) {
 				
 				if (topic == 'wake_notification') {
@@ -172,8 +172,10 @@ SiteFusion.Classes.Window = Class.create( SiteFusion.Classes.BasicWindow, {
 					subject.data = true;
 			}
 		};
-		
-		obsService.addObserver( shutdownObserver, 'wake_notification', false );
+		 
+		obsService.addObserver( wakeObserver, 'wake_notification', false );
+		//Addition for xulrunner 2.0!
+		//obsService.addObserver( {observe: function( subject, topic, data){ oThis.onClose(); }}, 'quit-application-requested', false );
 		
 		SiteFusion.Comm.RevComm();
 	},

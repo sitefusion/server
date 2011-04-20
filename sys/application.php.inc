@@ -517,4 +517,14 @@ class Application
 	public function setClipboardText($text) {
 		ApplicationProcess::$Application->sendCommand('SiteFusion.Interface.SetClipboardText('.json_encode($text).');');
 	}
+	
+	public function parseImageURL($imageUrl) {
+		
+		$address = ((ApplicationProcess::$ServerSecure) ? "https://" : "http://");
+		$address .= ApplicationProcess::$ServerHost;
+		$address .= ApplicationProcess::$ServerPath;
+		
+		$url = $address.'/appimage.php?name='.substr($imageUrl,1).'&app='.$this->applicationName.'&args='.implode(",",$this->applicationArguments).'&sid='.ApplicationProcess::GetSessionID().'&ident='.ApplicationProcess::$Ident;
+		return $url;
+	}
 }

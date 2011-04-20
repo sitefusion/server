@@ -129,7 +129,7 @@ SiteFusion.Classes.Popup = Class.create( SiteFusion.Classes.Node, {
 	sfClassName: 'XULPopup',
 	
 	initialize: function( win ) {
-		this.element = win.createElement( 'popup' );
+		this.element = win.createElement( 'menupopup' );
 		this.element.setAttribute( 'type', 'created' );
 		this.element.sfNode = this;
 		

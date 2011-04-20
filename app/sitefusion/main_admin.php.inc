@@ -464,7 +464,7 @@ class SiteFusionProcessTreeItem extends XULTreeItem
 		$row->children[5]->label( number_format($process['memory_peak'],0,',','.'). ' Bytes' );
 		$row->children[6]->label( (isset($process['cpu']) ? $process['cpu'] : "") );
 		$row->children[7]->label( (string) $process['nodes'] );
-		$row->children[8]->label( $process['time'] );
+		$row->children[8]->label( isset($process['time']) ? $process['time'] : "" );
 	}
 }
 

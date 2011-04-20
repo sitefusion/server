@@ -90,7 +90,8 @@ try {
 		'username' => $username,
 		'password' => $password,
 		'ip' => $_SERVER['REMOTE_ADDR'],
-		'server' => ((isset($_SERVER['HTTP_HOST']) && $_SERVER['HTTP_HOST'] != '') ? $_SERVER['HTTP_HOST'] : $_SERVER['SERVER_NAME']),
+		'serverHost' => ((isset($_SERVER['HTTP_HOST']) && $_SERVER['HTTP_HOST'] != '') ? $_SERVER['HTTP_HOST'] : $_SERVER['SERVER_NAME']),
+		'serverPath' => dirname($_SERVER['PHP_SELF']),
 		'secure' => ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != '') ? 1 : 0),
 		'clientVersion' => $clientVersion
 	);
