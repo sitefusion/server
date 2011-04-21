@@ -156,6 +156,8 @@ class SitefusionAdmin extends Application
 						new XULSplitter( 'tree-splitter' ),
 						new XULTreeCol( 'Port', 1 ),
 						new XULSplitter( 'tree-splitter' ),
+						new XULTreeCol( 'Client Version', 1 ),
+						new XULSplitter( 'tree-splitter' ),
 						new XULTreeCol( 'Memory Usage', 1 ),
 						new XULSplitter( 'tree-splitter' ),
 						new XULTreeCol( 'Memory Allocated', 1 ),
@@ -439,12 +441,25 @@ class SiteFusionProcessTreeItem extends XULTreeItem
 	public function __construct( $process ) {
 		$this->pid = $process['pid'];
 		$this->sid = $process['id'];
+		
+		
+		$appInfo = ApplicationProcess::GetApplicationInfo($process['id']);
+		if (!$appInfo == NULL)
+		{
+			$version = $appInfo['AppInfo']['version'];
+		}
+		else {
+			$version = "";
+		}
+
+		
 		parent::__construct(
 			new XULTreeRow(
 				new XULTreeCell( (string) $process['pid'] ),
 				new XULTreeCell( $process['type'] ),
 				new XULTreeCell( $process['id'] ),
 				new XULTreeCell( (string) $process['port'] ),
+				new XULTreeCell( (string) $version ),
 				new XULTreeCell( number_format($process['memory'],0,',','.'). ' Bytes' ),
 				new XULTreeCell( number_format($process['memory_peak'],0,',','.'). ' Bytes' ),
 				new XULTreeCell( $process['cpu'] ),
@@ -460,11 +475,11 @@ class SiteFusionProcessTreeItem extends XULTreeItem
 	
 	public function updateRow( $process ) {
 		$row = $this->children[0];
-		$row->children[4]->label( number_format($process['memory'],0,',','.'). ' Bytes' );
-		$row->children[5]->label( number_format($process['memory_peak'],0,',','.'). ' Bytes' );
-		$row->children[6]->label( (isset($process['cpu']) ? $process['cpu'] : "") );
-		$row->children[7]->label( (string) $process['nodes'] );
-		$row->children[8]->label( isset($process['time']) ? $process['time'] : "" );
+		$row->children[5]->label( number_format($process['memory'],0,',','.'). ' Bytes' );
+		$row->children[6]->label( number_format($process['memory_peak'],0,',','.'). ' Bytes' );
+		$row->children[7]->label( (isset($process['cpu']) ? $process['cpu'] : "") );
+		$row->children[8]->label( (string) $process['nodes'] );
+		$row->children[9]->label( isset($process['time']) ? $process['time'] : "" );
 	}
 }
 
