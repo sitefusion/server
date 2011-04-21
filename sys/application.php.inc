@@ -220,26 +220,6 @@ class Application
 		$this->joinEventGroup( $parts[0] );
 	}
 	
-	
-	/**
-	 * [INTERNAL FUNCTION] This function handles the clientInit event
-	 * and sets the Application::$client array.
-	 * 
-	 * @param Event			$event			Event object
-	 * @param object		$extensionInfo	Extension information
-	 * @param object		$platformInfo	Platform info
-	 * @param object		$appInfo		Application info
-	 * @param object		$cmdlineArgs	Commandline arguments
-	*/
-	
-	public function onClientInit( $event, $extensionInfo, $platformInfo, $appInfo, $cmdlineArgs ) {
-		ApplicationProcess::$PlatformInfo = $this->client = (array) $platformInfo;
-		ApplicationProcess::$AppInfo = $this->appInfo = (array) $appInfo;
-		ApplicationProcess::$CommandLineArgs = $this->cmdlineArgs = (array) $cmdlineArgs;
-		ApplicationProcess::$ExtensionInfo = (array) $extensionInfo;
-		foreach ( array_keys(ApplicationProcess::$ExtensionInfo) as $id ) { $arr = (array) ApplicationProcess::$ExtensionInfo[$id]; ApplicationProcess::$ExtensionInfo[$id] = $arr; }
-	}
-	
 	/**
 	 * Send raw JavaScript to the client
 	 *

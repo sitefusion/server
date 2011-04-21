@@ -531,7 +531,7 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 		
 		$extensionPolicy = array();
 		
-		if(( version_compare( self::$ClientVersion, '1.2.1' ) >= 0 ) && ( version_compare( self::$ClientVersion, '2.0.0' ) < 0 ) ) {
+		if( version_compare( self::$ClientVersion, '1.2.1' ) >= 0 ) {
 			foreach ( self::$ExtensionPolicy['require'] as $requireExtension ) {
 				if( (!isset(self::$ExtensionInfo[$requireExtension['id']]))
 				 	or ($requireExtension['minVersion'] !== NULL && version_compare(self::$ExtensionInfo[$requireExtension['id']]['version'],$requireExtension['minVersion']) == -1)
@@ -542,26 +542,6 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 				elseif( !self::$ExtensionInfo[$requireExtension['id']]['enabled'] ) {
 					$extensionPolicy[] = array( $requireExtension['id'], 'enable' );
 				}
-			}
-
-			foreach ( self::$ExtensionPolicy['disable'] as $disableExtension ) {
-				if( isset(self::$ExtensionInfo[$disableExtension['id']]) && self::$ExtensionInfo[$disableExtension['id']]['enabled'] )
-					$extensionPolicy[] = array( $disableExtension['id'], 'disable' );
-			}
-		}
-
-		else if (version_compare( self::$ClientVersion, '2.0.0' ) >= 0) {
-			foreach ( self::$ExtensionPolicy['require'] as $requireExtension ) {
-				
-				//TODO: add minversion / maxversion subsystem
-				if(!isset(self::$ExtensionInfo[$requireExtension['id']]))				 	
-				{
-					$extensionPolicy[] = array( $requireExtension['id'], 'get', $requireExtension['fileName'] );
-				}
-				elseif( !self::$ExtensionInfo[$requireExtension['id']]['enabled'] ) {
-					$extensionPolicy[] = array( $requireExtension['id'], 'enable' );
-				}
-				
 			}
 
 			foreach ( self::$ExtensionPolicy['disable'] as $disableExtension ) {
