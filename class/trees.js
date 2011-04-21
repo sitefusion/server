@@ -32,7 +32,9 @@ SiteFusion.Classes.Tree = Class.create( SiteFusion.Classes.Node, {
 		this.element = win.createElement( 'tree' );
 		this.element.sfNode = this;
 		this.setEventHost( [ 'yield' ] );
-	
+		var oThis = this;
+	    setTimeout(function() {oThis.element.columns.restoreNaturalOrder();},100);
+	    
 		this.eventHost.yield.msgType = 1;
 	},
 	
@@ -69,7 +71,6 @@ SiteFusion.Classes.TreeCols = Class.create( SiteFusion.Classes.Node, {
 	initialize: function( win ) {
 		this.element = win.createElement( 'treecols' );
 		this.element.sfNode = this;
-		
 		this.setEventHost();
 	}
 } );
