@@ -32,7 +32,8 @@ SiteFusion.Classes.TabBox = Class.create( SiteFusion.Classes.Node, {
 		this.element = win.createElement( 'tabbox' );
 		this.element.sfNode = this;
 		
-		this.setEventHost();
+		this.setEventHost(['yield']);
+		this.eventHost.yield.msgType = 1;
 	},
 	
 	selectedTab: function( tab ) {
@@ -43,6 +44,11 @@ SiteFusion.Classes.TabBox = Class.create( SiteFusion.Classes.Node, {
 	selectedPanel: function( panel ) {
 		var oThis = this;
 		SiteFusion.Interface.DeferredCallbacks.push( function() { oThis.element.selectedPanel = panel.element; } );
+	},
+	
+	yield: function() {
+		var oThis = this;
+		this.fireEvent( 'yield', [ oThis.element.selectedIndex, oThis.element.selectedTab.sfNode, oThis.element.selectedPanel.sfNode ] );
 	}
 } );
 

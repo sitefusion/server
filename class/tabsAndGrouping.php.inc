@@ -44,9 +44,10 @@ class XULTabBox extends BranchNode
 	public $remoteConstructor = 'TabBox';
 	public $align = 'stretch';
 	public $flex = 1;
+	public $selectedIndex = NULL;
 	protected $selectedTab = NULL;
 	protected $selectedPanel = NULL;
-
+	
 	
 	/**
 	 * Dynamic Constructor
@@ -65,6 +66,11 @@ class XULTabBox extends BranchNode
 			parent::__construct( $args );
 		}
 		else parent::__construct();
+	}
+	
+	public function attach() {
+		parent::attach();
+		$this->setEventHandler( 'yield', $this, 'yieldCollect' );
 	}
 	
 	public function selectedTab( $tab = NULL ) {
@@ -89,6 +95,12 @@ class XULTabBox extends BranchNode
 		
 		if( $this->isRegistered )
 			$this->callMethod( 'selectedPanel', array($tab) );
+	}
+	
+	public function yieldCollect( $e, $selectedIndex = NULL, $selectedTab = NULL, $selectedPanel = NULL) {
+		$this->selectedIndex = $selectedIndex;
+		$this->selectedTab = $selectedTab;
+		$this->selectedPanel = $selectedPanel;
 	}
 }
 
