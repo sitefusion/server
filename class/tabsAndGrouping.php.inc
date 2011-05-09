@@ -204,8 +204,8 @@ class XULTab extends BranchNode
 	public function attach() {
 		parent::attach();
 
-		if( $this->parent->parent->selectedTab() === NULL )
-			$this->parent->parent->selectedTab( $this );
+		if( $this->findAncestor("XULTabBox")->selectedTab() === NULL )
+			$this->findAncestor("XULTabBox")->selectedTab( $this );
 	}
 	
 	public function image( $src = NULL ) {

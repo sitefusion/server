@@ -39,7 +39,7 @@ SiteFusion.Comm = {
 	ProgressTimer: null,
 	Queue: [],
 	XULEvents: [
-		'blur', 'broadcast', 'change', 'click', 'command', 'commandupdate',
+		'blur', 'broadcast', 'change', 'click', 'command', 'commandupdate', 'resize',
 		'contextmenu', 'dblclick', /*'dragdrop', 'dragenter', 'dragexit', 'draggesture',
 		'dragover',*/ 'focus', 'input', 'keydown', 'keypress', 'keyup', 'load', 'mousedown',
 		'mousemove', 'mouseout', 'mouseover', 'mouseup', 'overflow', 'overflowchanged',

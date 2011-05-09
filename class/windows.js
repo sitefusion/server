@@ -142,6 +142,10 @@ SiteFusion.Classes.Window = Class.create( SiteFusion.Classes.BasicWindow, {
 		var onClose = function(event) { oThis.onClose(event); };
 		this.windowObject.addEventListener( 'close', onClose, true );
 		
+		var onResize = function(event) { oThis.onResize(event); };
+		this.windowObject.addEventListener( 'resize', onResize, true );
+		
+		
 		SiteFusion.Comm.AddToRegistry( 0, this );
 		
 		SiteFusion.Comm.BusyHandlers.push( SiteFusion.Interface.CursorBusy );
@@ -174,10 +178,14 @@ SiteFusion.Classes.Window = Class.create( SiteFusion.Classes.BasicWindow, {
 		};
 		 
 		obsService.addObserver( wakeObserver, 'wake_notification', false );
-		//Addition for xulrunner 2.0!
-		//obsService.addObserver( {observe: function( subject, topic, data){ oThis.onClose(); }}, 'quit-application-requested', false );
+		//Addition for xulrunner 2.0 addonmanager restart cycle
+		obsService.addObserver( {observe: function( subject, topic, data){ oThis.onClose(); }}, 'quit-application-requested', false );
 		
 		SiteFusion.Comm.RevComm();
+	},
+	
+	onResize: function( event ) {
+		this.fireEvent( 'resize' );
 	},
 	
 	onClose: function( event ) {
@@ -288,10 +296,18 @@ SiteFusion.Classes.ChildWindow = Class.create( SiteFusion.Classes.BasicWindow, {
 		var oThis = this;
 		var onClose = function(event) { oThis.onClose(event); };
 		this.windowObject.addEventListener( 'close', onClose, true );
+		
+		var onResize = function(event) { oThis.onResize(event); };
+		this.windowObject.addEventListener( 'resize', onResize, true );
 	},
 
 	close: function() {
 		this.windowObject.close();
+	},
+	
+	
+	onResize: function( event ) {
+		this.fireEvent( 'resize' );
 	},
 
 	onClose: function( event ) {
