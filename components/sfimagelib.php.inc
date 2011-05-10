@@ -81,12 +81,15 @@ class SFImageLib extends Node
 	}
 	
 	public function attach() {
-		$this->createRemoteObject( array( $this->hostWindow ) );
-		
- 		$this->setEvent( 'createTempPath', MSG_SEND, $this, 'createTempPath' );
- 		$this->setEvent( 'setImageDetails', MSG_SEND, $this, 'setImageDetails' );
- 		
-		$this->setEventReflex( 'createTempPath', 'eventArguments.push( '.$this->js.'.getTempFilePath());' );
+		if (version_compare(ApplicationProcess::$ClientVersion, "2.0.0") < 0) {
+			$this->createRemoteObject( array( $this->hostWindow ) );
+			
+	 		$this->setEvent( 'createTempPath', MSG_SEND, $this, 'createTempPath' );
+	 		$this->setEvent( 'setImageDetails', MSG_SEND, $this, 'setImageDetails' );
+	 		
+			$this->setEventReflex( 'createTempPath', 'eventArguments.push( '.$this->js.'.getTempFilePath());' );
+		}
+		else throw(new SFException("SFImageLib is not compatible with SiteFusion 2.0.", ERR_REPORT_APP));
 	}
 	
 	public function getTempFilePath($format)
