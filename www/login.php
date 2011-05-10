@@ -37,38 +37,27 @@ include( 'functions.php' );
 if( ! (isset($_GET['app']) && isset($_GET['args']) && isset($_GET['clientid'])) )
 	ReturnError( 'input_error' );
 
-if( strpos($_SERVER['CONTENT_TYPE'],'sitefusion/login') !== FALSE ) {
-	// New generation client (>= 1.2.1) login object
-	try {
-		$input = fopen( 'php://input', 'r' );
-		$content = '';
-		while( strlen($content) < $_SERVER['CONTENT_LENGTH'] ) {
-			$content .= fread( $input, 8192 );
-		}
-		fclose( $input );
-	
-		$loginObj = (array) json_decode( $content );
-	
-		if( ! (isset($loginObj['username']) && isset($loginObj['password'])) )
-			throw new Exception( 'No username or password given' );
-		
-		$username = $loginObj['username'];
-		$password = $loginObj['password'];
-		$clientVersion = $loginObj['appInfo']->version;
+try {
+	$input = fopen( 'php://input', 'r' );
+	$content = '';
+	while( strlen($content) < $_SERVER['CONTENT_LENGTH'] ) {
+		$content .= fread( $input, 8192 );
 	}
-	catch ( Exception $ex ) {
-		ReturnError( 'input_error', $ex->getMessage() );
-	}
-}
-else {
-	// For backward compatibility with 1.2.0 clients
-	if( ! (isset($_POST['username']) && isset($_POST['password'])) )
-		ReturnError( 'input_error', 'No username or password given' );
+	fclose( $input );
+
+	$loginObj = (array) json_decode( $content );
+
+	if( ! (isset($loginObj['username']) && isset($loginObj['password'])) )
+		throw new Exception( 'No username or password given' );
 	
-	$username = $_POST['username'];
-	$password = $_POST['password'];
-	$clientVersion = '1.2.0';
+	$username = $loginObj['username'];
+	$password = $loginObj['password'];
+	$clientVersion = $loginObj['appInfo']->version;
 }
+catch ( Exception $ex ) {
+	ReturnError( 'input_error', $ex->getMessage() );
+}
+
 
 try {
 	$socket = @socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
@@ -98,15 +87,11 @@ try {
 
 	WriteCommand( $socket, 'STARTAPP', array( 'clientid' => $_GET['clientid'] ) );
 	
-	if( $clientVersion == '1.2.0' )
-		WriteCommand( $socket, 'LOGIN', $loginParam );
-	else {
-		$loginParam['extensionInfo'] = (array) $loginObj['extensionInfo'];
-		$loginParam['appInfo'] = (array) $loginObj['appInfo'];
-		$loginParam['platformInfo'] = (array) $loginObj['platformInfo'];
-		$loginParam['cmdlineArgs'] = (array) $loginObj['cmdlineArgs'];
-		WriteCommand( $socket, 'LOGIN', array('loginObject' => '1'), json_encode($loginParam) );
-	}
+	$loginParam['extensionInfo'] = (array) $loginObj['extensionInfo'];
+	$loginParam['appInfo'] = (array) $loginObj['appInfo'];
+	$loginParam['platformInfo'] = (array) $loginObj['platformInfo'];
+	$loginParam['cmdlineArgs'] = (array) $loginObj['cmdlineArgs'];
+	WriteCommand( $socket, 'LOGIN', array('loginObject' => '1'), json_encode($loginParam) );
 	
 	$cmd = ReadCommand( $socket );
 	$loginResponse = (array) json_decode($cmd->data);
