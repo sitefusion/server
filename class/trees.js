@@ -33,7 +33,7 @@ SiteFusion.Classes.Tree = Class.create( SiteFusion.Classes.Node, {
 		this.element.sfNode = this;
 		this.setEventHost( [ 'yield' ] );
 		var oThis = this;
-	    setTimeout(function() {oThis.element.columns.restoreNaturalOrder();},100);
+	    win.windowObject.setTimeout(function() {oThis.element.columns.restoreNaturalOrder();},100);
 	    
 		this.eventHost.yield.msgType = 1;
 	},

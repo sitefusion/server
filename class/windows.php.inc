@@ -800,7 +800,7 @@ class AlertNotification extends Node
 	 * @param string	$title			Title of the alert
 	 * @param string	$text			Text of the alert
 	 * @param string	$name			Name of the notification type (if supplied, this can be used by f.e. Growl to disable certain messages)
-	 * @param bool		$textClickable	Boolean indicating whether the notification should be clickable. If TRUE, the notification fires a 'command' event when clicked.
+	 * @param bool		$textClickable	Boolean indicating whether the notification should be clickable. If TRUE, the notification fires a 'finished' event when clicked.
 	 */
 	
 	public function __construct( $image, $title, $text, $name = NULL, $textClickable = FALSE ) {

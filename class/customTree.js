@@ -113,7 +113,7 @@ SiteFusion.Classes.CustomTree = Class.create( SiteFusion.Classes.Node, {
 			var tc = oThis.element.getElementsByTagName('treechildren')[0];
 			tc.setAttribute( 'ondraggesture', 'sfRootWindow.windowObject.SiteFusion.Registry['+oThis.cid+'].onDragGesture(event);' );
 		}, 1 );
-		setTimeout(function() {oThis.element.columns.restoreNaturalOrder();},200);
+		this.hostWindow.windowObject.setTimeout(function() {oThis.element.columns.restoreNaturalOrder();},200);
 	},
 
 	onDragGesture: function( event ) {
