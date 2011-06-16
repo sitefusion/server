@@ -78,6 +78,45 @@ SiteFusion.Classes.Image = Class.create( SiteFusion.Classes.Node, {
 	}
 } );
 
+SiteFusion.Classes.Video = Class.create( SiteFusion.Classes.Node, {
+	sfClassName: 'XULVideo',
+	
+	initialize: function( win, src, width, height ) {
+		this.element = win.createElementNS("http://www.w3.org/1999/xhtml", 'html:video');
+		this.element.sfNode = this;
+		
+		this.setEventHost();
+		
+		if( src )
+			this.src( src );
+		if( width )
+			this.width( width );
+		if( height )
+			this.height( height );
+			
+		this.element.setAttribute("controls", "true");
+	}
+} );
+
+SiteFusion.Classes.Embed = Class.create( SiteFusion.Classes.Node, {
+	sfClassName: 'XULEmbed',
+	
+	initialize: function( win, src, width, height ) {
+		this.element = win.createElementNS("http://www.w3.org/1999/xhtml", 'html:embed');
+		this.element.sfNode = this;
+		
+		this.setEventHost();
+		
+		if( src )
+			this.src( src );
+		if( width )
+			this.width( width );
+		if( height )
+			this.height( height );
+			
+		this.element.setAttribute("controls", "true");
+	}
+} );
 
 SiteFusion.Classes.DirectImage = Class.create( SiteFusion.Classes.Node, {
 	sfClassName: 'XULDirectImage',

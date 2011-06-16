@@ -129,6 +129,92 @@ class XULImage extends Node
 
 
 /**
+ * HTML Video element
+ * 
+ * @link https://developer.mozilla.org/En/HTML/Element/Video
+*/
+
+class XULVideo extends Node
+{
+	public $remoteConstructor = 'Video';
+	public $initAttributes = array( 'src' );
+	public $src = NULL;
+	public $width = NULL;
+	public $height = NULL;
+	
+	public function __construct( $src = NULL, $width = NULL, $height = NULL ) {
+		if( $src !== NULL )
+			$this->src( $src );
+		if( $width !== NULL )
+			$this->width( $width );
+		if( $height !== NULL )
+			$this->height( $height );
+		
+		parent::__construct();
+	}
+	
+	public function attach() {
+		$this->createRemoteObject( array( $this->hostWindow, $this->src, $this->width, $this->height ) );
+		$this->insertElement();
+	}
+	
+	public function src( $src = NULL ) {
+		if( $src === NULL )
+			return (isset($this->src) ? $this->src : NULL);
+		
+		$this->src = $src;
+		
+		if( $this->isRegistered )
+			$this->callMethod( 'src', array($src) );
+		
+		return $this;
+	}
+}
+
+/**
+ * HTML Embed element
+ * 
+ * @link https://developer.mozilla.org/En/HTML/Element/Video
+*/
+
+class XULEmbed extends Node
+{
+	public $remoteConstructor = 'Embed';
+	public $initAttributes = array( 'src' );
+	public $src = NULL;
+	public $width = NULL;
+	public $height = NULL;
+	
+	public function __construct( $src = NULL, $width = NULL, $height = NULL ) {
+		if( $src !== NULL )
+			$this->src( $src );
+		if( $width !== NULL )
+			$this->width( $width );
+		if( $height !== NULL )
+			$this->height( $height );
+		
+		parent::__construct();
+	}
+	
+	public function attach() {
+		$this->createRemoteObject( array( $this->hostWindow, $this->src, $this->width, $this->height ) );
+		$this->insertElement();
+	}
+	
+	public function src( $src = NULL ) {
+		if( $src === NULL )
+			return (isset($this->src) ? $this->src : NULL);
+		
+		$this->src = $src;
+		
+		if( $this->isRegistered )
+			$this->callMethod( 'src', array($src) );
+		
+		return $this;
+	}
+}
+
+/**
  * Direct GD image display element
  * 
  * Supply this element with an image type ('jpg', 'gif' or 'png') through the method setImageType($type)
