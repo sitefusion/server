@@ -93,7 +93,6 @@ SiteFusion.Classes.CodeMirror = Class.create( SiteFusion.Classes.Browser, {
   		},
   		
   		yield: function() { 
-  			alert(this.parent.element.contentWindow.editor.getValue());
 			this.parent.fireEvent( 'yield', [ this.parent.element.contentWindow.editor.getValue(), this.parent.element.contentWindow.editor.getSelection() ] );
 		},
   		
