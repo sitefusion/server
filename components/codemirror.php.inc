@@ -38,8 +38,13 @@
 class XULCodeMirror extends XULBrowser
 {
 	public $language = '';
+	public $theme = 'default';
+	public $flex = 1;
 	public $ready = FALSE;
 	public $remoteConstructor = 'CodeMirror';
+	
+	public $value = "";
+	public $selection = "";
 	
 	public function __construct() {
 		if( func_num_args() ) {
@@ -51,13 +56,34 @@ class XULCodeMirror extends XULBrowser
 				$this->language = array_shift($args);
 			if( count($args) && is_int($args[0]) )
 				$this->flex( array_shift($args) );
-			
+			if( count($args) && is_string($args[0]) )
+				$this->theme = array_shift($args);
+				
 			parent::__construct( $args );
 		}
 		else
 			parent::__construct();
-
-		$this->setEventHandler( 'yield', $this, 'yieldCollect' );
+			
+		if (isset(ApplicationProcess::$ExtensionInfo['codemirror@sitefusion.org']) && ApplicationProcess::$ExtensionInfo['codemirror@sitefusion.org']['enabled']) {
+			switch (substr(ApplicationProcess::$ExtensionInfo['codemirror@sitefusion.org']['version'],0,1)) {
+				case 1:	
+				$this->setEventHandler( 'yield', $this, 'yieldCollect' );
+				break;
+				case 2:
+				if ($this->language == "html") {
+					//fix for html mode
+					$this->language = "htmlmixed";
+				}
+				if ($this->language == "sql") {
+					//fix for sql mode
+					$this->language = "psql";
+				}	
+				$this->setEventHandler( 'yield', $this, 'yieldCollectv2' );
+				break;
+			}
+		}
+		$this->flex($this->flex);
+		
 		$this->setEventHandler( 'ready', $this, 'ready' );
 		$this->setEventHandler( 'onAfterAttach', $this, 'init' );
 	}
@@ -65,24 +91,71 @@ class XULCodeMirror extends XULBrowser
 	public function value($value = NULL) {
 		if ($value !== NULL) {
 			$this->value = $value;
-			if ($this->ready)
-				$this->callMethod( 'element.contentWindow.editor.setCode', array($this->value) );
+			if ($this->ready) {
+				if (isset(ApplicationProcess::$ExtensionInfo['codemirror@sitefusion.org']) && ApplicationProcess::$ExtensionInfo['codemirror@sitefusion.org']['enabled']) {
+					switch (substr(ApplicationProcess::$ExtensionInfo['codemirror@sitefusion.org']['version'],0,1)) {
+					case 1:
+					$this->callMethod( 'element.contentWindow.editor.setCode', array($this->value) );
+					break;
+					case 2:
+					$this->callMethod( 'element.contentWindow.editor.setValue', array($this->value) );
+					break;
+				}
+			}
+				
+			}
 		}
 		return $this->value;
 	}
 	
 	public function init() {
 		$this->callMethod( 'element.setAttribute', array("source", $this->value) );
-		$this->src("chrome://codemirror/content/".$this->language.".html#".$this->id);
+		
+		if (isset(ApplicationProcess::$ExtensionInfo['codemirror@sitefusion.org']) && ApplicationProcess::$ExtensionInfo['codemirror@sitefusion.org']['enabled']) {
+			switch (substr(ApplicationProcess::$ExtensionInfo['codemirror@sitefusion.org']['version'],0,1)) {
+				case 1:
+				$this->setMethod("yield",array(), $this->js.".v1.yield();");
+				$this->src("chrome://codemirror/content/".$this->language.".html#".$this->id);
+				break;
+				case 2:
+				$this->setMethod("yield",array(), $this->js.".v2.yield();");
+				$this->src("chrome://codemirror/content/editor.html#".$this->id);
+				$this->callMethod( 'element.setAttribute', array("theme", $this->theme) );
+				$this->callMethod( 'element.setAttribute', array("mode", $this->language) );
+				break;
+			}
+		}
 	}
 	
 	public function yieldCollect( $e, $val = NULL ) {
 		$this->value = $val;
 	}
 	
-	public function search() {
-		if ($this->isRegistered)
-			$this->callMethod('search');	
+	public function yieldCollectv2( $e, $val = NULL, $selection = NULL ) {
+		$this->value = $val;
+		$this->selection = $selection;
+	}
+	
+	public function search($text = NULL, $caseSensitive = FALSE, $reverseOrder = FALSE) {
+		if ($this->isRegistered && isset(ApplicationProcess::$ExtensionInfo['codemirror@sitefusion.org']) && ApplicationProcess::$ExtensionInfo['codemirror@sitefusion.org']['enabled']) {
+			switch (substr(ApplicationProcess::$ExtensionInfo['codemirror@sitefusion.org']['version'],0,1)) {
+				case 1:
+				$this->callMethod('v1.search');
+				break;	
+				case 2:
+				$this->callMethod('v2.search', array($text, $caseSensitive, $reverseOrder));
+				break;
+			}
+			
+		}	
+	}
+	
+	public function replace($text, $replace, $caseSensitive = FALSE, $reverseOrder = FALSE) {
+		$this->callMethod('v2.replace', array($text, $replace, $caseSensitive, $reverseOrder));
+	}
+	
+	public function replaceAll($text, $replace, $caseSensitive = FALSE) {
+		$this->callMethod('v2.replaceAll', array($text, $replace, $caseSensitive));
 	}
 	
 	public function ready($e) {
