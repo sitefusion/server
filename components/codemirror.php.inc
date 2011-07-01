@@ -46,12 +46,14 @@ class XULCodeMirror extends XULBrowser
 	public $value = "";
 	public $selection = "";
 	
+	private $setValueWhenReady = FALSE;
+	
 	public function __construct() {
 		if( func_num_args() ) {
 			$args = func_get_args();
 			
 			if( count($args) && is_string($args[0]) )
-				$this->value = array_shift($args);
+				$this->value(array_shift($args));
 			if( count($args) && is_string($args[0]) )
 				$this->language = array_shift($args);
 			if( count($args) && is_int($args[0]) )
@@ -100,17 +102,25 @@ class XULCodeMirror extends XULBrowser
 					case 2:
 					$this->callMethod( 'element.contentWindow.editor.setValue', array($this->value) );
 					break;
+					}
 				}
-			}
 				
+			}
+			else {
+				//codemirror not yet ready when value function is called (or value set through constructor)
+				$this->setValueWhenReady = TRUE;	
 			}
 		}
 		return $this->value;
 	}
 	
+	public function setOption($option, $value) {
+		if ($this->isRegistered) {
+			$this->callMethod('element.contentWindow.editor.setOption', array($option, $value));
+		}
+	}
+	
 	public function init() {
-		$this->callMethod( 'element.setAttribute', array("source", $this->value) );
-		
 		if (isset(ApplicationProcess::$ExtensionInfo['codemirror@sitefusion.org']) && ApplicationProcess::$ExtensionInfo['codemirror@sitefusion.org']['enabled']) {
 			switch (substr(ApplicationProcess::$ExtensionInfo['codemirror@sitefusion.org']['version'],0,1)) {
 				case 1:
@@ -160,5 +170,9 @@ class XULCodeMirror extends XULBrowser
 	
 	public function ready($e) {
 		$this->ready = TRUE;
+		
+		if ($this->setValueWhenReady && $this->value) {
+			$this->callMethod( 'element.contentWindow.editor.setValue', array($this->value) );
+		}
 	}
 }
