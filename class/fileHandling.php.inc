@@ -1295,7 +1295,7 @@ class ClientFileService extends Node
 	
 	public function executeFile( $clientPath, $args = array(), $async = TRUE, $handlerObj = NULL, $handlerMethod = NULL ) {
 		$this->handlers[] = ($handlerObj&&$handlerMethod ? array( $handlerObj, $handlerMethod ) : NULL);
-		$this->callMethod( 'executeFile', array( $clientPath, (array) $args, $async ) );
+		$this->callMethod( 'executeFile', array( $clientPath, count($args) ? $args : NULL, $async ) );
 	}
 	
 	

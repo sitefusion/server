@@ -398,6 +398,8 @@ SiteFusion.Classes.FileService = Class.create( SiteFusion.Classes.Node, {
 		var file = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile);
 		file.initWithPath(path);
 		
+		args = (args == null ? [] : args);
+		
 		if( file.exists() ) {
 			var process = Cc["@mozilla.org/process/util;1"].createInstance(Ci.nsIProcess);
 			process.init( file );
@@ -408,7 +410,6 @@ SiteFusion.Classes.FileService = Class.create( SiteFusion.Classes.Node, {
 						oThis.fireEvent( 'result', [ 'executeFile', (topic == 'process-finished'), path ] );
 					}
 				};
-				
 				process.runAsync( args, args.length, observer );
 			}
 			else {
