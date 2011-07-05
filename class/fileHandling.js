@@ -75,10 +75,10 @@ SiteFusion.Classes.FilePicker = Class.create( SiteFusion.Classes.Node, {
 		if( res == nsIFilePicker.returnOK ) {
 			if( this.mode == nsIFilePicker.modeOpenMultiple ) {
 				var files = [];
-				var enum = fp.files;
+				var fEnum = fp.files;
 				
-				while( enum.hasMoreElements() ) {
-					var file = enum.getNext().QueryInterface(Ci.nsIFile);
+				while( fEnum.hasMoreElements() ) {
+					var file = fEnum.getNext().QueryInterface(Ci.nsIFile);
 					files.push( file.path );
 				}
 				
