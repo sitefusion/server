@@ -31,6 +31,7 @@ SiteFusion.Classes.Browser = Class.create( SiteFusion.Classes.Node, {
 	initialize: function( win ) {
 		this.element = win.createElement( 'browser' );
 		this.element.sfNode = this;
+		this.element.hostWindow = win;
 		this.element.setAttribute('disablehistory', true);
 		
 		this.setEventHost();
