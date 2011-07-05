@@ -47,6 +47,7 @@ class XULCodeMirror extends XULBrowser
 	public $selection = "";
 	
 	private $setValueWhenReady = FALSE;
+	private $constructOptions = array();
 	
 	public function __construct() {
 		if( func_num_args() ) {
@@ -115,8 +116,11 @@ class XULCodeMirror extends XULBrowser
 	}
 	
 	public function setOption($option, $value) {
-		if ($this->isRegistered) {
+		if ($this->isRegistered && $this->ready) {
 			$this->callMethod('element.contentWindow.editor.setOption', array($option, $value));
+		}
+		else {
+			$this->constructOptions[$option] = $value;	
 		}
 	}
 	
@@ -173,6 +177,12 @@ class XULCodeMirror extends XULBrowser
 		
 		if ($this->setValueWhenReady && $this->value) {
 			$this->callMethod( 'element.contentWindow.editor.setValue', array($this->value) );
+		}
+		
+		if (count($this->constructOptions)) {
+			foreach($this->constructOptions as $option => $value) {
+				$this->setOption($option, $value);
+			}
 		}
 	}
 }
