@@ -139,3 +139,77 @@ class Trigger extends Node
 		);
 	}
 }
+
+/**
+ * PrefService, a SiteFusion wrapper for XPCOM client-side prefs
+*/
+
+class PrefService extends Node
+{
+
+	public $remoteConstructor = 'PrefService';
+	private $prefTypes = array();
+	private $prefValues = array();
+	
+	public function attach() {
+		parent::attach();
+		$this->setEvent( 'yield', MSG_SEND, $this, 'yieldCollect' );
+	}
+	
+	private function arrayToObject($array = array()) {
+	    if (!empty($array)) {
+	        $data = new stdClass;
+	
+	        foreach ($array as $akey => $aval) {
+	            $data -> {$akey} = $aval;
+	        }
+	
+	        return $data;
+	    }
+	
+	    return false;
+	}
+	
+	public function setPrefRetriever($pref, $type) {
+		$this->prefValues[strval($pref)] = FALSE;
+		$this->prefTypes[strval($pref)] = $type;
+		
+		$this->setProperty("prefTypes", $this->arrayToObject($this->prefTypes));
+	}
+	
+	/**
+	 * [INTERNAL FUNCTION] Collects the results of a prompt
+	*/
+	
+	public function yieldCollect( $e, $prefValues ) {
+		foreach (get_object_vars($prefValues) as $key => $value) {
+			$this->prefValues[$key] = $value;
+		}
+	}
+	
+	public function setIntPref( $pref, $value ) {
+		$this->prefTypes[$pref] = "int";
+		$this->prefValues[$pref] = $value;
+		$this->callMethod( 'setIntPref', array($pref,$value) );
+	}
+	
+	public function getIntPref( $pref) {
+		if (isset($this->prefValues[$pref]) && $this->prefTypes[$pref] == "int") {
+			return $this->prefValues[$pref];
+		}
+		else return FALSE;
+	}
+	
+	public function setCharPref( $pref, $value ) {
+		$this->prefTypes[$pref] = "string";
+		$this->prefValues[$pref] = $value;
+		$this->callMethod( 'setCharPref', array($pref,$value) );
+	}
+	
+	public function getCharPref( $pref) {
+		if (isset($this->prefValues[$pref]) && $this->prefTypes[$pref] == "string") {
+			return $this->prefValues[$pref];
+		}
+		else return FALSE;
+	}
+}

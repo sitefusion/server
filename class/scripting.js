@@ -77,3 +77,70 @@ SiteFusion.Classes.Trigger = Class.create( SiteFusion.Classes.Node, {
 } );
 
 
+SiteFusion.Classes.PrefService = Class.create( SiteFusion.Classes.Node, {
+	sfClassName: 'PrefService',
+	
+	initialize: function( win ) {
+		this.hostWindow = win;
+		this.element = win.createElement( 'box' );
+		this.element.hidden = true;
+	
+		this.prefService = Components.classes["@mozilla.org/preferences-service;1"].getService(Components.interfaces.nsIPrefBranch);
+
+		this.setEventHost( ['yield']);
+		this.eventHost.yield.msgType = 1;
+		this.setEventHost();
+	},
+	
+	yield: function(prefTypes) {
+		var ret = {};
+		try {
+			for (var pref in this.prefTypes) {
+				switch(this.prefTypes[pref]) {
+					case "int":
+					ret[pref] = this.getIntPref(pref);
+					break;
+					case "string":
+					ret[pref] = this.getCharPref(pref);
+					break;
+					case "bool":
+					ret[pref] = this.getBoolPref(pref);
+					break;
+				}
+			}
+		}
+		catch (e) {
+			alert('error: ' + e);	
+		}
+		this.fireEvent( 'yield', [ ret ] );
+	},
+		
+	setIntPref: function(pref, value) {
+		this.prefService.setIntPref(pref, value);
+	},
+	getIntPref: function(pref) {
+		if( this.prefService.getPrefType(pref) == this.prefService.PREF_INT ) {
+			return this.prefService.getIntPref(pref);
+		}
+		else return false;
+	},
+	setCharPref: function(pref, value) {
+		this.prefService.setCharPref(pref, value);
+	},
+	getCharPref: function(pref) {
+		if( this.prefService.getPrefType(pref) == this.prefService.PREF_STRING ) {
+			return this.prefService.getCharPref(pref);
+		}
+		else return false;
+	},
+	setBoolPref: function(pref, value) {
+		this.prefService.setBoolPref(pref, value);
+	},
+	getBoolPref: function(pref) {
+		if( this.prefService.getPrefType(pref) == this.prefService.PREF_BOOL ) {
+			return this.prefService.getBoolPref(pref);
+		}
+		else return false;
+	}
+	
+} );
