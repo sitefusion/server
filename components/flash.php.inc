@@ -1,6 +1,12 @@
 <?php
 
-class XULFlash extends XULEmbed
+/**
+ * XUL Flash element
+ * 
+ * Use this element to directly include a flash movie in your SiteFusion application.
+*/
+
+class XULFlash extends XULHTMLEmbed
 {
 	private $flashvars = array();
 	
@@ -13,6 +19,16 @@ class XULFlash extends XULEmbed
 		$this->setAttribute("flashvars", implode("&",$flasvars));
 	}
 	
+		
+	/**
+	 * Add a Flash variable
+	 *
+	 * Please note that flashvars can only be set before the initialisation of an SWF 
+	 *
+	 * @param string	$name	Name of the variable
+	 * @param string	$value	Contents of the variable
+	*/
+	
 	public function addVariable($name, $value) {
 		
 		if (preg_match('/[A-Za-z_][A-Za-z0-9_]*$/', $value)) {
@@ -23,10 +39,25 @@ class XULFlash extends XULEmbed
 		else return FALSE;
 	}
 	
+	/**
+	 * Add a paramater
+	 *
+	 * @param string	$param	Name of the parameter
+	 * @param string	$value	Contents of the variable
+	*/
+	
 	public function addParam($param, $value) {
 		$this->setAttribute($param, $value);
 	}
 }
+
+/**
+ * XUL Flash element
+ * 
+ * Uses a proxy in your webfrontend in order to display flash content.
+ * This proxy bypasses any security messages from flash, as long as the actual SWF is located on the same domain as your SF webfrontend.
+*/
+
 
 class XULFlashProxy extends XULBrowser
 {
@@ -38,6 +69,15 @@ class XULFlashProxy extends XULBrowser
 	private $params = array();
 	
 	public $remoteConstructor = 'FlashProxy';
+	
+	/**
+	 * Dynamic Constructor
+	 *
+	 * @param string	$swf
+	 * @param int	$width
+	 * @param int	$height
+	*/
+	
 	
 	public function __construct() {
 		if( func_num_args() ) {
@@ -55,7 +95,6 @@ class XULFlashProxy extends XULBrowser
 		else parent::__construct();
 		
 		$this->setEventHandler( 'ready', $this, 'ready' );
-		$this->setEventHandler( 'flashReady', $this, 'flashReady' );
 		$this->setEventHandler( 'onAfterAttach', $this, 'init' );
 	}
 	
@@ -66,14 +105,16 @@ class XULFlashProxy extends XULBrowser
 		$serverHost = ApplicationProcess::$ServerHost;
 		$serverPath = ApplicationProcess::$ServerPath;
 		$this->setMethod("loadFlashContent", array("content", "width", "height", "version"), "
-    	    ".$this->js.".so = new ".$this->js.".element.contentWindow.SWFObject(content,'flashContent',width,height,version, 'false',{},{},{}, function(e) {window.alert('test');});
+    	    ".$this->js.".so = new ".$this->js.".element.contentWindow.SWFObject(content,'flashContent',width,height,version, 'false',{});
     	");
     	$this->callMethod( 'setSrc', $protocol.$serverHost.$serverPath."/misc/flashproxy/flashproxy.html#".$this->id );
 	}
 	
-	public function flashReady($e) {
-		$this->rootWindow->alert('klaar!');
-	}
+	/**
+	 * [INTERNAL FUNCTION]
+	 * This function is called by the content in the browser element when it's ready to accept flash content.
+	 * It fires a JS dynamicly generated JS function in order to do so.
+	*/
 	
 	public function ready($e) {
 		$this->ready = TRUE;
@@ -81,6 +122,13 @@ class XULFlashProxy extends XULBrowser
 		if ($this->written)
 			$this->write();
 	}
+	
+	/**
+	 * Add a Flash variable
+	 *
+	 * @param string	$name	Name of the variable
+	 * @param string	$value	Contents of the variable
+	*/
 	
 	public function addVariable($name, $value) {
 		
@@ -91,10 +139,22 @@ class XULFlashProxy extends XULBrowser
 		else return FALSE;
 	}
 	
+	/**
+	 * Add a paramater
+	 *
+	 * @param string	$param	Name of the parameter
+	 * @param string	$value	Contents of the variable
+	*/
+	
 	public function addParam($param, $value) {
 
 		$this->params[$param] = $value;
 	}
+	
+	/**
+	 * Write the actual flash content
+	 *
+	*/
 	
 	public function write() {
 		$this->written = TRUE;
@@ -112,6 +172,12 @@ class XULFlashProxy extends XULBrowser
 		}
 	}
 	
+	/**
+	 * Set swf that should be loaded
+	 *
+	 * @param string	$swf
+	*/
+	
 	public function swf($swf = NULL) {
 		if ($swf !== NULL) {
 			$this->swf = $swf;
@@ -120,6 +186,12 @@ class XULFlashProxy extends XULBrowser
 		}
 		return $this->swf;
 	}
+	
+	/**
+	 * Set the required flash version
+	 *
+	 * @param int	$version
+	*/
 	
 	public function version($version = NULL) {
 		if ($swf !== NULL) {
