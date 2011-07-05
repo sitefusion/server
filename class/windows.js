@@ -328,6 +328,8 @@ SiteFusion.Classes.ChildWindow = Class.create( SiteFusion.Classes.BasicWindow, {
 
 		return true;
 	}
+	
+	
 } );
 
 
