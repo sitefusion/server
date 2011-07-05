@@ -194,7 +194,7 @@ SiteFusion.Classes.Editor = Class.create( SiteFusion.Classes.Node, {
 		}
 	},
 
-	createLink: function( href, target, class ) {
+	createLink: function( href, target, className ) {
 		this.restoreSelection();
 		
 		var a, newel = false;
@@ -206,7 +206,7 @@ SiteFusion.Classes.Editor = Class.create( SiteFusion.Classes.Node, {
 		
 		a.href = href;
 		a.target = target;
-		a.className = class;
+		a.className = className;
 		
 		if( newel )
 			this.htmlEditor.insertLinkAroundSelection( a );

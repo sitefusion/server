@@ -44,7 +44,7 @@ SiteFusion.Comm = {
 		'dragover',*/ 'focus', 'input', 'keydown', 'keypress', 'keyup', 'load', 'mousedown',
 		'mousemove', 'mouseout', 'mouseover', 'mouseup', 'overflow', 'overflowchanged',
 		'popuphidden', 'popuphiding', 'popupshowing', 'popupshown', 'select',
-		'syncfrompreference', 'synctopreference', 'underflow', 'unload', 'sfdragstart', 'sfdragover', 'sfdragdrop'
+		'syncfrompreference', 'synctopreference', 'underflow', 'unload', 'sfdragstart', 'sfdragover', 'sfdragdrop','dragexit'
 	],
 	
 	
