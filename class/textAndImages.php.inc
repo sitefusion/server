@@ -98,6 +98,14 @@ class XULImage extends Node
 	public $width = NULL;
 	public $height = NULL;
 	
+	/**
+	 * Constructor
+	 *
+	 * @param string	$src
+	 * @param int	$width
+	 * @param int	$height
+	*/
+	
 	public function __construct( $src = NULL, $width = NULL, $height = NULL ) {
 		if( $src !== NULL )
 			$this->src( $src );
@@ -134,13 +142,21 @@ class XULImage extends Node
  * @link https://developer.mozilla.org/En/HTML/Element/Video
 */
 
-class XULVideo extends Node
+class XULHTMLVideo extends Node
 {
 	public $remoteConstructor = 'Video';
 	public $initAttributes = array( 'src' );
 	public $src = NULL;
 	public $width = NULL;
 	public $height = NULL;
+	
+	/**
+	 * Constructor
+	 *
+	 * @param string	$src
+	 * @param int	$width
+	 * @param int	$height
+	*/
 	
 	public function __construct( $src = NULL, $width = NULL, $height = NULL ) {
 		if( $src !== NULL )
@@ -174,16 +190,26 @@ class XULVideo extends Node
 /**
  * HTML Embed element
  * 
+ * Use this element to include a mozilla plugin in your SiteFusion program.
+ *
  * @link https://developer.mozilla.org/En/HTML/Element/Video
 */
 
-class XULEmbed extends Node
+class XULHTMLEmbed extends Node
 {
 	public $remoteConstructor = 'Embed';
 	public $initAttributes = array( 'src' );
 	public $src = NULL;
 	public $width = NULL;
 	public $height = NULL;
+	
+	/**
+	 * Constructor
+	 *
+	 * @param string	$src
+	 * @param int	$width
+	 * @param int	$height
+	*/
 	
 	public function __construct( $src = NULL, $width = NULL, $height = NULL ) {
 		if( $src !== NULL )
