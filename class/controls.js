@@ -383,7 +383,8 @@ SiteFusion.Classes.MenuList = Class.create( SiteFusion.Classes.Node, {
 			elInputField = this.element.inputField.value;
 
 		idx = (typeof(this.element.selectedIndex) == 'undefined' || this.element.selectedIndex == -1)  ? 0 : this.element.selectedIndex;
-		item = this.element.childNodes[0].childNodes[idx].sfNode;
+		if( typeof( this.element.childNodes[0].childNodes[idx] ) == 'undefined' ){ item = null; }
+		else{	item = this.element.childNodes[0].childNodes[idx].sfNode; }
 		
 		this.fireEvent( 'yield', new Array( item, elInputField ) );
 	},
