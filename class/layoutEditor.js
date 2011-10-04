@@ -285,6 +285,10 @@ SiteFusion.Classes.Editor = Class.create( SiteFusion.Classes.Node, {
 		table.parentNode.removeChild( table );
 	},
 
+	insertHeading: function(elementName) {
+		this.htmlEditor.insertHTML( "<" + elementName + ">heading</" + elementName + ">");
+	},
+	
 	insertHTML: function( html ) {
 		this.restoreSelection();
 		

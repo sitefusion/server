@@ -92,11 +92,10 @@ class XULEditor extends BranchNode
 		if ($value !== NULL)
 		{
 			$this->value = $value;
+			if( $this->editable )
+		 		$this->callMethod( 'setValue', $this->value );
 		}
 
-		if( $this->editable )
-		 $this->callMethod( 'setValue', $this->value );
-	
 		return $this->value;
 	}
 	
@@ -128,6 +127,10 @@ class XULEditor extends BranchNode
 
 	public function insertTableRow() {
 		$this->callMethod( 'insertTableRow' );
+	}
+	
+	public function insertHeading($elementName) {
+		$this->callMethod( 'insertHeading', array($elementName) );
 	}
 	
 	public function removeTable() {
@@ -186,7 +189,7 @@ class XULLayoutEditor extends XULEditor
 	}
 
 	public function loadBody( $html ) {
-		$this->callMethod( 'loadBody', array( $html == '' ? '<br/>':$html ) );
+		$this->callMethod( 'loadBody', array( $html == '' ? '<br />':$html ) );
 	}
 	
 	public function yieldCollect( $e, $val = NULL ) {
