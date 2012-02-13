@@ -541,6 +541,10 @@ class TreeDataRow extends TreeDataItem
 		return $this;
 	}
 	
+	/**
+	* @param mixed $column Column object
+	* @param boolean $state Make it editable or not
+	*/	
 	public function setEditable( $column, $state ) {
 		if( ($index = $this->getColumnIndex($column)) === NULL )
 			throw new SFException( "No such column: $column", ERR_REPORT_APP );
@@ -555,6 +559,10 @@ class TreeDataRow extends TreeDataItem
 		return $this;
 	}
 	
+	/**
+	* @param boolean $allow Allow or disallow dragging of this row
+	* @param string $type Cursor type while dragging ( move, copy, link, moveOrCopy )
+	*/
 	public function setDraggable( $allow, $type = NULL ) {
 		$types = array( 'move', 'copy', 'link', 'moveOrCopy' );
 		
@@ -573,6 +581,10 @@ class TreeDataRow extends TreeDataItem
 		return $this;
 	}
 	
+	/**
+	* @param boolean $allow Allow or disallow dropping on the row
+	* @param string $type Type of dropping ( any , on ,between )( Default is any )
+	*/
 	public function allowDrop( $allow, $type = 'any' ) {
 		$types = array( 'any', 'on', 'between' );
 		
@@ -591,6 +603,10 @@ class TreeDataRow extends TreeDataItem
 		return $this;
 	}
 	
+	/**
+	* @param object $row Row object
+	* @param integer $pos Integer position in the dataset->rows array();
+	*/
 	public function insertRow( $row, $pos ) {
 		parent::insertRow( $row, $pos );
 		
@@ -601,6 +617,9 @@ class TreeDataRow extends TreeDataItem
 		}
 	}
 	
+	/**
+	* @param object $row Remove the given row
+	*/
 	public function removeRow( $row ) {
 		if( count($this->children) == 1 ) {
 			if( $this->_isSync )
@@ -669,6 +688,9 @@ class TreeDataRow extends TreeDataItem
 		unset( $this->_variables[$name] );
 	}
 	
+	/**
+	* @param boolean $state Open state changed or not
+	*/
 	public function openStateChanged( $state ) {
 		$oldState = $this->_isOpen;
 		$this->_isOpen = $state;
@@ -676,7 +698,10 @@ class TreeDataRow extends TreeDataItem
 		if( $this->dataSet->isSparse && (!$oldState) && $state && $this->_isSync && isset($this->children[0]) && (!$this->children[0]->_isSync) )
 			$this->addSparseBranch();
 	}
-	
+	/**
+	* @param integer $colId Column index
+	* @param mixed $value The value to set in the cell
+	*/
 	public function pushedUpdate( $colId, $value ) {
 		switch ( $this->dataSet->colTypes[$colId] ) {
 			case 'text':			return ($this->_cells[$colId] = (string)$value);
@@ -731,7 +756,11 @@ class TreeDataSeparator extends TreeDataItem
 	}
 }
 
-
+/**
+* @param object $tree The XULCustomTree the dataset will be the holder for
+* @param boolean $sparse Send only visible rows to the client
+*
+*/
 class TreeDataSet extends TreeDataSupports
 {
 	public $nextIndex = 0;
@@ -771,14 +800,24 @@ class TreeDataSet extends TreeDataSupports
 		$tree->setProperty( 'sortable', $this->sortable );
 	}
 	
+	/**
+	* @param boolean $state Allow of disallow protecting the tree from adding parent nodes to their own child nodes
+	*/
 	public function preventCircularHeritage( $state ) {
 		$this->tree->setProperty( 'preventCircularHeritage', ($this->preventCircularHeritage = (bool)$state) );
 	}
 	
+	/**
+	* @param boolean $state Allow of disallow sortable columns
+	*/
 	public function setSortable( $state ) {
 		$this->tree->setProperty( 'sortable', ($this->sortable = (bool)$state) );
 	}
 	
+	/**
+	* @param object $col XULTreeCol node
+	* @param string $type Sorting type ( natural , alphanumeric , numeric , date ) 
+	*/
 	public function setColumnSortType( $col, $type ) {
 		$types = array( 'natural', 'alphanumeric', 'numeric', 'date' );
 		if(! in_array($type, $types) )
@@ -787,6 +826,10 @@ class TreeDataSet extends TreeDataSupports
 		$this->colSortTypes[$this->getColumnIndex($col)] = $type;
 	}
 	
+	/**
+	* @param string $column Column data id
+	* @param array $properties Array of properties
+	*/
 	public function setColumnProperties( $column, $properties ) {
 		if( ($index = $this->getColumnIndex($column)) === NULL )
 			throw new SFException( "No such column: $column", ERR_REPORT_APP );
@@ -797,15 +840,25 @@ class TreeDataSet extends TreeDataSupports
 		$this->tree->callMethod( 'view.setColumnProperties', json_encode($this->columnProperties) );
 	}
 	
+	/**
+	* @param bool $allow Allow or disallow the dropping of rows from other trees
+	*/
 	public function allowForeignDrop( $allow ) {
 		$this->tree->setProperty( 'allowForeignDrop', (bool)$allow );
 	}
 	
+	/**
+	* @param bool $allow Allow or disallow droppin of files
+	*/
 	public function allowFileDrop( $allow ) {
 		$this->tree->setProperty( 'allowFileDrop', (bool)$allow );
 	}
-		
-	public function sortColumn( $col, $dir = NULL ) {
+	
+	/**
+	* @param int $col Integer column index
+	* @param mixed $dir Sort direction ( default is Ascending )
+	*/	
+	public function sortColumn( $col , $dir = NULL ) {
 		if( $this->sortColumn === $col && $dir === NULL ) {
 			$this->sortDirection = ($this->sortDirection == 'asc' ? 'desc':'asc');
 		}
@@ -831,7 +884,11 @@ class TreeDataSet extends TreeDataSupports
 		}
 	}
 	
-	public function setDraggable( $allow, $type = 'move' ) {
+	/**
+	* @param bool $allow Allow or disallow rows being dragged
+	* @param string $type Type of moving cursor while dragging ( move , copy , link , moveOrCopy )( Default is move )
+	*/
+	public function setDraggable( $allow, $type = 'move' ) { 
 		$types = array( 'move', 'copy', 'link', 'moveOrCopy' );
 		
 		if( $allow ) {
@@ -844,6 +901,10 @@ class TreeDataSet extends TreeDataSupports
 			$this->tree->setProperty( 'isDraggable', FALSE );
 	}
 	
+	/**
+	* @param bool $allow Allow or disallow dropping nodes
+	* @param string $type Allow to drop on, between or any (Default is any)
+	*/
 	public function allowDrop( $allow, $type = 'any' ) {
 		$types = array( 'any', 'on', 'between' );
 		
@@ -857,6 +918,10 @@ class TreeDataSet extends TreeDataSupports
 			$this->tree->setProperty( 'allowDrop', FALSE );
 	}
 	
+	/**
+	* @param object/array $data Row data
+	* @param boolean $container Row can function as container for childrows
+	*/
 	public function createRow( $data = NULL, $container = FALSE ) {
 		return new TreeDataRow( $this, $data, $container );
 	}

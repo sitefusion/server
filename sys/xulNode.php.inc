@@ -446,13 +446,13 @@ class Node
 	 * @param array			$args		Event arguments
 	*/
 	
-	public function fireClientEvent( $event, $args = NULL ) {
+	public function fireClientEvent( $event, $args = array() ) {
 		if(! $this->isRegistered )
 			throw new SFException( 'Unregistered node cannot fire a ClientEvent', ERR_REPORT_APP );
 		
 		if( ! is_array($args) )
 			$args = array($args);
-		
+			
 		$this->rootApplication->sendCommand(
 			Comm::CallMethod( $this, 'fireEvent', array($event,$args) )
 		);

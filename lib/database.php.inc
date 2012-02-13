@@ -184,6 +184,22 @@ class Database
 			self::error();
 	}
 	
+	public static function ExecuteQuery($table, $query) {
+		$db = new self($table);
+		
+		if(is_array($query)) {
+		
+			$ret = array();
+			foreach($query as $id => $q) {
+				$ret[$id] = $db->query($q);
+			}
+			
+			return $ret;
+		} else {
+			return $db->query($query);
+		}
+	}
+	
 	static function error() {
 		throw new SFException( 'MySQL error: ' . mysql_error(), ERR_REPORT_APP );
 	}
@@ -448,6 +464,7 @@ class DatabaseObject
 	public function addField($php, $sql = NULL){
 		$this->_fields[$php] = ($sql ? $sql : $php);
 	}
+	
 	public function phpFieldToSQL( $field ) {
 		return ( isset($this->_fields[$field]) ? $this->_fields[$field] : NULL );
 	}
