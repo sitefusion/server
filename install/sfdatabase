@@ -26,11 +26,16 @@
 //
 // - - - - - - - - - - - - - - END LICENSE BLOCK - - - - - - - - - - - - -
 
+function readline_c( $prompt = '' )
+{
+    echo $prompt;
+    return rtrim( fgets( STDIN ), "\n" );
+}
 
-$dbhost = readline( 'Database hostname (leave empty for localhost): ' );
-$dbuser = readline( 'Database username: ' );
-$dbpass = readline( 'Database password: ' );
-$dbname = readline( 'Database name (leave empty for "sitefusion"): ' );
+$dbhost = readline_c( 'Database hostname (leave empty for localhost): ' );
+$dbuser = readline_c( 'Database username: ' );
+$dbpass = readline_c( 'Database password: ' );
+$dbname = readline_c( 'Database name (leave empty for "sitefusion"): ' );
 $dbname = ($dbname == '' ? 'sitefusion':$dbname);
 
 $db = mysql_connect( ($dbhost == '' ? 'localhost':$dbhost), $dbuser, $dbpass );
