@@ -45,6 +45,7 @@ class XULCodeMirror extends XULBrowser
 	
 	public $value = "";
 	public $selection = "";
+	public $themes = FALSE;
 	
 	private $setValueWhenReady = FALSE;
 	private $constructOptions = array();
@@ -87,6 +88,7 @@ class XULCodeMirror extends XULBrowser
 		}
 		$this->flex($this->flex);
 		
+		$this->setEventHandler( 'yieldThemes', $this, 'yieldCollectThemes' );
 		$this->setEventHandler( 'ready', $this, 'ready' );
 		$this->setEventHandler( 'onAfterAttach', $this, 'init' );
 	}
@@ -128,7 +130,7 @@ class XULCodeMirror extends XULBrowser
 		if (isset(ApplicationProcess::$ExtensionInfo['codemirror@sitefusion.org']) && ApplicationProcess::$ExtensionInfo['codemirror@sitefusion.org']['enabled']) {
 			switch (substr(ApplicationProcess::$ExtensionInfo['codemirror@sitefusion.org']['version'],0,1)) {
 				case 1:
-				$this->setMethod("yield",array(), $this->js.".v1.yield();");
+				$this->setMethod("yield",array(), $this->js.". v1.yield();");
 				$this->src("chrome://codemirror/content/".$this->language.".html#".$this->id);
 				break;
 				case 2:
@@ -148,6 +150,18 @@ class XULCodeMirror extends XULBrowser
 	public function yieldCollectv2( $e, $val = NULL, $selection = NULL ) {
 		$this->value = $val;
 		$this->selection = $selection;
+	}
+	
+	public function yieldCollectThemes ($e) {
+		$numargs = func_num_args();
+		$this->themes = array();
+		if ($numargs > 1) { 
+			$arg_list = func_get_args();
+	    	for ($i = 1; $i < $numargs; $i++) {
+				$this->themes[] = $arg_list[$i];
+    		}
+			$this->fireClientEvent("themesLoaded");
+		}
 	}
 	
 	public function search($text = NULL, $caseSensitive = FALSE, $reverseOrder = FALSE) {
@@ -184,5 +198,6 @@ class XULCodeMirror extends XULBrowser
 				$this->setOption($option, $value);
 			}
 		}
+		$this->callMethod( "v2.getAvailableThemes");
 	}
 }

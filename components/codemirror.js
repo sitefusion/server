@@ -16,6 +16,8 @@ SiteFusion.Classes.CodeMirror = Class.create( SiteFusion.Classes.Browser, {
 			'initialized',
 			'ready',
 			'yield',
+			'yieldThemes',
+			'themesLoaded',
 			'noMoreResults',
 			'replaceResultCount'
 		] );
@@ -23,6 +25,8 @@ SiteFusion.Classes.CodeMirror = Class.create( SiteFusion.Classes.Browser, {
 		this.eventHost.initialized.msgType = 0;
 		this.eventHost.ready.msgType = 0;
 		this.eventHost.yield.msgType = 1;
+		this.eventHost.yieldThemes.msgType = 0;
+		this.eventHost.themesLoaded.msgType = 0;
 		this.eventHost.noMoreResults.msgType = 0;
 		this.eventHost.replaceResultCount.msgType = 0;
 	},
@@ -96,6 +100,24 @@ SiteFusion.Classes.CodeMirror = Class.create( SiteFusion.Classes.Browser, {
 			this.parent.fireEvent( 'yield', [ this.parent.element.contentWindow.editor.getValue(), this.parent.element.contentWindow.editor.getSelection() ] );
 		},
   		
+		getAvailableThemes: function() {
+			try {
+			var a =[];
+			var links = this.parent.element.contentDocument.getElementsByTagName("link"); 
+			for (var i = 0; i < links.length; i++) { 
+			    var rel = links[i].getAttribute("rel"); 
+				var href = links[i].getAttribute("href");
+			    if ( rel == "stylesheet" && href.indexOf('theme/') != -1 ) { 
+					var theme = href.substring(6,href.length-4);
+					a.push(theme);
+			    }
+			}
+			this.parent.fireEvent( 'yieldThemes', a );
+			}
+			catch (e) {
+				alert(e);
+			}
+		},
   		lastPos: null,
 		lastQuery: null,
 		marked: [],
@@ -104,8 +126,12 @@ SiteFusion.Classes.CodeMirror = Class.create( SiteFusion.Classes.Browser, {
 		lastDirection: -1,
 		
 		unmark: function () {
-		  for (var i = 0; i < this.marked.length; ++i) this.marked[i]();
-		  this.marked.length = 0;
+			for (var i = 0; i < this.marked.length; ++i) {
+				if (this.marked[i].clear === 'function' )
+					this.marked[i].clear();
+				else this.marked[i];
+			}
+		  	this.marked.length = 0;
 		},
 	
 		search: function (query, caseSensitive, reverseOrder) {
