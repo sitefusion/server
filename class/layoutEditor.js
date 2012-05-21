@@ -122,7 +122,6 @@ SiteFusion.Classes.Editor = Class.create( SiteFusion.Classes.Node, {
 		//todo: keep track of Mozilla development at: https://developer.mozilla.org/en/DOM/Selection/modify
 		this.element.contentDocument.onkeypress = function(event) {
 				if (event.keyCode >= 37 && event.keyCode <= 40) {
-					var selection = oThis.element.contentWindow.getSelection();
 					switch (event.keyCode) {
 						case 37:
 						//left arrow
