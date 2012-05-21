@@ -46,7 +46,7 @@ SiteFusion.Classes.CustomTree = Class.create( SiteFusion.Classes.Node, {
 	},
 	
 	DragObserver: {
-		onDragStart: function( event, transferData, dragAction ) {
+		onDragStart: function( event ) {
 			var tree = event.target.parentNode.sfNode;
 			var selection = tree.getSelection();
 			var dragAllowed;
@@ -74,8 +74,9 @@ SiteFusion.Classes.CustomTree = Class.create( SiteFusion.Classes.Node, {
 			if( !dragAllowed )
 				return;
 			
-			transferData.data = new TransferData();
-			transferData.data.addDataForFlavour( 'sfNode/XULTreeItem', selection.join(',') );
+			event.dataTransfer.setData( 'sfNode/XULTreeItem', selection.join(',') );
+//			transferData.data = new TransferData();
+//			transferData.data.addDataForFlavour( 'sfNode/XULTreeItem', selection.join(',') );
 			tree.draggedSelection = selection;
 			
 			var action = tree.isDraggable;
@@ -111,13 +112,48 @@ SiteFusion.Classes.CustomTree = Class.create( SiteFusion.Classes.Node, {
 		this.hostWindow.windowObject.setTimeout( function() {
 			oThis.element.view = oThis.view;
 			var tc = oThis.element.getElementsByTagName('treechildren')[0];
-			tc.setAttribute( 'ondraggesture', 'sfRootWindow.windowObject.SiteFusion.Registry['+oThis.cid+'].onDragGesture(event);' );
+			tc.setAttribute( 'ondragstart', 'sfRootWindow.windowObject.SiteFusion.Registry['+oThis.cid+'].onDragStartEvent(event);' );
 		}, 1 );
 		this.hostWindow.windowObject.setTimeout(function() {oThis.element.columns.restoreNaturalOrder();},200);
 	},
 
-	onDragGesture: function( event ) {
-		nsDragAndDrop.startDrag( event, this.DragObserver );
+	onDragStartEvent: function( event ) {
+		//nsDragAndDrop.startDrag( event, this.DragObserver );
+		
+		var tree = event.target.parentNode.sfNode;
+		var selection = tree.getSelection();
+		var dragAllowed;
+		
+		if( tree.isDraggable ) {
+			dragAllowed = true;
+			for( var n = 0; n < selection.length; n++ ) {
+				var row = tree.view.idToRow[selection[n]];
+				if( typeof(row.isDraggable) != 'undefined' && row.isDraggable === false ) {
+					dragAllowed = false;
+					break;
+				}
+			}
+		}
+		else {
+			var countAllowed = 0;
+			for( var n = 0; n < selection.length; n++ ) {
+				var row = tree.view.idToRow[selection[n]];
+				if( typeof(row.isDraggable) != 'undefined' && row.isDraggable !== false )
+					countAllowed++;
+			}
+			dragAllowed = countAllowed == selection.length;
+		}
+		
+		if( !dragAllowed )
+			return;
+		
+		event.dataTransfer.setData( 'sfNode/XULTreeItem', selection.join(',') );
+		tree.draggedSelection = selection;
+		
+		var action = tree.isDraggable;
+		if( tree.view.idToRow[selection[0]].isDraggable ) action = tree.view.idToRow[selection[0]].isDraggable;
+		
+		event.dataTransfer.effectAllowed = action;
 	},
 	
 	getSelection: function() {

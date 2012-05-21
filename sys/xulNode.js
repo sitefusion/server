@@ -106,7 +106,7 @@ SiteFusion.Classes.Node = Class.create( {
 	fireEvent: function( e, args ) {
 		var event = typeof(e) == 'string' ? null:e;
 		var eventName = typeof(e) == 'string' ? e:e.type;
-
+		
 		if( this.eventHost[eventName] == null )
 			SiteFusion.Error( 'Widget ' + this.sfClassName + ' does not support event ' + e );
 
@@ -114,7 +114,7 @@ SiteFusion.Classes.Node = Class.create( {
 		
 		if( ! args )
 			args = new Array();
-
+		
 		if( sfEvent.reflex != null ) {
 			this._dummy = sfEvent.reflex;
 			var ret = this._dummy( eventName, args, event );
@@ -126,9 +126,11 @@ SiteFusion.Classes.Node = Class.create( {
 			if( sfEvent[n].yield )
 				sfEvent[n].yield();
 		}
+		
+		if( sfEvent.msgType == 0 ) {
 
-		if( sfEvent.msgType == 0 )
 			return SiteFusion.Comm.SendCommand( this, eventName, args );
+		}
 		else if( sfEvent.msgType == 1 )
 			SiteFusion.Comm.QueueCommand( this, eventName, args );
 
@@ -385,7 +387,8 @@ SiteFusion.Classes.Node = Class.create( {
 			flavours.push( arguments[n] );
 		}
 
-		this.element.addEventListener( 'draggesture', this.onDragGestureEvent, true );
+		this.element.addEventListener( 'dragstart', this.onDragStartEvent, true );
+		
 		this.draggable = true;
 		this.draggableClassname = clsName;
 		this.draggableFlavours = flavours;
@@ -395,60 +398,63 @@ SiteFusion.Classes.Node = Class.create( {
 		this.dropObserver = new this.DropObserver( this, arguments );
 		this.droppable = true;
 	},
-
-	onDragGestureEvent: function( event ) {
-		var dragObserver = {
-			onDragStart: function( event, transferData, action ) {
-				var obj = event.target.sfNode;
-				transferData.data = new TransferData();
-				transferData.data.addDataForFlavour( 'sfNode/'+obj.draggableClassname, obj.cid );
 	
-				for( var n = 0; n < obj.draggableFlavours.length; n += 2 ) {
-					transferData.data.addDataForFlavour( obj.draggableFlavours[n], obj.draggableFlavours[n+1] );
-				}
-	
-				obj.fireEvent( 'sfdragstart' );
-			}
-		};
+	onDragStartEvent: function( event ) {
+		var obj = event.target.sfNode;
 		
-		nsDragAndDrop.startDrag( event, dragObserver );
+		event.dataTransfer.setData( 'sfNode/'+obj.draggableClassname, obj.cid );
+		
+		for( var n = 0; n < obj.draggableFlavours.length; n += 2 ) {
+			event.dataTransfer.setData( obj.draggableFlavours[n], obj.draggableFlavours[n+1] );
+		}
+		
+		obj.fireEvent( 'sfdragstart' );
 	},
-
+	
 	DropObserver: Class.create( {
 		initialize: function( sfNode, flavors ) {
 			this.sfNode = sfNode;
-			this.flavorNames = [];
 			
 			var oThis = this;
-			this.sfNode.element.addEventListener( 'dragover', function(event) { oThis.onFileDragOver(event) || nsDragAndDrop.dragOver(event,oThis); }, true );
-			this.sfNode.element.addEventListener( 'dragdrop', function(event) { oThis.onFileDrop(event) || nsDragAndDrop.drop(event,oThis); }, true );
+			this.sfNode.element.addEventListener( 'dragover', function(event) { oThis.onFileDragOver(event) || oThis.onDragOver(event); }, true );
+			this.sfNode.element.addEventListener( 'drop', function(event) { oThis.onFileDrop(event) || oThis.onDrop(event); }, true );
 
-			var flavourSet = new FlavourSet();
-
-			for( var n = 0; n < flavors.length; n++ ) {
-				flavourSet.appendFlavour( flavors[n] );
-				this.flavorNames.push( flavors[n] );
-			}
+			this.flavorNames = [];
 			
-			this.flavours = flavourSet;
+			for( var n = 0; n < flavors.length; n++ ) {
+				this.flavorNames.push( (flavors[n]+'').toLowerCase() );
+			}
 		},
 		
-		getSupportedFlavours: function() {
-			return this.flavours;
+		onDragOver: function( event ) {
+			var types = event.dataTransfer.types;
+			types = this.flavorNames.filter(function (value) types.contains(value));
+			if (types.length) {
+				event.stopPropagation();
+				event.preventDefault();
+				
+				this.sfNode.fireEvent( 'sfdragover', [ event.target.sfNode ] );
+			}
 		},
 
-		onDragOver: function( event, flavour, session ) {
-			this.sfNode.fireEvent( 'sfdragover', [ flavour ] );
-		},
-
-		onDrop: function( event, dropdata, session ) {
-			var data = dropdata.data;
-			if( dropdata.flavour.contentType.substr( 0, 7 ) == 'sfNode/' )
-				data = SiteFusion.Registry[data];
-			this.sfNode.fireEvent( 'sfdragdrop', [ data ] );
+		onDrop: function( event ) {
+			var types = event.dataTransfer.types;
+			types = this.flavorNames.filter(function (value) types.contains(value));
+			if (types.length) {
+				var d = event.dataTransfer.getData(types[0]);
+				if (types[0].substr(0, 7) == 'sfnode/') {
+					d = SiteFusion.Registry[d];
+				}
+				
+				event.preventDefault();
+				event.stopPropagation();
+				
+				this.sfNode.fireEvent( 'sfdragdrop', [ d ] );
+			}
 		},
 		
 		onFileDragOver: function( event ) {
+			return false;
 			var dragService = Cc["@mozilla.org/widget/dragservice;1"].getService(Ci.nsIDragService);
 		    var dragSession = dragService.getCurrentSession();
 			var flavor;
@@ -458,6 +464,9 @@ SiteFusion.Classes.Node = Class.create( {
 		    	supported = (dragSession.isDataFlavorSupported(flavor = "application/x-moz-file") && this.flavorNames.indexOf("application/x-moz-file") != -1);
 
 		    if (supported) {
+		    	event.preventDefault();
+				event.stopPropagation();
+				
 		    	dragSession.canDrop = true;
 				this.sfNode.fireEvent( 'sfdragover', [ flavor ] );
 			}
@@ -514,12 +523,13 @@ SiteFusion.Classes.Node = Class.create( {
 					uris.push(uri);
 				}
 			}
-			
+			event.preventDefault();
+			event.stopPropagation();
 			this.sfNode.fireEvent( 'sfdragdrop', [ uris ] );
 			return true;
 		}
 	} ),
-	
+
 	toJSON: function() {
 		return Object.toJSON( { '__sfNode': this.cid } );
 	}
