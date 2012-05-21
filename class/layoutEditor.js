@@ -126,7 +126,7 @@ SiteFusion.Classes.Editor = Class.create( SiteFusion.Classes.Node, {
 					switch (event.keyCode) {
 						case 37:
 						//left arrow
-						selection.modify((event.shiftKey ? "extend": "move"), "chownbackward", "character");
+						selection.modify((event.shiftKey ? "extend": "move"), "backward", "character");
 						break;
 						case 38:
 						//up arrow
