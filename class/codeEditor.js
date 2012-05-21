@@ -23,27 +23,6 @@
 //   Tom Peeters <tom@thefrontdoor.nl>
 //
 // - - - - - - - - - - - - - - END LICENSE BLOCK - - - - - - - - - - - - -
-
-Language={};
-
-Language.css = "body {padding-left:25px;padding-top:9px;background:white;margin-left:32px;font-family:monospace;font-size:13px;background-repeat:repeat-y;background-position:0 3px;	line-height:16px;	height:100%;}P {margin:0;padding:0;border:0;outline:0;display:block;}b, i, s, u, a, em, tt, ins, big, cite, strong, var, dfn {text-decoration:none;font-weight:normal;font-style:normal;font-size:13px;}b {color:#000080;}big, big b, big em, big ins, big s, strong i, strong i b, strong i s, strong i u, strong i a, strong i a u, strong i s u {color:gray;font-weight:normal;}s, s b, strong s u, strong s cite {color:#5656fa;font-weight:normal;}strong a, strong a u {color:#006700;font-weight:bold;}em {color:#800080;font-style:normal;}ins {color:#800000;}strong u {color:#7F0055;font-weight:bold;}cite, s cite {color:red;font-weight:bold;}";
-
-Language.syntax = [
-	{ input : /(&lt;[^!\?]*?&gt;)/g, output : '<b>$1</b>' },
-	{ input : /(&lt;style.*?&gt;)(.*?)(&lt;\/style&gt;)/g, output : '<em>$1</em><em>$2</em><em>$3</em>' },
-	{ input : /(&lt;script.*?&gt;)(.*?)(&lt;\/script&gt;)/g, output : '<ins>$1</ins><ins>$2</ins><ins>$3</ins>' },
-	{ input : /\"(.*?)(\"|<br>|<\/P>)/g, output : '<s>"$1$2</s>' },
-	{ input : /\'(.*?)(\'|<br>|<\/P>)/g, output : '<s>\'$1$2</s>'},
-	{ input : /(&lt;\?)/g, output : '<strong>$1' },
-	{ input : /(\?&gt;)/g, output : '$1</strong>' },
-	{ input : /(&lt;\?php|&lt;\?=|&lt;\?|\?&gt;)/g, output : '<cite>$1</cite>' },
-	{ input : /(\$[\w\.]*)/g, output : '<a>$1</a>' },
-	{ input : /\b(false|true|and|or|xor|__FILE__|exception|__LINE__|array|as|break|case|class|const|continue|declare|default|die|do|echo|else|elseif|empty|enddeclare|endfor|endforeach|endif|endswitch|endwhile|eval|exit|extends|for|foreach|function|global|if|include|include_once|isset|list|new|print|require|require_once|return|static|switch|unset|use|while|__FUNCTION__|__CLASS__|__METHOD__|final|php_user_filter|interface|implements|extends|public|private|protected|abstract|clone|try|catch|throw|this)\b/g, output : '<u>$1</u>' },
-	{ input : /([^:])\/\/(.*?)(<br|<\/P)/g, output : '$1<i>//$2</i>$3' },
-	{ input : /([^:])#(.*?)(<br|<\/P)/g, output : '$1<i>#$2</i>$3' },
-	{ input : /\/\*(.*?)\*\//g, output : '<i>/*$1*/</i>' },
-	{ input : /(&lt;!--.*?--&gt.)/g, output : '<big>$1</big>' }
-]
 	
 //this callback object is used to determine when the editor is not busy anymore	
 var EditorListener = {
@@ -146,8 +125,7 @@ SiteFusion.Classes.CodeEditor = Class.create( SiteFusion.Classes.Editor, {
 		
 	handleEditorChange: function()
 	{
-		//if (this.element.contentWindow)
-		//	this.applySyntaxHighlighting();
+		
 	},
 	
 	makeEditable: function() {
@@ -215,7 +193,7 @@ SiteFusion.Classes.CodeEditor = Class.create( SiteFusion.Classes.Editor, {
 		};
 		
 	    //set language css
-	    this.applyLanguageCSS();
+	    this.applyStyling();
     
 		EditorListener.attach(this.textEditor);
 			
@@ -246,124 +224,10 @@ SiteFusion.Classes.CodeEditor = Class.create( SiteFusion.Classes.Editor, {
     this.insertText(aText);
   },
   
-  applyLanguageCSS: function () {
-  	this.htmlEditor.replaceHeadContentsWithHTML('<style>' + Language.css + '</style>');	
+  applyStyling: function () {
+  	this.htmlEditor.replaceHeadContentsWithHTML('<style>body {padding-left:25px;padding-top:9px;background:white;margin-left:32px;font-family:monospace;font-size:13px;background-repeat:repeat-y;background-position:0 3px;	line-height:16px;	height:100%;}P {margin:0;padding:0;border:0;outline:0;display:block;}</style>');	
   	this.element.contentDocument.body.style.backgroundImage = 'url(' + this.parseImageURL('/class/res/line-numbers.png') + ')';
   },
-  
-  applySyntaxHighlighting: function() {
-  	this.element.getEditor( this.element.contentWindow ).setShouldTxnSetSelection(true);
-  	this.htmlEditor.setShouldTxnSetSelection(false);
-		this.htmlEditor.beginTransaction();
-		this.preserveSelection();
-		var textEditor = this.textEditor;
-    var source = this.element.contentDocument.body.innerHTML + '';
-    
-		for(i=0;i<Language.syntax.length;i++) 
-			source = source.replace(Language.syntax[i].input,Language.syntax[i].output);
-
-		this.element.contentDocument.body.innerHTML = source;
-		this.htmlEditor.setShouldTxnSetSelection(true);
-		this.htmlEditor.endTransaction();
-		this.restoreSelection();
-  },
-  
-  preserveSelection: function preserveSelection()
-  {
-    // let's preserve the caret's position ; after edit changes,
-    // the selection is always collapsed
-
-    // we're going to preserve it counting the chars from the
-    // beginning of the document up to the caret, just like in
-    // a plaintext editor ; BRs count for "\n" so 1 char.
-    var range = this.textEditor.selection.getRangeAt(0);
-    this.mSelEndContainer   = range.endContainer;
-    this.mSelEndOffset      = range.endOffset;
-    this.mGlobalOffset = 0; 
-
-    if (this.mSelEndContainer.nodeType == Node.TEXT_NODE)
-    {
-      if (this.mSelEndContainer.parentNode.nodeName.toLowerCase() != "body")
-        this.mSelEndContainer = this.mSelEndContainer.parentNode;
-      this.mGlobalOffset = this.mSelEndOffset;
-    }
-    else
-    {
-      var children = this.mSelEndContainer.childNodes;
-      var l = children.length;
-      for (var i = 0; i < l && i < this.mSelEndOffset; i++)
-      {
-        var child = children.item(i);
-        switch (child.nodeType)
-        {
-          case Node.TEXT_NODE:
-            this.mGlobalOffset += child.data.length;
-            break;
-          case Node.ELEMENT_NODE:
-            if (child.nodeName.toLowerCase() == "br")
-              this.mGlobalOffset++;
-            else
-              this.mGlobalOffset += child.textContent.length;
-            break;
-          default:
-            break;
-        }
-      }
-      if (this.mSelEndContainer.nodeName.toLowerCase() == "body")
-        return;
-    }
-
-    var node = this.mSelEndContainer.previousSibling;
-    while (node)
-    {
-      if (node.nodeName.toLowerCase() == "br")
-        this.mGlobalOffset += 1;
-      else
-        this.mGlobalOffset += node.textContent.length;
-      node = node.previousSibling;
-    }
-  },
-
-  restoreSelection: function restoreSelection()
-  {
-    // let's restore the caret at our previous position using the
-    // char offset we stored in restoreSelection()
-    var node = this.element.contentDocument.body.firstChild;
-    var offset = 0;
-
-    while (node &&
-           ((node.nodeName.toLowerCase() == "br") ? 1 : node.textContent.length) < this.mGlobalOffset)
-    {
-      //if (node.nodeName.toLowerCase() == "br")
-      //  this.mGlobalOffset--;
-      //else
-      //  this.mGlobalOffset -= node.textContent.length;
-      node = node.nextSibling;
-    }
-    if (node)
-    {
-      if (node.nodeName.toLowerCase() == "span") 
-        this.htmlEditor.selection.collapse(node.firstChild, this.mGlobalOffset);
-      else if (node.nodeType == Node.TEXT_NODE) 
-      {
-        this.htmlEditor.selection.collapse(node, this.mGlobalOffset);
-      }
-      else // this is a BR element
-        if (this.mGlobalOffset)
-          this.htmlEditor.setCaretAfterElement(node);
-        else
-          this.htmlEditor.beginningOfDocument();
-    }
-  },
-  
-  getRangeAndCaret : function() {	
-		var range = this.element.contentWindow.getSelection().getRangeAt(0);
-		var range2 = range.cloneRange();
-		var node = range.endContainer;			
-		var caret = range.endOffset;
-		range2.selectNode(node);	
-		return [range2.toString(),caret];
-	},
 	
   insertText : function(aText) {
     this.textEditor.insertText(aText);
