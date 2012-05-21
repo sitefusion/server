@@ -187,6 +187,33 @@ SiteFusion.Classes.CodeEditor = Class.create( SiteFusion.Classes.Editor, {
 			oThis.element.removeChild(oThis.element.myKeySet);
 		}
 		
+		//dirty hack for Mozilla scroll-in-contentEditable-bug	
+		//todo: keep track of Mozilla development at: https://developer.mozilla.org/en/DOM/Selection/modify
+		this.element.contentWindow.onkeypress = function(event) {
+				if (event.keyCode >= 37 && event.keyCode <= 40) {
+					event.preventDefault();
+					var selection = oThis.element.contentWindow.getSelection();
+					switch (event.keyCode) {
+						case 37:
+						//left arrow
+						selection.modify((event.shiftKey ? "extend": "move"), "backward", "character");
+						break;
+						case 38:
+						//up arrow
+						selection.modify((event.shiftKey ? "extend": "move"), "backward", "line");
+						break;
+						case 39:
+						//right arrow
+						selection.modify((event.shiftKey ? "extend": "move"), "forward", "character");
+						break;
+						case 40:
+						//down arrow
+						selection.modify((event.shiftKey ? "extend": "move"), "forward", "line");
+						break;
+					}
+				}
+		};
+		
 	    //set language css
 	    this.applyLanguageCSS();
     
