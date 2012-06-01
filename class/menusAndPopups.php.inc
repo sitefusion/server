@@ -379,4 +379,13 @@ class XULPanel extends BranchNode
 	public function top( $pix = NULL ) {
 		return $this->attributeMethod( 'top', (int) $pix );
 	}
+	
+	public function type( $type = NULL ) {
+		return $this->attributeMethod( 'type', $type );
+	}
+	
+	public function noautofocus( $var = FALSE ) {
+		return $this->attributeMethod( 'noautofocus', ($var ? "true" : "false") );
+	}
+	
 }

@@ -107,7 +107,7 @@ SiteFusion.Classes.TextBox = Class.create( SiteFusion.Classes.Node, {
 	//	this.element.onkeypress = this._keypressHandler;
 		
 		this.setEventHost( [ 'yield', 'return' ] );
-		
+		var oThis = this;
 		this.eventHost.yield.msgType = 1;
 	},
 	
@@ -130,6 +130,7 @@ SiteFusion.Classes.TextBox = Class.create( SiteFusion.Classes.Node, {
 			if( this.element.inputField )
 				this.element.inputField.value = text;
 		}
+
 	},
 
 	yield: function() {
@@ -139,7 +140,14 @@ SiteFusion.Classes.TextBox = Class.create( SiteFusion.Classes.Node, {
 		else
 			val = this.element.inputField.value + '';
 				
-		this.fireEvent( 'yield', [ val ] );
+		var validityObj = {};
+		if( this.element.type != 'number' ){
+		  for( var prop in this.element.inputField.validity){
+			  validityObj[prop] = this.element.inputField.validity[prop];	
+		  }
+		}
+		
+		this.fireEvent( 'yield', [ val, JSON.stringify(validityObj) ] );
 	}
 } );
 

@@ -293,6 +293,7 @@ class XULScale extends Node
 
 class XULTextBox extends BranchNode
 {
+	public $validity;
 	public $remoteConstructor = 'TextBox';
 	public $initAttributes = array( 'multiline', 'readonly', 'type', 'cols', 'rows',
 		'timeout', 'wrap', 'maxlength', 'min', 'max', 'searchbutton', 'increment',
@@ -313,7 +314,8 @@ class XULTextBox extends BranchNode
 		$this->setEventHandler( 'yield', $this, 'yieldCollect' );
 	}
 	
-	public function yieldCollect( $e, $val ) {
+	public function yieldCollect( $e, $val, $validity ) {
+		$this->validity = json_decode($validity);
 		$this->value = $val;
 	}
 	
@@ -383,6 +385,78 @@ class XULTextBox extends BranchNode
 
 	public function wraparound( $val = NULL ) {
 		return $this->attributeMethod( 'wraparound', $val );
+	}
+	
+	//visual feedback validation functions
+	
+	public function setInputFieldType ($type) {
+		$this->callMethodDelayed("element.inputField.setAttribute", array('type', $type),100);		
+	}
+	
+	public function setInputFieldRequired ($state) {
+		if ($state)
+			$this->callMethodDelayed("element.inputField.setAttribute", array('required',TRUE),100);
+		else
+			$this->callMethodDelayed("element.inputField.removeAttribute", array('required'),100);	
+	}
+	
+	public function setInputFieldPlaceholder ($placeholder) {
+		$this->callMethodDelayed("element.inputField.setAttribute", array('placeholder',$placeholder),100);
+	}
+	
+	public function setInputFieldPattern ($pattern) {
+		$this->callMethodDelayed("element.inputField.setAttribute", array('pattern',$pattern),100);
+	}
+	
+	//retrieves validity object after yield
+	public function getValidity() {
+			return $this->validity;
+	}
+	
+	//autocompletion attribute setters
+	
+	public function enablehistory( $val = NULL ) {
+		return $this->attributeMethod( 'enablehistory', ($val ? "true" : ("false") ) );
+	}
+	
+	public function highlightnonmatches( $val = NULL ) {
+		return $this->attributeMethod( 'highlightnonmatches', ($val ? "true" : ("false") ) );
+	}
+	
+	public function completedefaultindex( $val = NULL ) {
+		return $this->attributeMethod( 'completedefaultindex', ($val ? "true" : ("false") ) );
+	}
+	
+	public function showcommentcolumn( $val = NULL ) {
+		return $this->attributeMethod( 'showcommentcolumn', ($val ? "true" : ("false") ) );
+	}
+	
+	public function autocompletesearch( $val = NULL ) {
+		return $this->attributeMethod( 'autocompletesearch', $val );
+	}
+	
+	public function autocompletepopup( $node = NULL ) {
+		if (is_object($node) && $node instanceof XULPanel) {
+			return $this->attributeMethod( 'autocompletepopup', "cid".$node->id );
+		}
+		else if (is_object($node) && $node instanceof XULMenuPopup) {
+			return $this->attributeMethod( 'autocompletepopup', "cid".$node->id );
+		}
+		else return false;
+	}
+	
+	public function autocompletesearchparam( $val = NULL ) {
+		
+		if (is_string($val))
+			return $this->attributeMethod( 'autocompletesearchparam', $val );
+		else if (is_array($val)) {
+			$retArray = array();
+			foreach($val as $key => $value) {
+				$retArray[] = array("value" => $key, "comment" => $value);
+			}
+			return $this->attributeMethod( 'autocompletesearchparam', json_encode($retArray) );
+		}
+		else return FALSE;
 	}
 
 }
