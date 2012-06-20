@@ -98,13 +98,22 @@ SiteFusion.Classes.PrefService = Class.create( SiteFusion.Classes.Node, {
 			for (var pref in this.prefTypes) {
 				switch(this.prefTypes[pref]) {
 					case "int":
-					ret[pref] = this.getIntPref(pref);
+					var retval = this.getIntPref(pref);
+					if (typeof ret === "number") {
+						ret[pref] = retval;
+					}
 					break;
 					case "string":
-					ret[pref] = this.getCharPref(pref);
+					var retval = this.getCharPref(pref);
+					if (typeof retval === "string") {
+						ret[pref] = retval;
+					}
 					break;
 					case "bool":
-					ret[pref] = this.getBoolPref(pref);
+					var retval = this.getBoolPref(pref);
+					if (retval != -1) {
+						ret[pref] = retval;
+					}
 					break;
 				}
 			}
@@ -114,6 +123,7 @@ SiteFusion.Classes.PrefService = Class.create( SiteFusion.Classes.Node, {
 		}
 		this.fireEvent( 'yield', [ ret ] );
 	},
+	
 		
 	setIntPref: function(pref, value) {
 		this.prefService.setIntPref(pref, value);
@@ -132,6 +142,7 @@ SiteFusion.Classes.PrefService = Class.create( SiteFusion.Classes.Node, {
 			return this.prefService.getCharPref(pref);
 		}
 		else return false;
+		
 	},
 	setBoolPref: function(pref, value) {
 		this.prefService.setBoolPref(pref, value);
@@ -140,7 +151,7 @@ SiteFusion.Classes.PrefService = Class.create( SiteFusion.Classes.Node, {
 		if( this.prefService.getPrefType(pref) == this.prefService.PREF_BOOL ) {
 			return this.prefService.getBoolPref(pref);
 		}
-		else return false;
+		else return -1;
 	}
 	
 } );

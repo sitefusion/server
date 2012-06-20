@@ -732,6 +732,13 @@ class XULRadio extends BranchNode
 
 class XULMenuList extends BranchNode
 {
+	/**
+	 * Added to facilitate the selectItem before the XULMenuList was registered to the DOM Tree
+	 * This will call selectItem in the attach function to select on attach and the reset the var 
+	 * so it does not keep selecting the item on reattaching
+	 */
+	private $selectAfterAttach = NULL;
+	
 	public $remoteConstructor = 'MenuList';
 	public $initAttributes = array( 'editable' );
 	public $selectedItem = NULL;
@@ -752,6 +759,11 @@ class XULMenuList extends BranchNode
 	
 	public function attach() {
 		parent::attach();
+		if( $this->selectAfterAttach != NULL ){
+			$this->selectItem( $this->selectAfterAttach );
+			$this->selectAfterAttach = NULL;
+		}
+		
 		$this->setEventHandler( 'yield', $this, 'yieldCollect' );
 	}
 	
@@ -768,6 +780,11 @@ class XULMenuList extends BranchNode
 	public function selectItem( $val ) {
 		if(! (isset($this->children[0]) && $this->children[0] instanceof XULMenuPopup) )
 				throw new SFException( 'XULMenuList needs a XULMenuPopup childnode to contain menu items', ERR_REPORT_APP );
+		
+		if( !$this->isRegistered ){
+			$this->selectAfterAttach = $val;
+			return;
+		}
 		
 		if( is_integer( $val ) ) {
 			$this->selectedItem = $this->children[0]->children[$val];
