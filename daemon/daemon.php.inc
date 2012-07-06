@@ -544,8 +544,10 @@ class DaemonProcess extends SiteFusionProcess
 	}
 	
 	static private function HandleAdminCmd( $child, $cmd ) {
-		if( $child->app != 'sitefusion/admin' )
+		if( $child->app != 'sitefusion/admin' ) {
+			//TODO: Fix this, this is nasty and hangs applications that try to access these functions
 			return;
+		}
 		
 		switch ( $cmd->action ) {
 			case 'kill':
