@@ -293,6 +293,8 @@ class XULScale extends Node
 
 class XULTextBox extends BranchNode
 {
+	private $range = -2147483647;
+	
 	public $validity;
 	public $remoteConstructor = 'TextBox';
 	public $initAttributes = array( 'multiline', 'readonly', 'type', 'cols', 'rows',
@@ -385,6 +387,10 @@ class XULTextBox extends BranchNode
 
 	public function wraparound( $val = NULL ) {
 		return $this->attributeMethod( 'wraparound', $val );
+	}
+	
+	public function unsigned( $signed = false ){
+		return $this->min( ( $signed ? 0 : $this->range ) );
 	}
 	
 	//visual feedback validation functions
@@ -643,6 +649,11 @@ class XULRadioGroup extends BranchNode
 	public function yieldCollect( $e, $item ) {
 		$this->selectedItem = $item;
 		$this->value = $item->value;
+	}
+	
+	/* Deselects all child radio's  */
+	public function clearSelection(){
+		$this->setProperty("element.selectedIndex",-1);
 	}
 }
 
