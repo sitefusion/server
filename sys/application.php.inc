@@ -203,10 +203,10 @@ class Application
 		$this->registry->add( NULL, $this->window );
 		
 		$this->window
-			->setEvent( 'close', MSG_SEND, $this, 'onWindowClose' )
 			->setEventType( 'initialized', MSG_SEND )
 			->setEventHandler( 'initialized', $this, 'init' )
-			->setEventHandler( 'initialized', $this, 'setDefaultEventGroup' );
+			->setEventHandler( 'initialized', $this, 'setDefaultEventGroup' )
+			->setEventHandler( 'initialized', $this, 'setWindowEventHandlers' );
 	}
 	
 	
@@ -218,6 +218,10 @@ class Application
 	public function setDefaultEventGroup( $event ) {
 		$parts = explode( '/', $this->applicationName );
 		$this->joinEventGroup( $parts[0] );
+	}
+	
+	public function setWindowEventHandlers( $event ) {
+		$this->window->setEvent( 'close', MSG_SEND, $this, 'onWindowClose' );
 	}
 	
 	/**
@@ -457,6 +461,11 @@ class Application
 	*/
 	
 	public function onWindowClose() {
+		if ($this->window->preventClose) {
+			$this->window->preventClose = FALSE;
+			return;
+		}
+		
 		ApplicationProcess::Shutdown();
 	}
 	

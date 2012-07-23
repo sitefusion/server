@@ -41,7 +41,10 @@
 
 class XULBasicWindow extends BranchNode
 {
+	public $preventClose = FALSE;
+	
 	public function preventClose( $bool = TRUE ) {
+		$this->preventClose = $bool;
 		$this->setProperty( 'preventClose', (bool) $bool );
 	}
 
@@ -112,7 +115,7 @@ class XULBasicWindow extends BranchNode
  * Window element
  * 
  * This is the root window class. It is constructed automatically once upon application launch,
- * and should not be constructed separately. Use XULChildWindow or XULDialog for additional 
+ * and should not be constructed separately. Use XULC hildWindow or XULDialog for additional 
  * application windows.
  * 
  * @see XULChildWindow
@@ -243,6 +246,7 @@ class XULChildWindow extends XULBasicWindow
 
 	public function closeWindow() {
 		$this->hasClosed = TRUE;
+		$this->preventClose = FALSE;
 		$this->parent->removeChild( $this );
 	}
 	
@@ -500,8 +504,8 @@ class PromptService extends Node
 	/**
 	 * Shows a alert box with an OK button
 	 *
-	 * @param string	$title	Title of the dialog box
-	 * @param string	$text	Body text
+	 * @param string	$title			Title of the dialog box
+	 * @param string	$text			Body text
 	 */
 	
 	public function alert( $title, $text ) {
