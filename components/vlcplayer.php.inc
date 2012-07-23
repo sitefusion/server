@@ -62,7 +62,7 @@ class XULVlcPlayer extends XULHTMLEmbed
 		$this->toolbar = $toolbar;
 		$this->bgcolor = $bgcolor;
 		
-		$this->bgcolor = "#ff0000";
+		$this->bgcolor = $bgcolor;
 		
 		//we can use these default Node methods
 		if( $width !== NULL )
