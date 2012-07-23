@@ -36,45 +36,69 @@
 */
 
 
-class XULVlcPlayer extends Node
+class XULVlcPlayer extends XULHTMLEmbed
 {
 	public $remoteConstructor = 'VlcPlayer';
 	private $state = 0;
+	public $width = 0;
+	public $height = 0;
 	
-	
-		public function __construct( $url = NULL ) {
-		$this->url = $url;
+	public function __construct($width = NULL, $height = NULL, $src = NULL, $target = NULL, $mrl = NULL, $filename = NULL, $autoplay = NULL, $allowfullscreen = NULL, $mute = NULL, $loop = NULL, $toolbar = NULL, $bgcolor = NULL ) {
 		$this->setEventHandler("stateChange", $this, "onStateChange");
-		parent::__construct();
+		
+		//for a file (default)
+		$this->src = $src;
+			
+		//this is for streams
+		$this->target = $target;
+		$this->mrl = $mrl;
+		$this->filename = $filename;
+		
+		$this->autoplay = $autoplay;
+		$this->allowfullscreen = $allowfullscreen;
+		
+		$this->mute = $mute;
+		$this->loop = $loop;
+		$this->toolbar = $toolbar;
+		$this->bgcolor = $bgcolor;
+		
+		$this->bgcolor = "#ff0000";
+		
+		//we can use these default Node methods
+		if( $width !== NULL )
+			$this->width( $width );
+		if( $height !== NULL )
+			$this->height( $height );
 	}
-	
+
 	public function attach() {
-		$this->createRemoteObject( array( $this->hostWindow, $this->url ) );
+		//order of client side arguments: win, width, height, src, target, mrl, filename, autoplay, allowfullscreen, mute, loop, toolbar, bgcolor
+		$this->autoplay = TRUE;
+		
+		$this->createRemoteObject( array( $this->hostWindow, $this->width, $this->height, $this->src, $this->target, $this->mrl, $this->filename, ($this->autoplay === NULL ? TRUE : $this->autoplay), ($this->allowfullscreen === NULL ? TRUE : $this->allowfullscreen), ($this->mute === NULL ? FALSE : $this->mute), ($this->loop === NULL ? FALSE : $this->loop), ($this->toolbar === NULL ? TRUE : $this->toolbar), $this->bgcolor ) );
 		$this->insertElement();
-		$this->callMethodDelayed("afterinit");
+		$this->callMethodDelayed("afterinit", array($this->width, $this->height ));
 	}
 	
 	public function width( $width = NULL ) {
-		return $this->attributeMethod( 'width', $width );
+		$this->width = $width;
+		if ($this->isRegistered)
+			$this->setAttribute( 'width', $width );
 	}
 	
 	public function height( $height = NULL ) {
-		return $this->attributeMethod( 'height', $height );
+		$this->height = $height;
+		if ($this->isRegistered)
+			$this->setAttribute( 'height', $height );
 	}
 	
-	public function add($src)
+	public function add($src, $fancyname = NULL, $options = NULL)
 	{
 		$this->items[] = $src;
-		$this->callMethodDelayed('add', array($src));
+		if ($this->isRegistered)
+			$this->callMethod('add', array($src,$fancyname,$options));
 	}
-	
-	public function sizeToContent()
-	{
-		//if either playing or paused
-		if ($this->state == 3 || $this->state == 4)
-			$this->callMethodDelayed('sizeToContent', NULL, 100);
-	}
-	
+
 	public function play()
 	{
 		$this->callMethod('play');
@@ -103,9 +127,6 @@ class XULVlcPlayer extends Node
 		
 		$this->state = $state;
 		
-		if ($this->state == 3) {
-			$this->sizeToContent();
-		}	
 		
 	}
 	
