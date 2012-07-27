@@ -145,7 +145,7 @@ SiteFusion.Classes.CodeEditor = Class.create( SiteFusion.Classes.Editor, {
 		this.textEditor.rootElement.style.fontSize = "10pt";
 		this.textEditor.rootElement.style.backgroundColor = "white";
 		this.textEditor.rootElement.style.whiteSpace = "nowrap";
-		this.textEditor.rootElement.style.margin = 5;
+		this.textEditor.rootElement.style.marginLeft = 5;
 		
 		var oThis = this;
 		this.element.contentWindow.onfocus= function() {
@@ -203,7 +203,7 @@ SiteFusion.Classes.CodeEditor = Class.create( SiteFusion.Classes.Editor, {
     var textEditor = this.textEditor;
     textEditor.enableUndo(false);
     textEditor.selectAll();
-    textEditor.deleteSelection(textEditor.eNone);
+    textEditor.deleteSelection(textEditor.eNone, true);
     textEditor.enableUndo(true);
     textEditor.resetModificationCount();
 
@@ -225,7 +225,7 @@ SiteFusion.Classes.CodeEditor = Class.create( SiteFusion.Classes.Editor, {
   },
   
   applyStyling: function () {
-  	this.htmlEditor.replaceHeadContentsWithHTML('<style>body {padding-left:25px;padding-top:9px;background:white;margin-left:32px;font-family:monospace;font-size:13px;background-repeat:repeat-y;background-position:0 3px;	line-height:16px;	height:100%;}P {margin:0;padding:0;border:0;outline:0;display:block;}</style>');	
+  	this.htmlEditor.replaceHeadContentsWithHTML('<style>body {padding-left:25px;padding-top:0px;background:white;margin-left:32px;font-family:monospace;font-size:13px;background-repeat:repeat-y;background-position:0 3px;	line-height:16px;	height:95%;}P {margin:0;padding:0;border:0;outline:0;display:block;}</style>');	
   	this.element.contentDocument.body.style.backgroundImage = 'url(' + this.parseImageURL('/class/res/line-numbers.png') + ')';
   },
 	
