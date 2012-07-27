@@ -203,7 +203,14 @@ SiteFusion.Classes.CodeEditor = Class.create( SiteFusion.Classes.Editor, {
     var textEditor = this.textEditor;
     textEditor.enableUndo(false);
     textEditor.selectAll();
-    textEditor.deleteSelection(textEditor.eNone, true);
+    
+    try {
+    	textEditor.deleteSelection(textEditor.eNone, true);
+    }
+    catch (e) {
+    	textEditor.deleteSelection(textEditor.eNone);
+    }
+    
     textEditor.enableUndo(true);
     textEditor.resetModificationCount();
 
