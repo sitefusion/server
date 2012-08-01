@@ -421,6 +421,28 @@ SiteFusion.Classes.FileService = Class.create( SiteFusion.Classes.Node, {
 		this.fireEvent( 'result', [ 'executeFile', false, path ] );
 	},
 	
+	openFileWithNativeProtocolHandler: function (path) {
+			var file = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile);
+			var ioService = Cc["@mozilla.org/network/io-service;1"].getService(Ci.nsIIOService);
+			file.initWithPath(path);
+			
+		  var uri = ioService.newFileURI(file);
+              
+		  var protocolSvc = Cc["@mozilla.org/uriloader/external-protocol-service;1"].getService(Ci.nsIExternalProtocolService);
+		  protocolSvc.loadUrl(uri);
+		
+	},
+	
+	openURIWithNativeProtocolHandler: function (strUri) {
+		
+		  var ioService = Cc["@mozilla.org/network/io-service;1"].getService(Ci.nsIIOService);
+ 			var uri = ioService.newURI(strUri, null, null);
+                            
+		  var protocolSvc = Cc["@mozilla.org/uriloader/external-protocol-service;1"].getService(Ci.nsIExternalProtocolService);
+		  protocolSvc.loadUrl(uri);
+		
+	},
+	
 	resultFromFile: function( file ) {
 		return [
 			file.leafName,

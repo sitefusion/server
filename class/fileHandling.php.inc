@@ -1298,6 +1298,33 @@ class ClientFileService extends Node
 		$this->callMethod( 'executeFile', array( $clientPath, count($args) ? $args : NULL, $async ) );
 	}
 	
+	/**
+	 * Open the file with the native protocol handler for given file
+	 * 
+	 * The handler receives these parameters:
+	 * - ClientFileService $fileService	- this object
+	 * - string $path: the remote path
+	 *
+	 * @param string		$clientPath			The path on the client side to execute
+	 */
+	 
+	public function openFileWithNativeProtocolHandler($clientPath) {
+		$this->callMethod( 'openFileWithNativeProtocolHandler', array( $clientPath ));
+	}
+	
+	/**
+	 * Open the file with the native protocol handler for given file
+	 * 
+	 * The handler receives these parameters:
+	 * - ClientFileService $fileService	- this object
+	 * - string $path: the remote path
+	 *
+	 * @param string		$uri			The URI to open using a native protocol handler
+	 */
+	 
+	public function openURIWithNativeProtocolHandler($uri) {
+		$this->callMethod( 'openURIWithNativeProtocolHandler', array( $uri ));
+	}
 	
 	/**
 	 * [INTERNAL FUNCTION] Event handler
