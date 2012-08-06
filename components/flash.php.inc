@@ -104,10 +104,12 @@ class XULFlashProxy extends XULBrowser
 		$protocol = ((ApplicationProcess::$ServerSecure) ? "https://" : "http://");
 		$serverHost = ApplicationProcess::$ServerHost;
 		$serverPath = ApplicationProcess::$ServerPath;
+		$this->callMethod( 'prepareLoadEvent' );
+		
 		$this->setMethod("loadFlashContent", array("content", "width", "height", "version"), "
     	    ".$this->js.".so = new ".$this->js.".element.contentWindow.SWFObject(content,'flashContent',width,height,version, 'false',{});
     	");
-    	$this->callMethod( 'setSrc', $protocol.$serverHost.$serverPath."/misc/flashproxy/flashproxy.html#".$this->id );
+    	$this->callMethod( 'setSrc', $protocol.$serverHost.$serverPath."/misc/flashproxy/flashproxy.html?test11234#".$this->id );
 	}
 	
 	/**

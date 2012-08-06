@@ -6,6 +6,7 @@ SiteFusion.Classes.FlashProxy = Class.create( SiteFusion.Classes.Browser, {
 		this.element.sfNode = this;
 		this.element.setAttribute('disablehistory', true);
 		this.element.setAttribute('type', 'chrome');
+		this.element.setAttribute('src',"about:blank");
 		var oThis = this;
 		
 		this.hostWindow = win;
@@ -21,7 +22,12 @@ SiteFusion.Classes.FlashProxy = Class.create( SiteFusion.Classes.Browser, {
 		this.eventHost.flashReady.msgType = 0;
 		
 		var oThis = this;
-		this.element.onload = function() { oThis.fireEvent('ready');};
+		
+		setTimeout(function() { oThis.fireEvent('ready'); }, 100);
+	},
+	
+	prepareLoadEvent: function() {
+		//alert(this.element.webProgress);
 	}
 	
 });
