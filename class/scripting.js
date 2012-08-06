@@ -101,6 +101,7 @@ SiteFusion.Classes.PrefService = Class.create( SiteFusion.Classes.Node, {
         var ret = {};
         try {
             for (var pref in this.prefTypes) {
+            	
                 switch(this.prefTypes[pref]) {
                     case "int":
                         var retval = this.getIntPref(pref);
@@ -110,6 +111,7 @@ SiteFusion.Classes.PrefService = Class.create( SiteFusion.Classes.Node, {
                         break;
                     case "string":
                         var retval = this.getCharPref(pref);
+
                         if (typeof retval === "string") {
                             ret[pref] = retval;
                         }
@@ -123,6 +125,7 @@ SiteFusion.Classes.PrefService = Class.create( SiteFusion.Classes.Node, {
                 }
             }
         }
+         
         catch (e) {
             alert('error: ' + e);
         }

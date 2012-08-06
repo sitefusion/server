@@ -198,6 +198,7 @@ class PrefService extends Node {
 
     public function getCharPref($pref) {
         if (isset($this->prefValues[$pref]) && $this->prefTypes[$pref] == "string") {
+        	
             return $this->prefValues[$pref];
         }
         else
