@@ -520,7 +520,7 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 		if( ! $granted )
 			return array( 'success' => 0, 'error' => 'invalid_login' );
 
-		$ident = md5( $ip . $user . md5($pass) );
+		$ident = md5( $ip . $user . md5($pass) . mt_rand() . (time) );
 
 		$class = getApplication( $args );
 		
