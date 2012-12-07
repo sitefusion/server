@@ -476,7 +476,7 @@ class Application
 	}
 	
 	public function openAboutMemory() {
-		$this->window->openUrlWindow("chrome://global/content/aboutMemory.xhtml", 'chrome,centerscreen');
+		$this->window->openUrlDialog("about:memory", 'chrome,centerscreen,width=500,height=800');
 	}
 	
 	public function openExtensions() {
