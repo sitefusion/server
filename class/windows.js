@@ -114,6 +114,7 @@ SiteFusion.Classes.BasicWindow = Class.create( SiteFusion.Classes.Node, {
 		var win = this.windowObject.openDialog(url,'', options);
 		SiteFusion.Interface.RegisterChildWindow(win);
 		win.onclose = function() {SiteFusion.Interface.UnregisterChildWindow(win); };
+		setTimeout(function(){SiteFusion.Interface.CursorIdle();},50);
 	}
 } );
 
