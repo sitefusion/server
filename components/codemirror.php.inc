@@ -74,6 +74,7 @@ class XULCodeMirror extends XULBrowser
 				$this->setEventHandler( 'yield', $this, 'yieldCollect' );
 				break;
 				case 2:
+				case 3:
 				if ($this->language == "html") {
 					//fix for html mode
 					$this->language = "htmlmixed";
@@ -103,6 +104,7 @@ class XULCodeMirror extends XULBrowser
 					$this->callMethod( 'element.contentWindow.editor.setCode', array($this->value) );
 					break;
 					case 2:
+					case 3:
 					$this->callMethod( 'element.contentWindow.editor.setValue', array($this->value) );
 					break;
 					}
@@ -134,6 +136,7 @@ class XULCodeMirror extends XULBrowser
 				$this->src("chrome://codemirror/content/".$this->language.".html#".$this->id);
 				break;
 				case 2:
+				case 3:
 				$this->setMethod("yield",array(), $this->js.".v2.yield();");
 				$this->src("chrome://codemirror/content/editor.html#".$this->id);
 				$this->callMethod( 'element.setAttribute', array("theme", $this->theme) );
@@ -171,6 +174,7 @@ class XULCodeMirror extends XULBrowser
 				$this->callMethod('v1.search');
 				break;	
 				case 2:
+				case 3:
 				$this->callMethod('v2.search', array($text, $caseSensitive, $reverseOrder));
 				break;
 			}
