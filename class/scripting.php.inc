@@ -167,13 +167,24 @@ class PrefService extends Node {
         $this->setProperty("prefTypes", $this->arrayToObject($this->prefTypes));
     }
 
-    /**
-     * [INTERNAL FUNCTION] Collects the results of a prompt
-     */
     public function yieldCollect($e, $prefValues) {
         foreach (get_object_vars($prefValues) as $key => $value) {
             $this->prefValues[$key] = $value;
         }
+    }
+    
+    public function setBoolPref($pref, $value) {
+        $this->prefTypes[$pref] = "bool";
+        $this->prefValues[$pref] = $value;
+        $this->callMethod('setBoolPref', array($pref, $value));
+    }
+
+    public function getBoolPref($pref) {
+        if (isset($this->prefValues[$pref]) && $this->prefTypes[$pref] == "bool") {
+            return $this->prefValues[$pref];
+        }
+        else
+            return FALSE;
     }
 
     public function setIntPref($pref, $value) {

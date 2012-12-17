@@ -24,6 +24,7 @@
 //
 // - - - - - - - - - - - - - - END LICENSE BLOCK - - - - - - - - - - - - -
 
+Components.utils.import("resource://gre/modules/FileUtils.jsm");
 
 SiteFusion.Classes.FilePicker = Class.create( SiteFusion.Classes.Node, {
 	sfClassName: 'XULFilePicker',
@@ -122,10 +123,10 @@ SiteFusion.Classes.FileUploader = Class.create( SiteFusion.Classes.Node, {
 		// open the local file
 		var file = Components.classes["@mozilla.org/file/local;1"]
 			.createInstance(Components.interfaces.nsILocalFile);
-		file.initWithPath( path );
+		file.initWithPath( this.path );
 		var stream = Components.classes["@mozilla.org/network/file-input-stream;1"]
 			.createInstance(Components.interfaces.nsIFileInputStream);
-		stream.init(file,	0x01, 00004, null);
+		stream.init(file, 0x01, 00004, null);
 		var bstream =  Components.classes["@mozilla.org/network/buffered-input-stream;1"]
 			.getService();
 		bstream.QueryInterface(Components.interfaces.nsIBufferedInputStream);
@@ -209,8 +210,10 @@ SiteFusion.Classes.FileDownloader = Class.create( SiteFusion.Classes.Node, {
 		this.setEventHost( [ 'started', 'failed', 'finished', 'cycle', 'cancelled' ] );
 	},
 	
-	startDownload: function( localPath ) {
+	startDownload: function( localPath, localFileIsEmpty ) {
+		
 		this.localPath = localPath;
+		
 		
 		var progressListener = {
 			stateIsRequest: false,
@@ -252,30 +255,36 @@ SiteFusion.Classes.FileDownloader = Class.create( SiteFusion.Classes.Node, {
 		var httpLoc = SiteFusion.Address + '/filestream.php?app=' + SiteFusion.Application + '&args=' + SiteFusion.Arguments + '&sid=' + SiteFusion.SID + '&ident=' + SiteFusion.Ident + '&cid=' + this.cid + '&cycle=' + d.getTime();
 	
 		try {
-			var uri = Cc["@mozilla.org/network/io-service;1"].getService(Ci.nsIIOService).newURI(httpLoc, null, null);
 			this.targetFile = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile);
 			this.targetFile.initWithPath( localPath );
 			
-			if(!this.targetFile.exists()) {
-				this.targetFile.create(0x00,0644);
+			if(this.targetFile.exists() && this.targetFile.isFile() && this.targetFile.isWritable()) {
+				this.targetFile.remove(false);
 			}
+			this.targetFile.create(0x00,0644);
 			
-			this.persistObject = Cc["@mozilla.org/embedding/browser/nsWebBrowserPersist;1"].createInstance(Ci.nsIWebBrowserPersist);
-			
-			this.persistObject.progressListener = progressListener;
-			var nsIWBP = Ci.nsIWebBrowserPersist;
-
-			this.persistObject.persistFlags = nsIWBP.PERSIST_FLAGS_REPLACE_EXISTING_FILES |
-			            nsIWBP.PERSIST_FLAGS_BYPASS_CACHE |
-			            nsIWBP.PERSIST_FLAGS_FAIL_ON_BROKEN_LINKS |
-			            nsIWBP.PERSIST_FLAGS_CLEANUP_ON_FAILURE;
-			
-			this.persistObject.saveURI(uri,null,null,null,null,this.targetFile);
+			if (!localFileIsEmpty) {
+				var uri = Cc["@mozilla.org/network/io-service;1"].getService(Ci.nsIIOService).newURI(httpLoc, null, null);
+				this.persistObject = Cc["@mozilla.org/embedding/browser/nsWebBrowserPersist;1"].createInstance(Ci.nsIWebBrowserPersist);
+				
+				this.persistObject.progressListener = progressListener;
+				var nsIWBP = Ci.nsIWebBrowserPersist;
+	
+				this.persistObject.persistFlags = nsIWBP.PERSIST_FLAGS_REPLACE_EXISTING_FILES |
+				            nsIWBP.PERSIST_FLAGS_BYPASS_CACHE |
+				            nsIWBP.PERSIST_FLAGS_FAIL_ON_BROKEN_LINKS |
+				            nsIWBP.PERSIST_FLAGS_CLEANUP_ON_FAILURE;
+				
+				this.persistObject.saveURI(uri,null,null,null,null,this.targetFile);
+			}
 		} catch (e) {
 			SiteFusion.Error(e);
 		}
 		
 		this.fireEvent( 'started', [ this.localPath ] );
+		if (localFileIsEmpty) {
+			this.fireEvent( 'finished', [ this.localPath ] );
+		}
 	},
 	
 	cancelDownload: function() {
@@ -388,6 +397,14 @@ SiteFusion.Classes.FileService = Class.create( SiteFusion.Classes.Node, {
 		this.monitors.push( new SiteFusion.Classes.FileService.FileMonitor( this, path ) );
 	},
 	
+	cancelMonitorFile: function( path ) {
+		for( var n = 0; n < this.monitors.length; n++ ) {
+			if (this.monitors[n].path == path) {
+				 this.monitors[n].cancel();
+			}
+		}
+	},
+	
 	cancelAllMonitors: function() {
 		for( var n = 0; n < this.monitors.length; n++ ) {
 			this.monitors[n].cancel();
@@ -425,11 +442,10 @@ SiteFusion.Classes.FileService = Class.create( SiteFusion.Classes.Node, {
 			var file = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile);
 			var ioService = Cc["@mozilla.org/network/io-service;1"].getService(Ci.nsIIOService);
 			file.initWithPath(path);
-			
-		  var uri = ioService.newFileURI(file);
-              
-		  var protocolSvc = Cc["@mozilla.org/uriloader/external-protocol-service;1"].getService(Ci.nsIExternalProtocolService);
-		  protocolSvc.loadUrl(uri);
+
+			var uri = ioService.newFileURI(file);
+			var protocolSvc = Cc["@mozilla.org/uriloader/external-protocol-service;1"].getService(Ci.nsIExternalProtocolService);
+		  	protocolSvc.loadURI(uri);
 		
 	},
 	
@@ -531,6 +547,3 @@ SiteFusion.Classes.AppleScriptService = Class.create( SiteFusion.Classes.Node, {
 		}
 	}
 } );
-
-
-

@@ -513,6 +513,7 @@ class FileDownloader extends Node
 	public $destPath;
 	public $remoteConstructor = 'FileDownloader';
 	public $removeAfterTransfer = FALSE;
+	public $destPathRelativeToTmp = FALSE;
 	
 	private $transferStarted = FALSE;
 	private $transferSize = NULL;
@@ -524,12 +525,13 @@ class FileDownloader extends Node
 	 *
 	 * @param string	$filePath		Source file path on the server side
 	 * @param string	$destPath		Destination file path on the client side
+	 * @param boolean	$destPathRelativeToTmp		Bool to indicate filePath is relative to temp
 	*/
 	
-	public function __construct( $filePath = NULL, $destPath = NULL ) {
+	public function __construct( $filePath = NULL, $destPath = NULL, $destPathRelativeToTmp = FALSE ) {
 		if( $filePath ) $this->filePath = $filePath;
 		if( $destPath ) $this->destPath = $destPath;
-		
+		$this->destPathRelativeToTmp = $destPathRelativeToTmp;
 		parent::__construct();
 	}
 	
@@ -579,7 +581,7 @@ class FileDownloader extends Node
 		if( (!isset($this->destPath)) || (!isset($this->filePath)) )
 			throw new SFException( 'No file path or name given. Use setPaths()', ERR_REPORT_APP );
 		
-		$this->callMethod( 'startDownload', array( $this->destPath ) );
+		$this->callMethod( 'startDownload', array( $this->destPath, $this->destPathRelativeToTmp ) );
 	}
 	
 	
@@ -657,7 +659,6 @@ class FileFromStringDownloader extends Node
 	private $transferStarted = FALSE;
 	private $transferSize = NULL;
 	
-	
 	/**
 	 * Constructor
 	 *
@@ -665,7 +666,7 @@ class FileFromStringDownloader extends Node
 	 * @param string	$data			Data to store in the file
 	*/
 	
-	public function __construct( $destPath = NULL, $data = NULL ) {
+	public function __construct( $destPath = NULL, $data = NULL) {
 		if( $destPath !== NULL ) $this->destPath = $destPath;
 		if( $data !== NULL ) $this->data = (string) $data;
 		
@@ -724,10 +725,10 @@ class FileFromStringDownloader extends Node
 	*/
 	
 	public function startDownload() {
-		if( (!isset($this->destPath)) || $this->data === NULL )
-			throw new SFException( 'No destination path or data. Use setDestinationPath() and setData()', ERR_REPORT_APP );
+		if( !isset($this->destPath))
+			throw new SFException( 'No destination path. Use setDestinationPath()', ERR_REPORT_APP );
 		
-		$this->callMethod( 'startDownload', array( $this->destPath ) );
+		$this->callMethod( 'startDownload', array( $this->destPath, ($this->data == NULL)) );
 	}
 	
 	
@@ -1277,6 +1278,26 @@ class ClientFileService extends Node
 		$this->callMethod( 'monitorFile', array( $clientPath ) );
 	}
 	
+	/**
+	 * Cancel monitoring the file
+	 * 
+	 * @param string		$clientPath			The path on the client side to stop monitoring monitor
+	 */
+	 
+	public function cancelMonitorFile ($clientPath) {
+		$this->callMethod( 'cancelMonitorFile', array( $clientPath ));
+		unset($this->fileMonitors[$clientPath]);	
+	}
+	
+	/**
+	 * Cancel all file monitors
+	 * 
+	 */
+	 
+	public function cancelAllMonitors () {
+		$this->callMethod( 'cancelAllMonitors');
+		$this->fileMonitors = array();	
+	}
 	
 	/**
 	 * Executes the file

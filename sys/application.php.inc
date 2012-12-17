@@ -483,6 +483,26 @@ class Application
 		$this->window->openUrlDialog("chrome://mozapps/content/extensions/extensions.xul",  "chrome,menubar,extra-chrome,toolbar,dialog=no,resizable");
 	}
 	
+	public function openProxySettings() {
+		$this->window->openDialog("chrome://tfd/content/connection.xul", "resizable,dialog,centerscreen,modal");
+	}
+	
+	public function openAboutConfig() {
+		$this->window->openUrlDialog("chrome://global/content/config.xul", "chrome,centerscreen");
+	}
+	
+	public function openAboutSupport() {
+		$this->window->openDialog("about:support", "chrome,centerscreen,width=500,height=800");
+	}
+	
+	public function openAboutCrashes() {
+		$this->window->openUrlDialog("about:crashes", "chrome,centerscreen,width=500,height=300");
+	}
+	
+	public function openAboutPlugins() {
+		$this->window->openUrlDialog("about:plugins", "chrome,centerscreen,width=500,height=800");
+	}
+	
 	public function openErrorConsole() {
 		$this->window->openUrlDialog("chrome://global/content/console.xul", "chrome,menubar,extra-chrome,toolbar,dialog=no,resizable");
 	}
