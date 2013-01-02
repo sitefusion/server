@@ -59,7 +59,12 @@ SiteFusion.Classes.FilePicker = Class.create( SiteFusion.Classes.Node, {
 
 		for (var n=0; n < this.filters.length; n++)
 		{
-			fp.appendFilter(this.filters[n][0], this.filters[n][1]);
+			if (this.filters[n].length == 2) {
+				fp.appendFilter(this.filters[n][0], this.filters[n][1]);
+			}
+			else {
+				fp.appendFilters(this.filters[n][0]);
+			}
 		}
 		
 		fp.init(this.win.windowObject, this.title, this.mode);
@@ -96,7 +101,12 @@ SiteFusion.Classes.FilePicker = Class.create( SiteFusion.Classes.Node, {
 	
 	addFilter: function (description, value) {
 		this.filters.push([description,value]);
+	},
+	
+	addSystemFilter: function(filter) {
+		this.filters.push([eval(filter)]);
 	}
+	
 } );
 
 

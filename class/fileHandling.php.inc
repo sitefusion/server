@@ -107,6 +107,18 @@ class XULFilePicker extends Node
 		$this->callMethod( 'addFilter', array($description, $value) );
 	}
 	
+	/**
+	 * Adds a file type systemfilter
+	 * 
+	 * Example: $filePicker->addSystemFilter("Components.interfaces.nsIFilePicker.filterAll");
+	 *
+	 * See: https://developer.mozilla.org/en-US/docs/XPCOM_Interface_Reference/nsIFilePicker#Filter_constants
+	 * @param string	$filter	Identifier for the system Filter
+	*/
+	
+	public function addSystemFilter($filter) {
+		$this->callMethod( 'addSystemFilter', array($filter) );
+	}
 	
 	/**
 	 * Event handler for the yield event
