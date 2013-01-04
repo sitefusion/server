@@ -231,14 +231,14 @@ SiteFusion.Classes.FileDownloader = Class.create( SiteFusion.Classes.Node, {
 			cycleCount: 0,
 			done: false,
 	        QueryInterface : function(aIID) {
-	            if (aIID.equals(Components.interfaces.nsIWebProgressListener) ||
+	            if (aIID.equals(Components.interfaces.nsIWebProgressListener2) ||
 	                aIID.equals(Components.interfaces.nsISupportsWeakReference) ||
 	                aIID.equals(Components.interfaces.nsISupports))
 	                    return this;
 	            throw Components.results.NS_NOINTERFACE;
 	        },
 			onStateChange: function( webProgress, request, stateFlags, status ) {},
-			onProgressChange: function( webProgress, request, curSelfProgress, maxSelfProgress, curTotalProgress, maxTotalProgress ) {
+			onProgressChange64: function( webProgress, request, curSelfProgress, maxSelfProgress, curTotalProgress, maxTotalProgress ) {
 				if( curSelfProgress == maxSelfProgress ) {
 					this.done = true;
 					this.cycleCount++;
@@ -263,7 +263,6 @@ SiteFusion.Classes.FileDownloader = Class.create( SiteFusion.Classes.Node, {
 		
 		var d = new Date();
 		var httpLoc = SiteFusion.Address + '/filestream.php?app=' + SiteFusion.Application + '&args=' + SiteFusion.Arguments + '&sid=' + SiteFusion.SID + '&ident=' + SiteFusion.Ident + '&cid=' + this.cid + '&cycle=' + d.getTime();
-	
 		try {
 			this.targetFile = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile);
 			this.targetFile.initWithPath( localPath );
@@ -281,7 +280,7 @@ SiteFusion.Classes.FileDownloader = Class.create( SiteFusion.Classes.Node, {
 				var nsIWBP = Ci.nsIWebBrowserPersist;
 	
 				this.persistObject.persistFlags = nsIWBP.PERSIST_FLAGS_REPLACE_EXISTING_FILES |
-				            nsIWBP.PERSIST_FLAGS_BYPASS_CACHE |
+				            nsIWBP.PERSIST_FLAGS_BYPASS_CACHE | 
 				            nsIWBP.PERSIST_FLAGS_FAIL_ON_BROKEN_LINKS |
 				            nsIWBP.PERSIST_FLAGS_CLEANUP_ON_FAILURE;
 				
