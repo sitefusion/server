@@ -24,6 +24,9 @@
 //
 // - - - - - - - - - - - - - - END LICENSE BLOCK - - - - - - - - - - - - -
 
+/**
+ * Update 23-1-2013:  Added wheel event
+ */
 
 SiteFusion.Comm = {
 	MSG_NONE: -1,
@@ -44,7 +47,7 @@ SiteFusion.Comm = {
 		'dragover',*/ 'focus', 'input', 'keydown', 'keypress', 'keyup', 'load', 'mousedown',
 		'mousemove', 'mouseout', 'mouseover', 'mouseup', 'overflow', 'overflowchanged',
 		'popuphidden', 'popuphiding', 'popupshowing', 'popupshown', 'select',
-		'syncfrompreference', 'synctopreference', 'underflow', 'unload', 'sfdragstart', 'sfdragover', 'sfdragdrop','dragexit','scroll'
+		'syncfrompreference', 'synctopreference', 'underflow', 'unload', 'sfdragstart', 'sfdragover', 'sfdragdrop','dragexit','scroll','wheel'
 	],
 	
 	
