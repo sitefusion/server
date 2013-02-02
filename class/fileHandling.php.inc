@@ -1433,6 +1433,7 @@ class ClientFileService extends Node
 		$cf->isExecutable = $file[4];
 		$cf->isHidden = $file[5];
 		$cf->size = $file[6];
+		$cf->lastModifyTimestamp = $file[7];
 		$cf->exists = TRUE;
 		return $cf;
 	}
@@ -1463,6 +1464,7 @@ class ClientBaseFile
 	public $isWritable;
 	public $isExecutable;
 	public $isHidden;
+	public $lastModifyTimestamp;
 	public $exists = FALSE;
 }
 
