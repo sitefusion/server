@@ -740,7 +740,7 @@ class TreeDataRow extends TreeDataItem
 	protected function updateCell( $index, $label ) {
 		$rowObject = new stdClass;
 		$rowObject->id = $this->id;
-		$rowObject->columns = array( $index => (string) $label );
+		$rowObject->columns = array( $index => $label );
 		
 		$this->dataSet->tree->callMethod( 'view.updateDataSetRow', array( json_encode($rowObject) ) );
 	}
