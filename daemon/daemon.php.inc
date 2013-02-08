@@ -1024,6 +1024,8 @@ class DaemonProcess extends SiteFusionProcess
 	static public function SignalHandler( $signo ) {
 		switch ( $signo ) {
 			case SIGHUP:
+				self::$Restart = TRUE;
+			    self::$Shutdown = TRUE;
 				break;
 			
 			case SIGINT:
