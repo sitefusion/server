@@ -32,11 +32,21 @@ function readline_c( $prompt = '' )
     return rtrim( fgets( STDIN ), "\n" );
 }
 
-$dbhost = readline_c( 'Database hostname (leave empty for localhost): ' );
-$dbuser = readline_c( 'Database username: ' );
-$dbpass = readline_c( 'Database password: ' );
-$dbname = readline_c( 'Database name (leave empty for "sitefusion"): ' );
-$dbname = ($dbname == '' ? 'sitefusion':$dbname);
+if (in_array('-c',$_SERVER['argv'])) {
+	include_once "../conf/webfrontend.conf";
+
+    $dbhost = $WEBCONFIG['databaseHost'];
+    $dbuser = $WEBCONFIG['databaseUsername'];
+    $dbpass = $WEBCONFIG['databasePassword'];
+    $dbname = $WEBCONFIG['databaseName'];
+}
+else {
+	$dbhost = readline_c( 'Database hostname (leave empty for localhost): ' );
+	$dbuser = readline_c( 'Database username: ' );
+	$dbpass = readline_c( 'Database password: ' );
+	$dbname = readline_c( 'Database name (leave empty for "sitefusion"): ' );
+	$dbname = ($dbname == '' ? 'sitefusion':$dbname);
+}
 
 $db = mysql_connect( ($dbhost == '' ? 'localhost':$dbhost), $dbuser, $dbpass );
 
