@@ -36,6 +36,8 @@
  * Keyset element
  *
  * @link https://developer.mozilla.org/en/XUL/keyset
+ * @package API
+ * @subpackage Scripting
  */
 class XULKeySet extends BranchNode {
 
@@ -59,6 +61,8 @@ class XULKeySet extends BranchNode {
  * Key element
  *
  * @link https://developer.mozilla.org/en/XUL/key
+ * @package API
+ * @subpackage Scripting
  */
 class XULKey extends Node {
 
@@ -105,6 +109,8 @@ class XULKey extends Node {
 
 /**
  * Trigger, custom element
+ * @package API
+ * @subpackage Scripting
  */
 class Trigger extends Node {
 
@@ -134,6 +140,8 @@ class Trigger extends Node {
 
 /**
  * PrefService, a SiteFusion wrapper for XPCOM client-side prefs
+ * @package API
+ * @subpackage Scripting
  */
 class PrefService extends Node {
 
@@ -218,6 +226,13 @@ class PrefService extends Node {
 
 }
 
+
+/**
+ * JScriptService
+ * @package API
+ * @subpackage Scripting
+ */
+
 class JScriptService extends Node {
 
     public $remoteConstructor = 'JScriptService';
@@ -282,3 +297,43 @@ exportJSON(arr);';
     }
 
 }
+
+
+
+/**
+ * Executes AppleScript code on MacOSX clients
+ *
+ * @package API
+ * @subpackage Scripting
+*/
+
+class AppleScriptService extends Node
+{
+	public $remoteConstructor = 'AppleScriptService';
+	
+	public function attach() {
+		$this->createRemoteObject();
+	}
+	
+	public function detach() {
+		$this->unRegister();
+	}
+	
+	
+	/**
+	 * Executes AppleScript code on the client
+	 * 
+	 * @param string	$code		Code to execute
+	 */
+	
+	public function execute( $code ) {
+		$lines = explode( "\n", $code );
+		for( $n = 0; $n < count($lines); $n++ ) {
+			$lines[$n] = trim($lines[$n]);
+		}
+		$this->callMethod( 'execute', array($lines) );
+	}
+}
+
+
+

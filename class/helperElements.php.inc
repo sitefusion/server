@@ -36,6 +36,8 @@
  * Grippy element
  * 
  * @link https://developer.mozilla.org/en/XUL/grippy
+ * @package API
+ * @subpackage HelperElements
 */
 
 class XULGrippy extends Node
@@ -48,6 +50,8 @@ class XULGrippy extends Node
  * Arrowscrollbox element
  * 
  * @link https://developer.mozilla.org/en/XUL/arrowscrollbox
+ * @package API
+ * @subpackage HelperElements
 */
 
 class XULArrowScrollBox extends BranchNode
@@ -81,6 +85,8 @@ class XULArrowScrollBox extends BranchNode
  * Dropmarker element
  * 
  * @link https://developer.mozilla.org/en/XUL/dropmarker
+ * @package API
+ * @subpackage HelperElements
 */
 
 class XULDropmarker extends Node
@@ -92,6 +98,8 @@ class XULDropmarker extends Node
 /**
  * Sound element
  * 
+ * @package API
+ * @subpackage HelperElements
 */
 class XULSound extends Node
 {

@@ -45,6 +45,8 @@
  * For events originating from the client, the sourceObject property will always be set
  * to the original source node of the event.
  * 
+ * @package API
+ * @subpackage Application
  * @property string	$name			Name of the event
  * @property Node	$sourceObject	Source node
  * @property bool	$cancel			Set to TRUE to cancel the event handling

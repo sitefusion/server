@@ -35,6 +35,11 @@
 include_once( 'extendedprocess.php.inc' );
 
 
+/**
+ * @package Daemon
+ * @subpackage Services
+*/
+
 class ServiceProcess extends ExtendedSiteFusionProcess
 {
 	static public $Started;

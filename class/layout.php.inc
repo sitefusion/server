@@ -36,6 +36,8 @@
  * Box element
  * 
  * @link https://developer.mozilla.org/en/XUL/box
+ * @package API
+ * @subpackage Layout
 */
 
 class XULBox extends BranchNode
@@ -134,6 +136,8 @@ class XULScrollBox extends XULBox
  * HTML viewing box, custom element
  * 
  * Use the content() method to fill this box with a HTML page
+ * @package API
+ * @subpackage Layout
 */
 
 class XULHTMLBox extends Node
@@ -175,6 +179,8 @@ class XULHTMLBox extends Node
  * Stack element
  * 
  * @link https://developer.mozilla.org/en/XUL/stack
+ * @package API
+ * @subpackage Layout
 */
 
 class XULStack extends BranchNode
@@ -213,6 +219,8 @@ class XULStack extends BranchNode
  * Deck element
  * 
  * @link https://developer.mozilla.org/en/XUL/deck
+ * @package API
+ * @subpackage Layout
 */
 
 class XULDeck extends BranchNode
@@ -260,6 +268,8 @@ class XULDeck extends BranchNode
  * Grid element
  * 
  * @link https://developer.mozilla.org/en/XUL/grid
+ * @package API
+ * @subpackage Layout
 */
 
 class XULGrid extends BranchNode
@@ -292,6 +302,8 @@ class XULGrid extends BranchNode
  * Columns element
  * 
  * @link https://developer.mozilla.org/en/XUL/columns
+ * @package API
+ * @subpackage Layout
 */
 
 class XULColumns extends BranchNode
@@ -304,6 +316,8 @@ class XULColumns extends BranchNode
  * Rows element
  * 
  * @link https://developer.mozilla.org/en/XUL/rows
+ * @package API
+ * @subpackage Layout
 */
 
 class XULRows extends BranchNode
@@ -316,6 +330,8 @@ class XULRows extends BranchNode
  * Column element
  * 
  * @link https://developer.mozilla.org/en/XUL/column
+ * @package API
+ * @subpackage Layout
 */
 
 class XULColumn extends BranchNode
@@ -354,6 +370,8 @@ class XULColumn extends BranchNode
  * Row element
  * 
  * @link https://developer.mozilla.org/en/XUL/row
+ * @package API
+ * @subpackage Layout
 */
 
 class XULRow extends BranchNode

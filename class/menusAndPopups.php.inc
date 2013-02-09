@@ -37,6 +37,8 @@
  * Menubar element
  * 
  * @link https://developer.mozilla.org/en/XUL/menubar
+ * @package API
+ * @subpackage MenusAndPopups
 */
 
 class XULMenuBar extends BranchNode
@@ -49,6 +51,8 @@ class XULMenuBar extends BranchNode
  * Menupopup element
  * 
  * @link https://developer.mozilla.org/en/XUL/menupopup
+ * @package API
+ * @subpackage MenusAndPopups
 */
 
 class XULMenuPopup extends BranchNode
@@ -67,6 +71,8 @@ class XULMenuPopup extends BranchNode
  * Menuseparator element
  * 
  * @link https://developer.mozilla.org/en/XUL/menuseparator
+ * @package API
+ * @subpackage MenusAndPopups
 */
 
 class XULMenuSeparator extends Node
@@ -79,6 +85,8 @@ class XULMenuSeparator extends Node
  * Menu element
  * 
  * @link https://developer.mozilla.org/en/XUL/menu
+ * @package API
+ * @subpackage MenusAndPopups
 */
 
 class XULMenu extends BranchNode
@@ -117,6 +125,8 @@ class XULMenu extends BranchNode
  * Menuitem element
  * 
  * @link https://developer.mozilla.org/en/XUL/menuitem
+ * @package API
+ * @subpackage MenusAndPopups
 */
 
 class XULMenuItem extends BranchNode
@@ -223,6 +233,8 @@ class XULMenuItem extends BranchNode
  * Popupset element
  * 
  * @link https://developer.mozilla.org/en/XUL/popupset
+ * @package API
+ * @subpackage MenusAndPopups
 */
 
 class XULPopupSet extends BranchNode
@@ -235,6 +247,8 @@ class XULPopupSet extends BranchNode
  * Popup element
  * 
  * @link https://developer.mozilla.org/en/XUL/popup
+ * @package API
+ * @subpackage MenusAndPopups
 */
 
 class XULPopup extends BranchNode
@@ -287,6 +301,8 @@ class XULPopup extends BranchNode
  * Tooltip element
  * 
  * @link https://developer.mozilla.org/en/XUL/tooltip
+ * @package API
+ * @subpackage MenusAndPopups
 */
 
 class XULToolTip extends BranchNode
@@ -335,6 +351,8 @@ class XULToolTip extends BranchNode
  * Panel element
  * 
  * @link https://developer.mozilla.org/en/XUL/panel
+ * @package API
+ * @subpackage MenusAndPopups
 */
 
 class XULPanel extends BranchNode

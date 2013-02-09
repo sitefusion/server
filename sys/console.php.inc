@@ -34,6 +34,9 @@
 
 /**
  * This class exposes functions to directly write messages and errors to the Error Console and to the native shell console
+ *
+ * @package API
+ * @subpackage ErrorConsole
 */
 
 class ClientError

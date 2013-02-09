@@ -37,6 +37,8 @@
  * Tabbox element
  * 
  * @link https://developer.mozilla.org/en/XUL/tabbox
+ * @package API
+ * @subpackage TabsAndGrouping
 */
 
 class XULTabBox extends BranchNode
@@ -109,6 +111,8 @@ class XULTabBox extends BranchNode
  * Tabs element
  * 
  * @link https://developer.mozilla.org/en/XUL/tabs
+ * @package API
+ * @subpackage TabsAndGrouping
 */
 
 class XULTabs extends BranchNode
@@ -171,6 +175,8 @@ class XULTabs extends BranchNode
  * Tab element
  * 
  * @link https://developer.mozilla.org/en/XUL/tab
+ * @package API
+ * @subpackage TabsAndGrouping
 */
 
 class XULTab extends BranchNode
@@ -226,6 +232,8 @@ class XULTab extends BranchNode
  * Tabpanels element
  * 
  * @link https://developer.mozilla.org/en/XUL/tabpanels
+ * @package API
+ * @subpackage TabsAndGrouping
 */
 
 class XULTabPanels extends BranchNode
@@ -239,6 +247,8 @@ class XULTabPanels extends BranchNode
  * Tabpanel element
  * 
  * @link https://developer.mozilla.org/en/XUL/tabpanel
+ * @package API
+ * @subpackage TabsAndGrouping
 */
 
 class XULTabPanel extends BranchNode
@@ -252,6 +262,8 @@ class XULTabPanel extends BranchNode
  * Groupbox element
  * 
  * @link https://developer.mozilla.org/en/XUL/groupbox
+ * @package API
+ * @subpackage TabsAndGrouping
 */
 
 class XULGroupBox extends BranchNode
@@ -290,6 +302,8 @@ class XULGroupBox extends BranchNode
  * Caption element
  * 
  * @link https://developer.mozilla.org/en/XUL/caption
+ * @package API
+ * @subpackage TabsAndGrouping
 */
 
 class XULCaption extends BranchNode
@@ -342,6 +356,8 @@ class XULCaption extends BranchNode
  * Separator element
  * 
  * @link https://developer.mozilla.org/en/XUL/separator
+ * @package API
+ * @subpackage TabsAndGrouping
 */
 
 class XULSeparator extends Node
@@ -371,6 +387,8 @@ class XULSeparator extends Node
  * Spacer element
  * 
  * @link https://developer.mozilla.org/en/XUL/spacer
+ * @package API
+ * @subpackage TabsAndGrouping
 */
 
 class XULSpacer extends Node

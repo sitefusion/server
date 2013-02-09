@@ -37,6 +37,8 @@
  * Basic window functionality
  * 
  * Not to be constructed directly
+ * @package API
+ * @subpackage Windows
 */
 
 class XULBasicWindow extends BranchNode
@@ -121,6 +123,8 @@ class XULBasicWindow extends BranchNode
  * @see XULChildWindow
  * @see XULDialog
  * @link https://developer.mozilla.org/en/XUL/window
+ * @package API
+ * @subpackage Windows
 */
 
 class XULWindow extends XULBasicWindow
@@ -158,6 +162,8 @@ class XULWindow extends XULBasicWindow
  * Child window element
  * 
  * @link https://developer.mozilla.org/en/XUL/window
+ * @package API
+ * @subpackage Windows
 */
 
 class XULChildWindow extends XULBasicWindow
@@ -268,6 +274,8 @@ class XULChildWindow extends XULBasicWindow
  * Dialog element
  * 
  * @link https://developer.mozilla.org/en/XUL/dialog
+ * @package API
+ * @subpackage Windows
 */
 
 class XULDialog extends XULChildWindow
@@ -378,6 +386,8 @@ class XULDialog extends XULChildWindow
  * PrefWindow element
  * 
  * @link https://developer.mozilla.org/en/XUL/prefwindow
+ * @package API
+ * @subpackage Windows
 */
 
 class XULPrefWindow extends XULDialog
@@ -404,6 +414,8 @@ class XULPrefWindow extends XULDialog
  * PrefPane element
  * 
  * @link https://developer.mozilla.org/en/XUL/prefpane
+ * @package API
+ * @subpackage Windows
 */
 
 class XULPrefPane extends BranchNode
@@ -462,6 +474,8 @@ class XULPrefPane extends BranchNode
  * @property mixed	$value		Value of the textbox or selected item in the list
  * @property string	$username	Supplied username
  * @property string	$password	Supplied password
+ * @package API
+ * @subpackage Windows
  */
 
 class PromptService extends Node
@@ -790,6 +804,8 @@ class PromptService extends Node
  * This node displays taskbar style notification boxes in Windows and Growl notifications in MacOS X (when installed).
  * Alert notifications can be made clickable, making them fire 'command' events when clicked. They also fire a 'finished'
  * event when disappearing. The notification appears as soon as it's registered (added to a registered parent node).
+ * @package API
+ * @subpackage Windows
  */
 
 class AlertNotification extends Node

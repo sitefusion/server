@@ -35,6 +35,8 @@
 /**
  * Button element
  * 
+ * @package API
+ * @subpackage Controls
  * @link https://developer.mozilla.org/en/XUL/button
 */
 
@@ -108,6 +110,8 @@ class XULButton extends BranchNode
 /**
  * Progressmeter element
  * 
+ * @package API
+ * @subpackage Controls
  * @link https://developer.mozilla.org/en/XUL/progressmeter
 */
 
@@ -149,6 +153,8 @@ class XULProgressMeter extends Node
 /**
  * Splitter element
  * 
+ * @package API
+ * @subpackage Controls
  * @link https://developer.mozilla.org/en/XUL/splitter
 */
 
@@ -186,6 +192,8 @@ class XULSplitter extends BranchNode
 /**
  * Colorpicker element
  * 
+ * @package API
+ * @subpackage Controls
  * @link https://developer.mozilla.org/en/XUL/colorpicker
 */
 
@@ -243,6 +251,8 @@ class XULColorPicker extends Node
 /**
  * Scale element
  * 
+ * @package API
+ * @subpackage Controls
  * @link https://developer.mozilla.org/en/XUL/scale
 */
 
@@ -288,6 +298,8 @@ class XULScale extends Node
 /**
  * Textbox element
  * 
+ * @package API
+ * @subpackage Controls
  * @link https://developer.mozilla.org/en/XUL/textbox
 */
 
@@ -471,6 +483,8 @@ class XULTextBox extends BranchNode
 /**
  * Timepicker element
  * 
+ * @package API
+ * @subpackage Controls
  * @link https://developer.mozilla.org/en/XUL/timepicker
 */
 
@@ -518,6 +532,8 @@ class XULTimePicker extends Node
 /**
  * Datepicker element
  * 
+ * @package API
+ * @subpackage Controls
  * @link https://developer.mozilla.org/en/XUL/datepicker
 */
 
@@ -569,6 +585,8 @@ class XULDatePicker extends Node
 /**
  * Checkbox element
  * 
+ * @package API
+ * @subpackage Controls
  * @link https://developer.mozilla.org/en/XUL/checkbox
 */
 
@@ -623,6 +641,8 @@ class XULCheckBox extends BranchNode
 /**
  * Radiogroup element
  * 
+ * @package API
+ * @subpackage Controls
  * @link https://developer.mozilla.org/en/XUL/radiogroup
 */
 
@@ -661,6 +681,8 @@ class XULRadioGroup extends BranchNode
 /**
  * Radio element
  * 
+ * @package API
+ * @subpackage Controls
  * @link https://developer.mozilla.org/en/XUL/radio
 */
 
@@ -738,6 +760,8 @@ class XULRadio extends BranchNode
 /**
  * Menulist element
  * 
+ * @package API
+ * @subpackage Controls
  * @link https://developer.mozilla.org/en/XUL/menulist
 */
 

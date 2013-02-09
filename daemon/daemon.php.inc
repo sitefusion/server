@@ -1057,6 +1057,11 @@ class DaemonProcess extends SiteFusionProcess
 }
 
 
+/**
+ * @package Daemon
+ * @subpackage Process
+*/
+
 class SiteFusionProcess
 {
 	static protected $Options;
@@ -1313,6 +1318,10 @@ class SiteFusionProcess
 }
 
 
+/**
+ * @package Daemon
+ * @subpackage Master
+*/
 
 class DaemonChild
 {

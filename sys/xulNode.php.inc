@@ -36,6 +36,8 @@
  * This is the base class of all nodes. It provides all methods necessary for manipulating XUL attributes,
  * event firing, handling and yielding, reflexes and styling.
  * 
+ * @package API
+ * @subpackage Node
  * @property int			$id					Registry ID for the node (only set when the node is registered)
  * @property Node			$parent				Parent node for this node (only set when the node is registered)
  * @property bool			$isRegistered		Indicates whether the node is registered and thus part of the XUL tree on the client side

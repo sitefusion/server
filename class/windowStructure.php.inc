@@ -36,6 +36,8 @@
  * Browser element
  * 
  * @link https://developer.mozilla.org/en/XUL/browser
+ * @package API
+ * @subpackage WindowStructure
 */
 
 class XULBrowser extends Node
@@ -80,6 +82,8 @@ class XULBrowser extends Node
  * Call the content($html) method to fill the printbox with HTML content, and call
  * the printContent() method to open the printer dialog. Optionally set the $silent
  * parameter to TRUE to print directly without opening the print dialog first.
+ * @package API
+ * @subpackage WindowStructure
 */
 
 class XULPrintBox extends XULHTMLBox
@@ -107,6 +111,8 @@ class XULPrintBox extends XULHTMLBox
  * Statusbar element
  * 
  * @link https://developer.mozilla.org/en/XUL/statusbar
+ * @package API
+ * @subpackage WindowStructure
 */
 
 class XULStatusbar extends BranchNode
@@ -119,6 +125,8 @@ class XULStatusbar extends BranchNode
  * StatusbarPanel element
  * 
  * @link https://developer.mozilla.org/en/XUL/statusbarpanel
+ * @package API
+ * @subpackage WindowStructure
 */
 
 class XULStatusbarPanel extends BranchNode
@@ -185,6 +193,8 @@ class XULStatusbarPanel extends BranchNode
  * Dialog header element
  * 
  * @link https://developer.mozilla.org/en/XUL/dialogheader
+ * @package API
+ * @subpackage WindowStructure
 */
 
 class XULDialogHeader extends BranchNode

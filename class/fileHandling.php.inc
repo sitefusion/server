@@ -42,6 +42,9 @@
  * the action desired by the user. The property XULFilePicker->file will contain the selected file or
  * folder if the dialog was of mode 'save', 'open' or 'getfolder'. In the case of an 'openmultiple'
  * picker the property XULFilePicker->files will contain an array of the selected paths.
+ *
+ * @package API
+ * @subpackage FileHandling
 */
 
 class XULFilePicker extends Node
@@ -160,6 +163,8 @@ class XULFilePicker extends Node
  * of progress.
  * 
  * @see XULFilePicker
+ * @package API
+ * @subpackage FileHandling
 */
 
 class FileUploader extends Node
@@ -287,6 +292,8 @@ class FileUploader extends Node
  * of progress. The resulting file contents are placed in the FileToStringUploader::$data property.
  * 
  * @see XULFilePicker
+ * @package API
+ * @subpackage FileHandling
 */
 
 class FileToStringUploader extends Node
@@ -398,6 +405,8 @@ class FileToStringUploader extends Node
  * of progress.
  *
  * @see XULFilePicker
+ * @package API
+ * @subpackage FileHandling
 */
 
 class FileToStreamUploader extends Node
@@ -517,6 +526,8 @@ class FileToStreamUploader extends Node
  * the download is cancelled.
  * 
  * @see XULFilePicker
+ * @package API
+ * @subpackage FileHandling
 */
 
 class FileDownloader extends Node
@@ -659,6 +670,8 @@ class FileDownloader extends Node
  * the download is cancelled.
  * 
  * @see XULFilePicker
+ * @package API
+ * @subpackage FileHandling
 */
 
 class FileFromStringDownloader extends Node
@@ -805,6 +818,8 @@ class FileFromStringDownloader extends Node
  * the download is cancelled.
  * 
  * @see XULFilePicker
+ * @package API
+ * @subpackage FileHandling
 */
 
 class FileFromStreamDownloader extends Node
@@ -956,6 +971,9 @@ class FileFromStreamDownloader extends Node
  * All operations are asynchronous, meaning that the call will not block
  * the script. A handler object and method can be given to handle the
  * result of the operation.
+ *
+ * @package API
+ * @subpackage FileHandling
 */
 
 class ClientFileService extends Node
@@ -1452,6 +1470,9 @@ class ClientFileService extends Node
  * 
  * These classes form the object representation of the filesystem of the client and can be created from the
  * methods ClientFileService::getDirectory(), ClientFileService::getSpecialDirectory() and ClientFileService::createDirectory().
+ *
+ * @package API
+ * @subpackage FileHandling
 */
 
 class ClientBaseFile
@@ -1467,6 +1488,12 @@ class ClientBaseFile
 	public $lastModifyTimestamp;
 	public $exists = FALSE;
 }
+
+
+/**
+ * @package API
+ * @subpackage FileHandling
+*/
 
 class ClientFile extends ClientBaseFile
 {	
@@ -1631,6 +1658,12 @@ class ClientFile extends ClientBaseFile
 	}
 }
 
+
+/**
+ * @package API
+ * @subpackage FileHandling
+*/
+
 class ClientDirectory extends ClientBaseFile
 {
 	public $isDirectory = TRUE;
@@ -1736,39 +1769,4 @@ class ClientDirectory extends ClientBaseFile
 		$this->fileService->removeDirectory( $this->path, $recursive, $handlerObj, $handlerMethod );
 	}
 }
-
-
-/**
- * Executes AppleScript code on MacOSX clients
- */
-
-class AppleScriptService extends Node
-{
-	public $remoteConstructor = 'AppleScriptService';
-	
-	public function attach() {
-		$this->createRemoteObject();
-	}
-	
-	public function detach() {
-		$this->unRegister();
-	}
-	
-	
-	/**
-	 * Executes AppleScript code on the client
-	 * 
-	 * @param string	$code		Code to execute
-	 */
-	
-	public function execute( $code ) {
-		$lines = explode( "\n", $code );
-		for( $n = 0; $n < count($lines); $n++ ) {
-			$lines[$n] = trim($lines[$n]);
-		}
-		$this->callMethod( 'execute', array($lines) );
-	}
-}
-
-
 

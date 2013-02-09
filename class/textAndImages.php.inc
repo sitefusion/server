@@ -37,6 +37,8 @@
  * Label element
  * 
  * @link https://developer.mozilla.org/en/XUL/label
+ * @package API
+ * @subpackage TextAndImages
 */
 
 class XULLabel extends Node
@@ -53,6 +55,8 @@ class XULLabel extends Node
  * Description element
  * 
  * @link https://developer.mozilla.org/en/XUL/description
+ * @package API
+ * @subpackage TextAndImages
 */
 
 class XULDescription extends BranchNode
@@ -88,6 +92,8 @@ class XULDescription extends BranchNode
  * Image element
  * 
  * @link https://developer.mozilla.org/en/XUL/image
+ * @package API
+ * @subpackage TextAndImages
 */
 
 class XULImage extends Node
@@ -140,6 +146,8 @@ class XULImage extends Node
  * HTML Video element
  * 
  * @link https://developer.mozilla.org/En/HTML/Element/Video
+ * @package API
+ * @subpackage TextAndImages
 */
 
 class XULHTMLVideo extends Node
@@ -193,6 +201,8 @@ class XULHTMLVideo extends Node
  * Use this element to include a mozilla plugin in your SiteFusion program.
  *
  * @link https://developer.mozilla.org/En/HTML/Element/Video
+ * @package API
+ * @subpackage TextAndImages
 */
 
 class XULHTMLEmbed extends Node
@@ -248,6 +258,8 @@ class XULHTMLEmbed extends Node
  * show the cached image stream in the client.
  * 
  * @link https://developer.mozilla.org/en/XUL/image
+ * @package API
+ * @subpackage TextAndImages
 */
 
 class XULDirectImage extends Node
@@ -362,6 +374,8 @@ class XULDirectImage extends Node
  * This object behaves like a normal image, but accepts a filepath on the local (server) filesystem
  * 
  * @link https://developer.mozilla.org/en/XUL/image
+ * @package API
+ * @subpackage TextAndImages
 */
 
 class XULFileSystemImage extends Node
@@ -470,6 +484,8 @@ class XULFileSystemImage extends Node
  * This object displays a SVG vector image
  * 
  * @link https://developer.mozilla.org/en/XUL/image
+ * @package API
+ * @subpackage TextAndImages
 */
 
 class XULImageSvg extends Node

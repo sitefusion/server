@@ -36,6 +36,8 @@
  * ToolbarSeparator element
  * 
  * @link https://developer.mozilla.org/en/XUL/toolbarseparator
+ * @package API
+ * @subpackage Toolbars
 */
 
 class XULToolBarSeparator extends Node
@@ -48,6 +50,8 @@ class XULToolBarSeparator extends Node
  * Toolbox element
  * 
  * @link https://developer.mozilla.org/en/XUL/toolbox
+ * @package API
+ * @subpackage Toolbars
 */
 
 class XULToolBox extends BranchNode
@@ -75,6 +79,8 @@ class XULToolBox extends BranchNode
  * Toolbar element
  * 
  * @link https://developer.mozilla.org/en/XUL/toolbar
+ * @package API
+ * @subpackage Toolbars
 */
 
 class XULToolBar extends BranchNode
@@ -87,6 +93,8 @@ class XULToolBar extends BranchNode
  * Toolbarbutton element
  * 
  * @link https://developer.mozilla.org/en/XUL/toolbarbutton
+ * @package API
+ * @subpackage Toolbars
 */
 
 class XULToolBarButton extends BranchNode

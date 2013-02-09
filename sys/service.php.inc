@@ -42,6 +42,9 @@ include( 'sys/event.php.inc' );
  * classes should always define an init($arguments) method. This method is called when
  * the service process has initialized, and thus is the place to setup your basic
  * service functionality.
+ *
+ * @package API
+ * @subpackage Service
 */
 
 class Service

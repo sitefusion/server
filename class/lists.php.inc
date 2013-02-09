@@ -37,6 +37,8 @@
  * Listbox element
  * 
  * @link https://developer.mozilla.org/en/XUL/listbox
+ * @package API
+ * @subpackage Lists
 */
 
 class XULListBox extends BranchNode
@@ -124,6 +126,8 @@ class XULListBox extends BranchNode
  * Listitem element
  * 
  * @link https://developer.mozilla.org/en/XUL/listitem
+ * @package API
+ * @subpackage Lists
 */
 
 class XULListItem extends BranchNode
@@ -177,6 +181,8 @@ class XULListItem extends BranchNode
  * Listcols element
  * 
  * @link https://developer.mozilla.org/en/XUL/listcols
+ * @package API
+ * @subpackage Lists
 */
 
 class XULListCols extends BranchNode
@@ -189,6 +195,8 @@ class XULListCols extends BranchNode
  * Listcol element
  * 
  * @link https://developer.mozilla.org/en/XUL/listcol
+ * @package API
+ * @subpackage Lists
 */
 
 class XULListCol extends BranchNode
@@ -220,6 +228,8 @@ class XULListCol extends BranchNode
 /**
  * Listhead element
  * 
+ * @package API
+ * @subpackage Lists
  * @link https://developer.mozilla.org/en/XUL/listhead
 */
 

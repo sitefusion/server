@@ -530,29 +530,3 @@ SiteFusion.Classes.FileService.FileMonitor = Class.create( {
 } );
 
 
-SiteFusion.Classes.AppleScriptService = Class.create( SiteFusion.Classes.Node, {
-	sfClassName: 'AppleScriptService',
-	
-	initialize: function() {
-		
-	},
-	
-	execute: function( code ) {
-		var args = [];
-		for( var n = 0; n < code.length; n++ ) {
-			args.push( '-e' );
-			args.push( code[n] );
-		}
-		
-		var file = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile);
-		file.initWithPath( '/usr/bin/osascript' );
-		
-		if( file.exists() ) {
-			var process = Cc["@mozilla.org/process/util;1"].createInstance(Ci.nsIProcess);
-			process.init( file );
-			var oThis = this;
-			
-			process.runAsync( args, args.length );
-		}
-	}
-} );

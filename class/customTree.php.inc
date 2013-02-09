@@ -162,6 +162,10 @@ class XULCustomTree extends XULTree
 }
 
 
+/**
+ * @package API
+ * @subpackage CustomTree
+*/
 
 class TreeDataSupports
 {
@@ -313,6 +317,10 @@ class TreeDataSupports
 }
 
 
+/**
+ * @package API
+ * @subpackage CustomTree
+*/
 
 class TreeDataItem extends TreeDataSupports
 {
@@ -451,6 +459,11 @@ class TreeDataItem extends TreeDataSupports
 	}
 }
 
+
+/**
+ * @package API
+ * @subpackage CustomTree
+*/
 
 class TreeDataRow extends TreeDataItem
 {
@@ -747,6 +760,11 @@ class TreeDataRow extends TreeDataItem
 }
 
 
+/**
+ * @package API
+ * @subpackage CustomTree
+*/
+
 class TreeDataSeparator extends TreeDataItem
 {
 	public $isSeparator = TRUE;
@@ -757,6 +775,8 @@ class TreeDataSeparator extends TreeDataItem
 }
 
 /**
+* @package API
+* @subpackage CustomTree
 * @param object $tree The XULCustomTree the dataset will be the holder for
 * @param boolean $sparse Send only visible rows to the client
 *

@@ -36,6 +36,8 @@
  * Tree element
  * 
  * @link https://developer.mozilla.org/en/XUL/tree
+ * @package API
+ * @subpackage Trees
 */
 
 class XULTree extends BranchNode
@@ -121,6 +123,8 @@ class XULTree extends BranchNode
  * Treecols element
  * 
  * @link https://developer.mozilla.org/en/XUL/treecols
+ * @package API
+ * @subpackage Trees
 */
 
 class XULTreeCols extends BranchNode
@@ -133,6 +137,8 @@ class XULTreeCols extends BranchNode
  * Treecol element
  * 
  * @link https://developer.mozilla.org/en/XUL/treecol
+ * @package API
+ * @subpackage Trees
 */
 
 class XULTreeCol extends BranchNode
@@ -218,6 +224,8 @@ class XULTreeCol extends BranchNode
  * Treechildren element
  * 
  * @link https://developer.mozilla.org/en/XUL/treechildren
+ * @package API
+ * @subpackage Trees
 */
 
 class XULTreeChildren extends BranchNode
@@ -230,6 +238,8 @@ class XULTreeChildren extends BranchNode
  * Treeitem element
  * 
  * @link https://developer.mozilla.org/en/XUL/treeitem
+ * @package API
+ * @subpackage Trees
 */
 
 class XULTreeItem extends BranchNode
@@ -284,6 +294,8 @@ class XULTreeItem extends BranchNode
  * Treerow element
  * 
  * @link https://developer.mozilla.org/en/XUL/treerow
+ * @package API
+ * @subpackage Trees
 */
 
 class XULTreeRow extends BranchNode
@@ -296,6 +308,8 @@ class XULTreeRow extends BranchNode
  * Treecell element
  * 
  * @link https://developer.mozilla.org/en/XUL/treecell
+ * @package API
+ * @subpackage Trees
 */
 
 class XULTreeCell extends BranchNode
@@ -349,6 +363,8 @@ class XULTreeCell extends BranchNode
  * Treeseparator element
  * 
  * @link https://developer.mozilla.org/en/XUL/treeseparator
+ * @package API
+ * @subpackage Trees
 */
 
 class XULTreeSeparator extends Node

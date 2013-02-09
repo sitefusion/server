@@ -169,6 +169,12 @@ class XULEditor extends BranchNode
 	}
 }
 
+
+/**
+ * @package API
+ * @subpackage Editor
+*/
+
 class XULLayoutEditor extends XULEditor
 {
 	public $remoteConstructor = 'LayoutEditor';

@@ -155,6 +155,8 @@ if( !(defined('SF_AUTOLOAD_CLASSES') && SF_AUTOLOAD_CLASSES === FALSE) ) {
  * to the window and its child nodes will contain a reference to this window in the 
  * property Node->rootWindow, and to the application in the property Node->rootApplication.
  * 
+ * @package API
+ * @subpackage Application
  * @property int		$pid					PID for the application process
  * @property XULWindow	$window					Root window and node of the application
  * @property string		$applicationName		Name of the application

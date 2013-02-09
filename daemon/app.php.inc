@@ -34,6 +34,10 @@
 
 include_once( 'extendedprocess.php.inc' );
 
+/**
+ * @package Daemon
+ * @subpackage Application
+*/
 
 class ApplicationProcess extends ExtendedSiteFusionProcess
 {
