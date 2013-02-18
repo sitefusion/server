@@ -34,6 +34,10 @@ $SFCONFIG['childTimeout'] = 300;
 // to the server at least every few minutes even when idle.
 $SFCONFIG['sessionTimeout'] = 60 * 30;
 
+// The amount of seconds to wait before a service process disconnects an unresponsive
+// service client connection.
+$SFCONFIG['serviceClientTimeout'] = 60 * 5;
+
 // Database hostname or IP address
 // This should be the database server that contains the SiteFusion database
 $SFCONFIG['databaseHost'] = 'localhost';
