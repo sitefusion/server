@@ -1549,8 +1549,8 @@ class Node
                 
                 if( $node === FALSE ) {
                     $this->context = NULL;
-                    if( $this->isRegistered && $this->context->isRegistered )
-			$this->removeAttribute( 'context', 'cid'.$this->context->id );
+                    if( $this->isRegistered )
+			$this->removeAttribute( 'context' );
                     
                     return $this;
                 }                    
@@ -1578,8 +1578,8 @@ class Node
                 
                 if( $node === FALSE ) {
                     $this->popup = NULL;
-                    if( $this->isRegistered && $this->popup->isRegistered )
-			$this->removeAttribute( 'popup', 'cid'.$this->popup->id );
+                    if( $this->isRegistered )
+			$this->removeAttribute( 'popup' );
                     
                     return $this;
                 } 
@@ -1607,8 +1607,8 @@ class Node
                 
                 if( $node === FALSE ) {
                     $this->tooltip = NULL;
-                    if( $this->isRegistered && $this->tooltip->isRegistered )
-			$this->removeAttribute( 'tooltip', 'cid'.$this->tooltip->id );
+                    if( $this->isRegistered )
+			$this->removeAttribute( 'tooltip' );
                     
                     return $this;
                 }
