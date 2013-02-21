@@ -1546,6 +1546,14 @@ class Node
 	public function context( $node = NULL ) {
 		if( $node === NULL )
 			return (isset($this->context) ? $this->context : NULL);
+                
+                if( $node === FALSE ) {
+                    $this->context = NULL;
+                    if( $this->isRegistered && $this->context->isRegistered )
+			$this->removeAttribute( 'context', 'cid'.$this->context->id );
+                    
+                    return $this;
+                }                    
 		
 		$this->context = $node;
 		
@@ -1554,7 +1562,7 @@ class Node
 		
 		return $this;
 	}
-	
+        
 	
 	/**
 	 * Set a popup menu to show when clicking on this element
@@ -1567,6 +1575,14 @@ class Node
 	public function popup( $node = NULL ) {
 		if( $node === NULL )
 			return (isset($this->popup) ? $this->popup : NULL);
+                
+                if( $node === FALSE ) {
+                    $this->popup = NULL;
+                    if( $this->isRegistered && $this->popup->isRegistered )
+			$this->removeAttribute( 'popup', 'cid'.$this->popup->id );
+                    
+                    return $this;
+                } 
 		
 		$this->popup = $node;
 		
@@ -1588,6 +1604,14 @@ class Node
 	public function tooltip( $node = NULL ) {
 		if( $node === NULL )
 			return (isset($this->tooltip) ? $this->tooltip : NULL);
+                
+                if( $node === FALSE ) {
+                    $this->tooltip = NULL;
+                    if( $this->isRegistered && $this->tooltip->isRegistered )
+			$this->removeAttribute( 'tooltip', 'cid'.$this->tooltip->id );
+                    
+                    return $this;
+                }
 		
 		$this->tooltip = $node;
 		
