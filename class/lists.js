@@ -38,11 +38,13 @@ SiteFusion.Classes.ListBox = Class.create( SiteFusion.Classes.Node, {
 	},
 	
 	selectItem: function( items ) {
-		this.element.clearSelection();
-		var oThis = this;
+                var oThis = this;
+                window.setTimeout(function(){oThis.element.clearSelection();},100);
+		
 		for( var n = 0; n < items.length; n++ ) {
 			var item = items[n];
 			//tommyfix 23-07-2012
+                        
 			if (item)
 				window.setTimeout(function(){oThis.element.addItemToSelection( item.element );}, 100);
 		}
