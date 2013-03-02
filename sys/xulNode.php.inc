@@ -1809,7 +1809,7 @@ class Node
 	 *
 	 * @param string $name Behavior unique name
 	 * @param string | Behavior $class Behavior class or string class name.
-	 * @param $settings array() $class settings. See the BehaviorSetClassSettings method
+	 * @param array $settings. See the BehaviorSetClassSettings method.
 	 */
 	public function addBehavior($name, $class, $settings = array()) {
 		if (!is_object($class)) {
