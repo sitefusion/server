@@ -1808,7 +1808,7 @@ class Node
 	 * Add a behavior class
 	 *
 	 * @param string $name Behavior unique name
-	 * @param string | Behavior $class Behavior class or string class name.
+	 * @param string|Behavior $class Behavior class or string class name.
 	 * @param array $settings. See the BehaviorSetClassSettings method.
 	 */
 	public function addBehavior($name, $class, $settings = array()) {
