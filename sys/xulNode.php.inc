@@ -1546,14 +1546,6 @@ class Node
 	public function context( $node = NULL ) {
 		if( $node === NULL )
 			return (isset($this->context) ? $this->context : NULL);
-                
-                if( $node === FALSE ) {
-                    $this->context = NULL;
-                    if( $this->isRegistered )
-			$this->removeAttribute( 'context' );
-                    
-                    return $this;
-                }                    
 		
 		$this->context = $node;
 		
@@ -1562,7 +1554,7 @@ class Node
 		
 		return $this;
 	}
-        
+	
 	
 	/**
 	 * Set a popup menu to show when clicking on this element
@@ -1575,14 +1567,6 @@ class Node
 	public function popup( $node = NULL ) {
 		if( $node === NULL )
 			return (isset($this->popup) ? $this->popup : NULL);
-                
-                if( $node === FALSE ) {
-                    $this->popup = NULL;
-                    if( $this->isRegistered )
-			$this->removeAttribute( 'popup' );
-                    
-                    return $this;
-                } 
 		
 		$this->popup = $node;
 		
@@ -1604,14 +1588,6 @@ class Node
 	public function tooltip( $node = NULL ) {
 		if( $node === NULL )
 			return (isset($this->tooltip) ? $this->tooltip : NULL);
-                
-                if( $node === FALSE ) {
-                    $this->tooltip = NULL;
-                    if( $this->isRegistered )
-			$this->removeAttribute( 'tooltip' );
-                    
-                    return $this;
-                }
 		
 		$this->tooltip = $node;
 		
@@ -1816,5 +1792,240 @@ class Node
 		}
 	}
 	
+	
+	/* Behaviors */
+	
+	/**
+	 * Behavior classes.
+	 *
+	 * Array key is behavior unique name.
+	 *
+	 * @var array[ASSOC] = class
+	 */
+	protected $behavior = array();
+
+	/**
+	 * Add a behavior class
+	 *
+	 * @param string $name Behavior unique name
+	 * @param string | Behavior $class Behavior class or string class name.
+	 * @param $settings array() $class settings. See the BehaviorSetClassSettings method
+	 */
+	public function addBehavior($name, $class, $settings = array()) {
+		if (!is_object($class)) {
+			$class = self::BehaviorCreateClass($class, $settings);
+		}
+		$class->setOwner($this);
+		if (method_exists($class, 'init')) {
+			$class->init();
+		}
+		$this->behavior[$name] = $class;
+	}
+
+	/**
+	 * Get a behavior class.
+	 *
+	 * @param string $name Behavior unique name
+	 * @return Behavior
+	 */
+	public function getBehavior($name) {
+		return $this->behavior[$name];
+	}
+
+	/**
+	 * Delete behavior
+	 *
+	 * @param string $name  Behavior unique name
+	 */
+	public function removeBehavior($name) {
+		unset($this->behavior[$name]);
+	}
+
+	/**
+	 * Enable behavior
+	 *
+	 * @param string $name Behavior unique name
+	 */
+	public function enableBehavior($name) {
+		$this->behavior[$name]->enabled();
+	}
+
+	/**
+	 * Disable behavior
+	 *
+	 * @param string $name Behavior unique name.
+	 */
+	public function disableBehavior($name) {
+		$this->behavior[$name]->disabled();
+	}
+
+	/**
+	 * PHP Magic function: Behavior pattern handler.
+	 *
+	 * @param string $name Name of function
+	 * @param array $parameters Parameter list.
+	 * @return mixed function result.
+	 */
+	public function __call($name, $parameters) {
+		if (count($this->behavior) > 0) {
+			foreach ($this->behavior as $object) {
+				if ($object->getEnabled() && method_exists($object, $name))
+					return call_user_func_array(array($object, $name), $parameters);
+			}
+		}
+		
+		// Don't let undefined function calls go unnoticed.
+		throw new SFException("Undefined method: ".__CLASS__."::".$name."()", ERR_REPORT_APP);
+	}
+
+	/**
+	 * Constructs a Behavior class from a string classname and a settings array.
+	 *
+	 * @param object $className Class name.
+	 * @param array $settings Class settings
+	 *
+	 * @return object
+	 */
+	public static function BehaviorCreateClass($className, $settings) {
+		$class = new $className();
+
+		self::BehaviorSetClassSettings($class, $settings);
+		return $class;
+	}
+
+	/**
+	 * Automatically initializes Behavior object
+	 * 
+	 * The settings array defines property or method names as keys. The values of
+	 * this array are provided as a parameter to the methods named as the keys, or assigned
+	 * to properties named as the key if they are explicitly declared.
+	 * 
+	 * A special key "#init" exists, which defines a class/object method to be called
+	 * after the Behavior object has been added to a Node.
+	 * 
+	 * Example:
+	 *
+	 * $settings = array(
+	 *   '#init' => array(
+	 *      'class' => 'MyClass',
+	 *      'method' => 'MyBehaviorInitialized'		// Call MyClass::MyBehaviorInitialized() after adding
+	 *   ),
+	 *   'myNumProperty' => 4,					// Sets $behavior->myNumProperty = 4
+	 *   'myStringMethod' => "some string"		// Calls $behavior->myStringMethod("some string")
+	 * )
+	 *
+	 * @param object $class.
+	 * @param array $settings;
+	 */
+	public static function BehaviorSetClassSettings($class, $settings) {
+		$init = array();
+		foreach ($settings as $key => $property) {
+			if ($key == '#init') {
+				$init = $property;
+				continue;
+			}
+
+			if (method_exists($class, $key)) {
+				$reflection = new ReflectionClass($class);
+				$parameters = $reflection->getMethod($key)->getNumberOfParameters();
+
+				if ($parameters > 1) {
+					call_user_func_array(array($class, $key), $property);
+					/*
+					  $siker = call_user_func_array(array($class,$key),$property);
+					  if(is_a($class, 'RSFSelect')) {
+					  rsfDumpC(array('siker' => $siker,$key));
+					  }
+					 */
+				} else {
+					call_user_func(array($class, $key), $property);
+				}
+			} else if (property_exists($class, $key)) {
+				$class->$key = $property;
+			}
+		}
+
+		if (count($init) > 0) {
+			call_user_func(array($init['class'], $init['method']), $class);
+		}
+	}
 }
 
+
+/**
+ * SiteFusion Node Behavior
+ *
+ * Base class for Behaviors. Subclasses can define methods, which will become part of
+ * any Node object upon calling $node->addBehavior($behavior);
+ * 
+ * @package API
+ * @subpackage Node
+ */
+class Behavior {
+
+	/**
+	 * The owner Node object.
+	 *
+	 * @var Node
+	 */
+	private $owner = NULL;
+
+	/**
+	 * Enabled, disabled flag.
+	 *
+	 * @var enabled true it is enabled, false it is disabled
+	 */
+	protected $enabled = true;
+
+	/**
+	 * This method is fired when the behavior class is attached.
+	 * Override this method to install custom initialization.
+	 */
+	public function init() {
+		
+	}
+
+	/**
+	 * Get owner Node object.
+	 *
+	 * @return object
+	 */
+	public function getOwner() {
+		return $this->owner;
+	}
+
+	/**
+	 * Sets owner Node object.
+	 *
+	 * [INTERNAL] Node will call this method in the Node::addBehavior() method
+	 *
+	 * @param object $owner
+	 */
+	public function setOwner($owner) {
+		$this->owner = $owner;
+	}
+
+	/**
+	 * Enable Behavior
+	 */
+	public function enable() {
+		$this->enabled = true;
+	}
+
+	/**
+	 * Disable Behavior
+	 */
+	public function disable() {
+		$this->enabled = false;
+	}
+
+	/**
+	 * Returns enabled state
+	 *
+	 * @return boolean true, enabled | false, disabled.
+	 */
+	public function getEnabled() {
+		return $this->enabled;
+	}
+
+}
