@@ -1931,12 +1931,6 @@ class Node
 
 				if ($parameters > 1) {
 					call_user_func_array(array($class, $key), $property);
-					/*
-					  $siker = call_user_func_array(array($class,$key),$property);
-					  if(is_a($class, 'RSFSelect')) {
-					  rsfDumpC(array('siker' => $siker,$key));
-					  }
-					 */
 				} else {
 					call_user_func(array($class, $key), $property);
 				}
