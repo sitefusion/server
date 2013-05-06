@@ -1547,6 +1547,14 @@ class Node
 		if( $node === NULL )
 			return (isset($this->context) ? $this->context : NULL);
 		
+                if( $node === FALSE ) {
+                    $this->context = NULL;
+                    if( $this->isRegistered )
+                        $this->removeAttribute( 'context' );
+
+                    return $this;
+                }
+                
 		$this->context = $node;
 		
 		if( $this->isRegistered && $this->context->isRegistered )
@@ -1568,6 +1576,14 @@ class Node
 		if( $node === NULL )
 			return (isset($this->popup) ? $this->popup : NULL);
 		
+                if( $node === FALSE ) {
+                    $this->popup = NULL;
+                    if( $this->isRegistered )
+                        $this->removeAttribute( 'popup' );
+
+                    return $this;
+                }
+                
 		$this->popup = $node;
 		
 		if( $this->isRegistered && $this->popup->isRegistered )
@@ -1589,6 +1605,14 @@ class Node
 		if( $node === NULL )
 			return (isset($this->tooltip) ? $this->tooltip : NULL);
 		
+                if( $node === FALSE ) {
+                    $this->tooltip = NULL;
+                    if( $this->isRegistered )
+                        $this->removeAttribute( 'tooltip' );
+
+                    return $this;
+                }
+                
 		$this->tooltip = $node;
 		
 		if( $this->isRegistered && $this->tooltip->isRegistered )

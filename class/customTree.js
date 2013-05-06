@@ -27,30 +27,30 @@
 
 SiteFusion.Classes.CustomTree = Class.create( SiteFusion.Classes.Node, {
 	sfClassName: 'XULCustomTree',
-	
+
 	initialize: function( win ) {
 		this.element = win.createElement( 'tree' );
 		this.element.sfNode = this;
 		this.hostWindow = win;
-		
+
 		this.isSparse = false;
 		this.isDraggable = false;
 		this.allowDrop = false;
 		this.allowForeignDrop = false;
 		this.allowFileDrop = false;
 		this.sortable = false;
-		
+
 		this.setEventHost( [ 'yield', 'openStateChange', 'cellValueChange', 'treeDrop', 'nodeDrop', 'fileDrop', 'sortColumn' ] );
-		
+
 		this.eventHost.yield.msgType = 1;
 	},
-	
+
 	DragObserver: {
 		onDragStart: function( event ) {
 			var tree = event.target.parentNode.sfNode;
 			var selection = tree.getSelection();
 			var dragAllowed;
-			
+
 			if( tree.isDraggable ) {
 				dragAllowed = true;
 				for( var n = 0; n < selection.length; n++ ) {
@@ -70,31 +70,31 @@ SiteFusion.Classes.CustomTree = Class.create( SiteFusion.Classes.Node, {
 				}
 				dragAllowed = countAllowed == selection.length;
 			}
-			
+
 			if( !dragAllowed )
 				return;
-			
+
 			event.dataTransfer.setData( 'sfNode/XULTreeItem', selection.join(',') );
 //			transferData.data = new TransferData();
 //			transferData.data.addDataForFlavour( 'sfNode/XULTreeItem', selection.join(',') );
 			tree.draggedSelection = selection;
-			
+
 			var action = tree.isDraggable;
 			if( tree.view.idToRow[selection[0]].isDraggable ) action = tree.view.idToRow[selection[0]].isDraggable;
-			
+
 			switch ( action ) {
 				case 'move':
 					dragAction.action = Ci.nsIDragService.DRAGDROP_ACTION_MOVE;
 					break;
-					
+
 				case 'copy':
 					dragAction.action = Ci.nsIDragService.DRAGDROP_ACTION_COPY;
 					break;
-					
+
 				case 'link':
 					dragAction.action = Ci.nsIDragService.DRAGDROP_ACTION_LINK;
 					break;
-					
+
 				case 'moveOrCopy':
 					dragAction.action = Ci.nsIDragService.DRAGDROP_ACTION_MOVE + Ci.nsIDragService.DRAGDROP_ACTION_COPY;
 					break;
@@ -105,7 +105,7 @@ SiteFusion.Classes.CustomTree = Class.create( SiteFusion.Classes.Node, {
 		onDragOver: function (aEvent, aFlavour, aDragSession) { },
 		getSupportedFlavours: function() { return null; }
 	},
-	
+
 	setView: function() {
 		var oThis = this;
 		this.view = new SiteFusion.Classes.CustomTree.ViewConstructor( oThis );
@@ -119,11 +119,11 @@ SiteFusion.Classes.CustomTree = Class.create( SiteFusion.Classes.Node, {
 
 	onDragStartEvent: function( event ) {
 		//nsDragAndDrop.startDrag( event, this.DragObserver );
-		
+
 		var tree = event.target.parentNode.sfNode;
 		var selection = tree.getSelection();
 		var dragAllowed;
-		
+
 		if( tree.isDraggable ) {
 			dragAllowed = true;
 			for( var n = 0; n < selection.length; n++ ) {
@@ -143,41 +143,41 @@ SiteFusion.Classes.CustomTree = Class.create( SiteFusion.Classes.Node, {
 			}
 			dragAllowed = countAllowed == selection.length;
 		}
-		
+
 		if( !dragAllowed )
 			return;
-		
+
 		event.dataTransfer.setData( 'sfNode/XULTreeItem', selection.join(',') );
 		tree.draggedSelection = selection;
-		
+
 		var action = tree.isDraggable;
 		if( tree.view.idToRow[selection[0]].isDraggable ) action = tree.view.idToRow[selection[0]].isDraggable;
-		
+
 		event.dataTransfer.effectAllowed = action;
 	},
-	
+
 	getSelection: function() {
 		var rows = new Array();
 		var tree = this.element;
 		var start = new Object();
 		var end = new Object();
-		
+
 		if( this.view.selection ) {
 			var numRanges = this.view.selection.getRangeCount();
-			
+
 			for( var t = 0; t < numRanges; t++ ) {
 				this.view.selection.getRangeAt( t, start, end );
-				
+
 				for( var v = start.value; v <= end.value; v++ ) {
 					if( v < 0 ) v = 0;
 					rows.push( this.view.visibleData[v].id );
 				}
 			}
 		}
-		
+
 		return rows;
 	},
-	
+
 	yield: function() {
 		this.fireEvent( 'yield', this.getSelection() );
 	},
@@ -188,10 +188,10 @@ SiteFusion.Classes.CustomTree = Class.create( SiteFusion.Classes.Node, {
 			this.hostWindow.windowObject.setTimeout( function() { oThis.select( itemJSON ); }, 10 );
 			return;
 		}
-		
+
 		var idx, ids = eval('('+itemJSON+')');
 		this.view.selection.clearSelection();
-		
+
 		for( var n = 0; n < ids.length; n++ ) {
 			idx = this.view.getRowIndex( this.view.idToRow[ids[n]] );
 			if( idx !== false )
@@ -203,32 +203,32 @@ SiteFusion.Classes.CustomTree = Class.create( SiteFusion.Classes.Node, {
 
 SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
 	this.sfTree = tree;
-	
+
 	this.treeBox = null;
 	this.selection = null;
-	
+
 	this.invalidateTableTimer = null;
-	
+
 	this.data = [];
 	this.visibleData = [];
 	this.idToRow = [];
 	this.rowCount = 0;
 	this.columnProperties = [];
-	
+
 	this.setTree = function( treebox ) { this.treeBox = treebox; };
-	
+
 	this.updateDataSetRow = function( rowJSON ) {
 		var update = eval('('+rowJSON+')');
 		var row = this.idToRow[update.id];
-		
+
 		var idx = this.getRowIndex( row );
-		
+
 		if( update.columns ) {
 			for( col in update.columns ) {
 				row.columns[col] = update.columns[col];
 			}
 		}
-		
+
 		if( typeof(update.isContainer) != 'undefined' )
 			row.isContainer = update.isContainer;
 		if( typeof(update.isEmpty) != 'undefined' )
@@ -261,19 +261,19 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
 			row.properties = update.properties;
 		if( typeof(update.cellProperties) != 'undefined' )
 			row.cellProperties = update.cellProperties;
-		
+
 		this.invalidateRow( idx );
 	};
-	
+
 	this.addDataSetRow = function( rowJSON, pos ) {
 		var row = eval('('+rowJSON+')');
 		if( row.isContainer ) row.children = [];
 		var visiblePos;
 		var updateRowCount = false;
-		
+
 		if( row.parentId === null ) {
 			var idx;
-			
+
 			if( pos === null || pos == this.data.length ) {
 				this.data.push( row );
 				this.visibleData.push( row );
@@ -284,7 +284,7 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
 				this.data.splice( pos, 0, row );
 				this.visibleData.splice( visiblePos, 0, row );
 			}
-			
+
 			updateRowCount = true;
 		}
 		else {
@@ -292,7 +292,7 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
 			if( parentRow.children.length == 0 ) {
 				parentRow.children.push( row );
 				var parentIndex = this.getRowIndex( parentRow );
-				
+
 				if( this.isOpenRecursive(parentRow) ) {
 					visiblePos = parentIndex + 1;
 					this.visibleData.splice( visiblePos, 0, row );
@@ -320,53 +320,58 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
 				}
 			}
 		}
-		
+
 		this.idToRow[row.id] = row;
-		
+
 		this.rowCount = this.visibleData.length;
-		
+
 		if( updateRowCount )
 			this.rowCountChanged( visiblePos, 1 );
 	};
-	
+
 	this.removeDataSetRow = function( rowId ) {
 		var row = this.idToRow[rowId];
-		
+
 		var idx = this.getRowIndex( row );
-		var visibleCount = this.getVisibleRowCount( row );
-		var ret = this.visibleData.splice( idx, visibleCount );
-		
+        /**
+         * Fixed 3-5-2013: idx would return false in case of closed container. Meaning it would always remove the index[0] visible data.
+         */
+        if( idx !== false ){
+            var visibleCount = this.getVisibleRowCount( row );
+            var ret = this.visibleData.splice( idx, visibleCount );
+        }
+
 		var sets = [];
 		if( row.isContainer && row.children.length > 0 ) sets.push( row.children );
-		
+
 		for( var n = 0; n < sets.length; n++ ) {
 			for( var m = 0; m < sets[n].length; m++ ) {
 				if( sets[n][m].isContainer && sets[n][m].children.length > 0 )
 					sets.push( sets[n][m].children );
-				
+
 				delete this.idToRow[sets[n][m].id];
 			}
 		}
-		
+
 		var parentSet = row.parentId === null ? this.data:this.idToRow[row.parentId].children;
-		
+
 		for( var n = 0; n < parentSet.length; n++ ) {
 			if( parentSet[n] === row ) {
 				parentSet.splice( n, 1 );
 				break;
 			}
 		}
-		
+
 		if( row.parentId !== null && parentSet.length == 0 )
 			this.invalidateRow( this.getRowIndex( this.idToRow[row.parentId] ) );
-		
+
 		delete this.idToRow[rowId];
-		
+
 		this.rowCount = this.visibleData.length;
-		
+
 		this.rowCountChanged( idx, -visibleCount );
 	};
-	
+
 	this.applyChildOrder = function( rowId, orderJSON ) {
 		var childSet = rowId === null ? this.data : this.idToRow[rowId].children;
 		var order = eval('('+orderJSON+')');
@@ -376,7 +381,7 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
 			var visData = [];
 			var visPos = rowId === null ? startAt : startAt+1;
 		}
-		
+
 		if( reorderVisible ) {
 			for( var n = 0; n < childSet.length; n++ ) {
 				var idx = this.getRowIndex( childSet[n], startAt );
@@ -384,10 +389,10 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
 				visData[childSet[n].id] = this.visibleData.splice( idx, len );
 			}
 		}
-		
+
 		for( var n = 0; n < childSet.length; n++ ) {
 			childSet[n] = this.idToRow[order[n]];
-			
+
 			if( reorderVisible ) {
 				for( var v = 0; v < visData[childSet[n].id].length; v++ ) {
 					this.visibleData.splice( visPos, 0, visData[childSet[n].id][v] );
@@ -395,21 +400,21 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
 				}
 			}
 		}
-		
+
 		this.invalidateTable();
 	};
-	
+
 	this.toggleOpenState = function( idx ) {
 		var row = this.visibleData[idx];
-		
+
 		if(! row.isContainer ) return;
-		
+
 		if( row.isOpen ) {
 			this.sfTree.fireEvent( 'openStateChange', [ false, row.id ] );
-			
+
 			var visCount = this.getVisibleRowCount( row ) - 1;
 			this.visibleData.splice( idx + 1, visCount );
-			
+
 			row.isOpen = false;
 			this.rowCount = this.visibleData.length;
 			this.rowCountChanged( idx + 1, -visCount );
@@ -417,56 +422,56 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
 		}
 		else {
 			this.sfTree.fireEvent( 'openStateChange', [ true, row.id ] );
-			
+
 			var added = this.openRecursive( idx, row );
-			
+
 			row.isOpen = true;
 			this.rowCount = this.visibleData.length;
 			this.rowCountChanged( idx + 1, added );
 			this.invalidateRow( idx );
 		}
 	};
-	
+
 	this.openRecursive = function( idx, row ) {
 		var added = 0;
-		
+
 		for( var n = 0; n < row.children.length; n++ ) {
 			this.visibleData.splice( idx + 1 + added, 0, row.children[n] );
-			
+
 			if( row.children[n].isContainer && row.children[n].isOpen ) {
 				added += this.openRecursive( idx + 1 + added, row.children[n] );
 			}
-			
+
 			added++;
 		}
-		
+
 		this.rowCount = this.visibleData.length;
-		
+
 		return added;
 	};
-	
+
 	this.getVisibleRowCount = function( row ) {
 		var count = 1;
-		
+
 		if( row.isContainer && row.isOpen ) {
 			for( var n = 0; n < row.children.length; n++ )
 				count += this.getVisibleRowCount( row.children[n] );
 		}
-		
+
 		return count;
 	};
-	
+
 	this.getActualRowCount = function( row ) {
 		var count = 1;
-		
+
 		if( row.isContainer ) {
 			for( var n = 0; n < row.children.length; n++ )
 				count += this.getActualRowCount( row.children[n] );
 		}
-		
+
 		return count;
 	};
-	
+
 	this.getRowIndex = function( row, startAt ) {
 		if( ! startAt ) startAt = 0;
 		for( var n = startAt; n < this.visibleData.length; n++ ) {
@@ -474,50 +479,50 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
 				return n;
 			}
 		}
-		
+
 		return false;
 	};
-	
+
 	this.getParentIndex = function( idx ) {
 		if( typeof(this.visibleData[idx]) == 'undefined' || this.visibleData[idx].parentId === null ) return -1;
-		
+
 		for( var n = 0; n < this.visibleData.length; n++ ) {
 			if( this.visibleData[n].id == this.visibleData[idx].parentId ) {
 				return n;
 			}
 		}
 	};
-	
+
 	this.getLevel = function( idx ) {
 		var level = 0;
 		var row = this.visibleData[idx];
-		
+
 		while( row.parentId !== null ) {
 			row = this.idToRow[row.parentId];
 			level++;
 		}
-		
+
 		return level;
 	};
-	
+
 	this.getCellText = function( idx, column ) {
 		if( this.visibleData[idx].isSeparator )
 			return null;
 		return this.visibleData[idx].columns[column.index];
 	};
-	
+
 	this.getCellValue = function( idx, column ) {
 		return this.visibleData[idx].columns[column.index];
 	};
-	
+
 	this.isContainer = function( idx ) {
 		return this.visibleData[idx].isContainer;
 	};
-	
+
 	this.isContainerOpen = function( idx ) {
 		return this.visibleData[idx].isOpen;
 	};
-	
+
 	this.isContainerEmpty = function( idx ) {
 		return this.visibleData[idx].isEmpty;
 	};
@@ -529,11 +534,11 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
 			return this.sfTree.parseImageURL( this.visibleData[idx].images[col.index] );
 		else return '';
 	};
-	
+
 	this.isSeparator = function( idx ) {
 		return (this.visibleData[idx].isSeparator ? true:false);
 	};
-	
+
 	this.getProgressMode = function( idx, col ) {
 		var Ci = Components.interfaces;
 		if( this.visibleData[idx].progressModes && this.visibleData[idx].progressModes[col.index] ) {
@@ -544,14 +549,14 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
 			}
 		}
 	};
-	
+
 	this.isEditable = function( idx, col ) {
 		if( this.visibleData[idx].editableCells && this.visibleData[idx].editableCells[col.index] )
 			return true;
-		
+
 		return false;
 	};
-	
+
 	this.setCellText = function( idx, col, value ) {
 		this.visibleData[idx].columns[col.index] = value;
 		this.invalidateRow( idx );
@@ -561,7 +566,7 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
 			oThis.sfTree.fireEvent( 'cellValueChange', [ oThis.visibleData[idx].id, col.index, value ] );
 		}, 1 );
 	};
-	
+
 	this.setCellValue = function( idx, col, value ) {
 		this.visibleData[idx].columns[col.index] = value;
 		this.invalidateRow( idx );
@@ -571,13 +576,13 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
 			oThis.sfTree.fireEvent( 'cellValueChange', [ oThis.visibleData[idx].id, col.index, value ] );
 		}, 1 );
 	};
-	
+
 	this.canDrop = function( idx, orientation ) {
 		var row = this.visibleData[idx];
 		var Cc = Components.classes;
 		var Ci = Components.interfaces;
 		var allowedOrient;
-		
+
 		if( this.sfTree.allowDrop ) {
 			if( typeof(row.allowDrop) != 'undefined' ) {
 				if( row.allowDrop === false ) return false;
@@ -588,16 +593,16 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
 		else {
 			if( typeof(row.allowDrop) == 'undefined' || row.allowDrop === false )
 				return false;
-			
+
 			allowedOrient = row.allowDrop;
 		}
 
 		var ds = Cc["@mozilla.org/widget/dragservice;1"].getService(Ci.nsIDragService);
 		var session = ds.getCurrentSession();
-		
+
 		if( session.isDataFlavorSupported("text/x-moz-url") || session.isDataFlavorSupported("application/x-moz-file") )
 	    	return session.canDrop = this.sfTree.allowFileDrop;
-		
+
 		if( this.sfTree.preventCircularHeritage || !this.sfTree.allowForeignDrop ) {
 			if( this.sfTree.preventCircularHeritage ) {
 				if( session.sourceNode && session.sourceNode.tagName == 'treechildren' && session.sourceNode.parentNode.sfNode == this.sfTree ) {
@@ -609,7 +614,7 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
 								return false;
 							if( obj.parentId === null )
 								break;
-							
+
 							obj = this.idToRow[obj.parentId];
 						}
 					}
@@ -620,19 +625,19 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
 					return false;
 			}
 		}
-		
+
 		switch ( allowedOrient ) {
 			case 'any':		return true;
 			case 'on':		return ( orientation == Ci.nsITreeView.DROP_ON );
 			case 'between':	return ( orientation != Ci.nsITreeView.DROP_ON );
 		}
 	};
-	
+
 	this.drop = function( idx, orientation ) {
 		var ds = Cc["@mozilla.org/widget/dragservice;1"].getService(Ci.nsIDragService);
 		var session = ds.getCurrentSession();
 		var id = (idx == -1 ? null : this.visibleData[idx].id);
-		
+
 		if( session.sourceNode ) {
 			switch ( session.sourceNode.tagName ) {
 				case 'treechildren':
@@ -643,7 +648,7 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
 						orientation
 					] );
 					break;
-				
+
 				default:
 					this.sfTree.fireEvent( 'nodeDrop', [
 						session.sourceNode.sfNode,
@@ -676,7 +681,7 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
 			     	}
 			     	catch(ex) {
 			     	}
-				
+
 			     	if (str) {
 			       		uri = _ios.newURI(str.data.split("\n")[0], null, null).spec;
 			     	}
@@ -686,17 +691,17 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
 			         		uri = [file.path, fileService.resultFromFile(file)];
 			     	}
 			   	}
-				
+
 				if (uri) {
 					if( typeof(uri) == 'string' && uri.substr(0,7) == 'file://' ) {
 						var file = fileProtHandler.getFileFromURLSpec( uri );
 						uri = [file.path, fileService.resultFromFile(file)];
 					}
-					
+
 					uris.push(uri);
 				}
 			}
-			
+
 			this.sfTree.fireEvent( 'fileDrop', [
 				uris,
 				id,
@@ -704,7 +709,7 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
 			] );
 		}
 	};
-	
+
 	this.getRowProperties = function( idx, prop ) {
 		var row = this.visibleData[idx];
 		if( row.properties ) {
@@ -714,7 +719,7 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
 			}
 		}
 	};
-	
+
 	this.getColumnProperties = function( column, prop ) {
 		if( this.columnProperties[column.index] ) {
 			var aserv = Cc["@mozilla.org/atom-service;1"].getService(Ci.nsIAtomService);
@@ -723,7 +728,7 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
 			}
 		}
 	};
-	
+
 	this.getCellProperties = function( idx, column, prop ) {
 		var row = this.visibleData[idx];
 		if( row.cellProperties && row.cellProperties[column.index] ) {
@@ -733,37 +738,37 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
 			}
 		}
 	};
-	
+
 	this.setColumnProperties = function( properties ) {
 		this.columnProperties = eval('('+properties+')');
 		this.invalidateTable();
 	};
-	
+
 	this.cycleHeader = function( col ) {
 		if( !this.sfTree.sortable ) return;
 		this.sfTree.fireEvent( 'sortColumn', [ col.index ] );
 	};
-	
+
 	this.isSorted = function() { return true; };
-	
+
 	this.isOpenRecursive = function( row ) {
 		var par = row;
-		
+
 		while( par.isOpen ) {
 			if( par.parentId === null )
 				return true;
-			
+
 			par = this.idToRow[par.parentId];
 		}
-		
+
 		return false;
 	};
-	
+
 	this.invalidateRow = function( idx ) {
 		if( this.treeBox )
 			this.treeBox.invalidateRow( idx );
 	};
-	
+
 	this.invalidateTable = function() {
 		if( this.invalidateTableTimer ) {
 			this.sfTree.hostWindow.windowObject.clearTimeout( this.invalidateTableTimer );
@@ -771,7 +776,7 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
 		var oThis = this;
 		this.invalidateTableTimer = this.sfTree.hostWindow.windowObject.setTimeout( function() { oThis.treeBox.invalidate(); oThis.invalidateTableTimer = null; }, 1 );
 	};
-	
+
 	this.rowCountChanged = function( idx, count ) {
 		if( this.treeBox )
 			this.treeBox.rowCountChanged( idx, count );
