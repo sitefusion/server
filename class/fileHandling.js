@@ -284,7 +284,7 @@ SiteFusion.Classes.FileDownloader = Class.create( SiteFusion.Classes.Node, {
 				            nsIWBP.PERSIST_FLAGS_FAIL_ON_BROKEN_LINKS |
 				            nsIWBP.PERSIST_FLAGS_CLEANUP_ON_FAILURE;
 				
-				this.persistObject.saveURI(uri,null,null,null,null,this.targetFile);
+				this.persistObject.saveURI(uri,null,null,null,null,this.targetFile, null);
 			}
 		} catch (e) {
 			SiteFusion.Error(e);
