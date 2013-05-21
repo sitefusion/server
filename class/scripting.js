@@ -209,7 +209,8 @@ SiteFusion.Classes.JScriptService = Class.create( SiteFusion.Classes.Node, {
             }
 
             var process = Components.classes["@mozilla.org/process/util;1"].createInstance(Components.interfaces.nsIProcess);
-            var wScript = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile);
+            var wScript = Components.classes["@mozilla.org/file/local;1"].createInstance(Components.interfaces.nsILocalFile);
+            
             wScript.initWithPath("C:\\Windows\\System32\\wscript.exe");
             process.init(wScript);
 
