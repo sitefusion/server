@@ -262,15 +262,22 @@ class TreeDataSupports
 
 			$values[] = array( $child->_cells[$col], $child );
 		}
-
-		switch( $type ) {
-			case 'numeric': $function = 'sortNumericCallback'; break;
-			case 'alphanumeric': $function = 'sortAlphanumericCallback'; break;
-			case 'date': $function = 'sortDateCallback'; break;
-			default: $function = 'sortNaturalCallback'; break;
+		
+		$object = $this;
+		if (is_array($type)) {
+			$object = $type[0];
+			$function = $type[1];
+		}
+		else {
+			switch( $type ) {
+				case 'numeric': $function = 'sortNumericCallback'; break;
+				case 'alphanumeric': $function = 'sortAlphanumericCallback'; break;
+				case 'date': $function = 'sortDateCallback'; break;
+				default: $function = 'sortNaturalCallback'; break;
+			}
 		}
 
-		usort( $values, array(&$this,$function) );
+		usort( $values, array($object,$function) );
 
 		if( $dir == 'desc' ) $values = array_reverse( $values, TRUE );
 
@@ -839,12 +846,14 @@ class TreeDataSet extends TreeDataSupports
 	}
 
 	/**
+	* Sets the sorting type method for a column
+	* The sorting type may be a string ("natural", "alphanumeric", "numeric", "date") or a custom callback array in the form of an array($classOrObject, $methodName).
 	* @param object $col XULTreeCol node
-	* @param string $type Sorting type ( natural , alphanumeric , numeric , date )
+	* @param string|array $method Sorting type method, a string or a callback array containing object/classname and handler method.
 	*/
 	public function setColumnSortType( $col, $type ) {
 		$types = array( 'natural', 'alphanumeric', 'numeric', 'date' );
-		if(! in_array($type, $types) )
+		if(! (in_array($type, $types) || is_array($type)) )
 			throw new SFException( "Invalid sort type: $type", ERR_REPORT_APP );
 
 		$this->colSortTypes[$this->getColumnIndex($col)] = $type;
