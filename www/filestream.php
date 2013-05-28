@@ -42,7 +42,7 @@ try {
 	
 	$db = mysql_connect( $WEBCONFIG['databaseHost'], $WEBCONFIG['databaseUsername'], $WEBCONFIG['databasePassword'] );
 	mysql_select_db( $WEBCONFIG['databaseName'] );
-	$res = mysql_query( "SELECT * FROM `processes` WHERE `id` = '".mysql_escape_string($_GET['sid'])."'" );
+	$res = mysql_query( "SELECT * FROM `processes` WHERE `id` = '".mysql_real_escape_string($_GET['sid'])."'" );
 	if(! $res )
 		throw new Exception( mysql_error() );
 	
