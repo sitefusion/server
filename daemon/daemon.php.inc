@@ -435,7 +435,7 @@ class DaemonProcess extends SiteFusionProcess
 		`pid`
 		)
 		VALUES (
-		'".$param->sid."', '".$param->type."', '".$param->ident."', '".mysql_escape_string($param->user)."', '".mysql_escape_string($param->app)."', '".mysql_escape_string($param->args)."', '".mysql_escape_string($param->ip)."', '".$child->port."', '".$child->pid."'
+		'".$param->sid."', '".$param->type."', '".$param->ident."', '".mysql_real_escape_string($param->user)."', '".mysql_real_escape_string($param->app)."', '".mysql_real_escape_string($param->args)."', '".mysql_real_escape_string($param->ip)."', '".$child->port."', '".$child->pid."'
 		)
 		" );
 		
@@ -595,7 +595,7 @@ class DaemonProcess extends SiteFusionProcess
 				$res = self::DatabaseQuery(
 					"SELECT *
 					FROM `".self::$Options['databaseName']."`.`jobs`
-					" . ($child->app == 'sitefusion/admin' ? '':"WHERE `owner` = '".mysql_escape_string(self::GetApplicationOwnerName($child->app))."'")
+					" . ($child->app == 'sitefusion/admin' ? '':"WHERE `owner` = '".mysql_real_escape_string(self::GetApplicationOwnerName($child->app))."'")
 				);
 				$num = mysql_num_rows($res);
 				$ret = array();
@@ -611,15 +611,15 @@ class DaemonProcess extends SiteFusionProcess
 					"INSERT INTO `".self::$Options['databaseName']."`.`jobs`
 					(`owner`,`job`,`args`,`minute`,`hour`,`monthday`,`month`,`weekday`,`mail_output`)
 					VALUES (
-					'".mysql_escape_string($child->app == 'sitefusion/admin' ? $param['owner'] : self::GetApplicationOwnerName($child->app))."',
-					'".mysql_escape_string($param['job'])."',
-					'".mysql_escape_string($param['args'])."',
+					'".mysql_real_escape_string($child->app == 'sitefusion/admin' ? $param['owner'] : self::GetApplicationOwnerName($child->app))."',
+					'".mysql_real_escape_string($param['job'])."',
+					'".mysql_real_escape_string($param['args'])."',
 					'".((int)$param['minute'])."',
 					'".((int)$param['hour'])."',
 					'".((int)$param['monthday'])."',
 					'".((int)$param['month'])."',
 					'".((int)$param['weekday'])."',
-					'".mysql_escape_string($param['mail_output'])."')"
+					'".mysql_real_escape_string($param['mail_output'])."')"
 				);
 				
 				self::WriteCommand( $child->socket, 'OK' );
@@ -628,22 +628,22 @@ class DaemonProcess extends SiteFusionProcess
 			case 'changejob':
 				$param = unserialize( $cmd->data );
 				if( $child->app != 'sitefusion/admin' ) {
-					$res = self::DatabaseQuery( "SELECT count(*) FROM `".self::$Options['databaseName']."`.`jobs` WHERE `owner` = '".mysql_escape_string(self::GetApplicationOwnerName($child->app))."' && `id` = ".(int)$cmd->id );
+					$res = self::DatabaseQuery( "SELECT count(*) FROM `".self::$Options['databaseName']."`.`jobs` WHERE `owner` = '".mysql_real_escape_string(self::GetApplicationOwnerName($child->app))."' && `id` = ".(int)$cmd->id );
 					list($num) = mysql_fetch_row($res);
 					if( ! $num ) return;
 				}
 				self::DatabaseQuery(
 					"UPDATE `".self::$Options['databaseName']."`.`jobs`
 					SET
-					`owner` = '".mysql_escape_string($child->app == 'sitefusion/admin' ? $param['owner'] : self::GetApplicationOwnerName($child->app))."',
-					`job` = '".mysql_escape_string($param['job'])."',
-					`args` = '".mysql_escape_string($param['args'])."',
+					`owner` = '".mysql_real_escape_string($child->app == 'sitefusion/admin' ? $param['owner'] : self::GetApplicationOwnerName($child->app))."',
+					`job` = '".mysql_real_escape_string($param['job'])."',
+					`args` = '".mysql_real_escape_string($param['args'])."',
 					`minute` = '".((int)$param['minute'])."',
 					`hour` = '".((int)$param['hour'])."',
 					`monthday` = '".((int)$param['monthday'])."',
 					`month` = '".((int)$param['month'])."',
 					`weekday` = '".((int)$param['weekday'])."',
-					`mail_output` = '".mysql_escape_string($param['mail_output'])."'
+					`mail_output` = '".mysql_real_escape_string($param['mail_output'])."'
 					WHERE `id` = ".(int)$cmd->id
 				);
 				
@@ -653,7 +653,7 @@ class DaemonProcess extends SiteFusionProcess
 			case 'deletejob':
 				$id = (int) $cmd->id;
 				if( $child->app != 'sitefusion/admin' ) {
-					$res = self::DatabaseQuery( "SELECT count(*) FROM `".self::$Options['databaseName']."`.`jobs` WHERE `owner` = '".mysql_escape_string(self::GetApplicationOwnerName($child->app))."' && `id` = ".(int)$cmd->id );
+					$res = self::DatabaseQuery( "SELECT count(*) FROM `".self::$Options['databaseName']."`.`jobs` WHERE `owner` = '".mysql_real_escape_string(self::GetApplicationOwnerName($child->app))."' && `id` = ".(int)$cmd->id );
 					list($num) = mysql_fetch_row($res);
 					if( ! $num ) return;
 				}
@@ -672,7 +672,7 @@ class DaemonProcess extends SiteFusionProcess
 				$res = self::DatabaseQuery(
 					"SELECT *
 					FROM `".self::$Options['databaseName']."`.`services`
-					" . ($child->app == 'sitefusion/admin' ? '':"WHERE `owner` = '".mysql_escape_string(self::GetApplicationOwnerName($child->app))."'")
+					" . ($child->app == 'sitefusion/admin' ? '':"WHERE `owner` = '".mysql_real_escape_string(self::GetApplicationOwnerName($child->app))."'")
 				);
 				$num = mysql_num_rows($res);
 				$ret = array();
@@ -688,9 +688,9 @@ class DaemonProcess extends SiteFusionProcess
 					"INSERT INTO `".self::$Options['databaseName']."`.`services`
 					(`owner`,`service`,`args`,`daemon`)
 					VALUES (
-					'".mysql_escape_string($child->app == 'sitefusion/admin' ? $param['owner'] : self::GetApplicationOwnerName($child->app))."',
-					'".mysql_escape_string($param['service'])."',
-					'".mysql_escape_string($param['args'])."',
+					'".mysql_real_escape_string($child->app == 'sitefusion/admin' ? $param['owner'] : self::GetApplicationOwnerName($child->app))."',
+					'".mysql_real_escape_string($param['service'])."',
+					'".mysql_real_escape_string($param['args'])."',
 					'".((int)$param['daemon'])."')"
 				);
 				if( intval($param['daemon']) )
@@ -702,16 +702,16 @@ class DaemonProcess extends SiteFusionProcess
 			case 'changeservice':
 				$param = unserialize( $cmd->data );
 				if( $child->app != 'sitefusion/admin' ) {
-					$res = self::DatabaseQuery( "SELECT count(*) FROM `".self::$Options['databaseName']."`.`services` WHERE `owner` = '".mysql_escape_string(self::GetApplicationOwnerName($child->app))."' && `id` = ".(int)$cmd->id );
+					$res = self::DatabaseQuery( "SELECT count(*) FROM `".self::$Options['databaseName']."`.`services` WHERE `owner` = '".mysql_real_escape_string(self::GetApplicationOwnerName($child->app))."' && `id` = ".(int)$cmd->id );
 					list($num) = mysql_fetch_row($res);
 					if( ! $num ) return;
 				}
 				self::DatabaseQuery(
 					"UPDATE `".self::$Options['databaseName']."`.`services`
 					SET
-					`owner` = '".mysql_escape_string($child->app == 'sitefusion/admin' ? $param['owner'] : self::GetApplicationOwnerName($child->app))."',
-					`service` = '".mysql_escape_string($param['service'])."',
-					`args` = '".mysql_escape_string($param['args'])."',
+					`owner` = '".mysql_real_escape_string($child->app == 'sitefusion/admin' ? $param['owner'] : self::GetApplicationOwnerName($child->app))."',
+					`service` = '".mysql_real_escape_string($param['service'])."',
+					`args` = '".mysql_real_escape_string($param['args'])."',
 					`daemon` = '".((int)$param['daemon'])."'
 					WHERE `id` = ".(int)$cmd->id
 				);
@@ -724,7 +724,7 @@ class DaemonProcess extends SiteFusionProcess
 			case 'deleteservice':
 				$id = (int) $cmd->id;
 				if( $child->app != 'sitefusion/admin' ) {
-					$res = self::DatabaseQuery( "SELECT count(*) FROM `".self::$Options['databaseName']."`.`services` WHERE `owner` = '".mysql_escape_string(self::GetApplicationOwnerName($child->app))."' && `id` = ".(int)$cmd->id );
+					$res = self::DatabaseQuery( "SELECT count(*) FROM `".self::$Options['databaseName']."`.`services` WHERE `owner` = '".mysql_real_escape_string(self::GetApplicationOwnerName($child->app))."' && `id` = ".(int)$cmd->id );
 					list($num) = mysql_fetch_row($res);
 					if( ! $num ) return;
 				}
@@ -1267,7 +1267,9 @@ class SiteFusionProcess
 			$param['DATALENGTH'] = strlen($data);
 		
 		$msg = $cmd;
+		
 		foreach ( $param as $key => $val ) {
+			if (is_array($val)) continue;
 			$msg .= ' '.$key.'='.$val;
 		}
 		

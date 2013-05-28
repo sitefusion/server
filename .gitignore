@@ -1,0 +1,5 @@
+app/*
+!app/testapp
+!app/testapp/*
+!app/sitefusion
+!app/sitefusion/*
