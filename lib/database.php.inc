@@ -109,9 +109,9 @@ class Database
 		$where = (array) $where;
 		$str = array();
 		foreach ( $where as $key => $val ) {
-			$str[] = "`".mysql_escape_string($key)."` = '".mysql_escape_string($val)."'";
+			$str[] = "`".mysql_real_escape_string($key)."` = '".mysql_real_escape_string($val)."'";
 		}
-		$res = $this->query( "SELECT `".mysql_escape_string($col)."` FROM `".mysql_escape_string($table)."` WHERE " . implode( ' && ', $str ) );
+		$res = $this->query( "SELECT `".mysql_real_escape_string($col)."` FROM `".mysql_real_escape_string($table)."` WHERE " . implode( ' && ', $str ) );
 		$num = mysql_num_rows( $res );
 		
 		if( $num == 0 ) return NULL;
@@ -168,10 +168,10 @@ class Database
 		$sql = 'UPDATE `'.$table.'` SET ';
 		
 		for( $n = 0; $n < count($array1); $n++ ) {
-			$sql .= ($n > 0 ? ',':'') . "`" . $array1[$n] . "`='" . mysql_escape_string($array2[$n]) . "'";
+			$sql .= ($n > 0 ? ',':'') . "`" . $array1[$n] . "`='" . mysql_real_escape_string($array2[$n]) . "'";
 		}
 		
-		$sql .= " WHERE `" . $idfield . "` = '" . mysql_escape_string($id) . "' LIMIT 1";
+		$sql .= " WHERE `" . $idfield . "` = '" . mysql_real_escape_string($id) . "' LIMIT 1";
 		
 		if(! $this->query( $sql ) )
 			self::error();
@@ -180,7 +180,7 @@ class Database
 	public function delete( $table, $field, $value ) {
 		$this->selectDb( $this->db );
 		
-		if(! $this->query( "DELETE FROM `".$table."` WHERE `".$field."` = '".mysql_escape_string($value)."' LIMIT 1" ) )
+		if(! $this->query( "DELETE FROM `".$table."` WHERE `".$field."` = '".mysql_real_escape_string($value)."' LIMIT 1" ) )
 			self::error();
 	}
 	
@@ -228,7 +228,7 @@ class Database
 				if( $list[$n] instanceof DBUnquoted )
 					array_push( $res, $list[$n]->string );
 				else
-					array_push( $res, $quote . mysql_escape_string($list[$n]) . $quote );
+					array_push( $res, $quote . mysql_real_escape_string($list[$n]) . $quote );
 			}
 		}
 		
@@ -384,7 +384,7 @@ class DatabaseObject
 				throw new SFException( "DatabaseObject: Unrecognized index field '$index'", ERR_REPORT_APP );
 			
 			$db = new Database( $this->_database );
-			$res = $db->query( "SELECT `" . implode( '`,`', array_values($this->_fields) ) . "` FROM `" . $this->_table . "` WHERE `" . $index . "` = '" . mysql_escape_string($id) . "' LIMIT 1" );
+			$res = $db->query( "SELECT `" . implode( '`,`', array_values($this->_fields) ) . "` FROM `" . $this->_table . "` WHERE `" . $index . "` = '" . mysql_real_escape_string($id) . "' LIMIT 1" );
 			
 			if(! is_resource($res) )
 				throw new SFException( 'DatabaseObject MySQL Error: ' . mysql_error(), ERR_REPORT_APP );

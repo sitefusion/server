@@ -39,7 +39,7 @@ try {
 	/*
 	$db = mysql_connect( $WEBCONFIG['databaseHost'], $WEBCONFIG['databaseUsername'], $WEBCONFIG['databasePassword'] );
 	mysql_select_db( 'sitefusion' );
-	$res = mysql_query( "SELECT `ident` FROM `processes` WHERE `id` = '".mysql_escape_string($_GET['sid'])."'" );
+	$res = mysql_query( "SELECT `ident` FROM `processes` WHERE `id` = '".mysql_real_escape_string($_GET['sid'])."'" );
 	if(! $res )
 		die( mysql_error() );
 	
