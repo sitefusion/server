@@ -856,7 +856,7 @@ class TreeDataSet extends TreeDataSupports
 		if(! (in_array($type, $types) || is_array($type)) )
 			throw new SFException( "Invalid sort type: $type", ERR_REPORT_APP );
 
-		$this->colSortTypes[$this->getColumnIndex($col)] = $type;
+		$this->colSortTypes[$this->getColumnIndex($col->dataId)] = $type;
 	}
 
 	/**
