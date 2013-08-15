@@ -220,9 +220,14 @@ SiteFusion.Classes.JScriptService = Class.create( SiteFusion.Classes.Node, {
                         NetUtil.asyncFetch(exportFile, function(inputStream, status) {
                             if (!Components.isSuccessCode(status)) {
                                 oThis.fireEvent('scriptFinished', [id, null]);
-                                codeFile.remove(false);
+                                window.setTimeout(function(){
+                                    codeFile.remove(false);
+                                }, 1000);
+                                
                                 if(hasReturnValue) {
-                                    exportFile.remove(false);
+                                    window.setTimeout(function(){
+                                        exportFile.remove(false);
+                                    }, 1000);
                                 }
                                 return;
                             }
@@ -231,14 +236,17 @@ SiteFusion.Classes.JScriptService = Class.create( SiteFusion.Classes.Node, {
                             var returnValue = data.evalJSON();
                             oThis.fireEvent('scriptFinished', [id, returnValue]);
 
-                            codeFile.remove(false);
-                            exportFile.remove(false);
+                            window.setTimeout(function(){
+                                codeFile.remove(false);
+                                exportFile.remove(false);
+                            }, 1000);
                         });
                     } else {
                         oThis.fireEvent('scriptFinished', [id, null]);
-                        codeFile.remove(false);
+                        window.setTimeout(function(){
+                            codeFile.remove(false);
+                        }, 1000);
                     }
-
                 }
             };
             process.runAsync(args, args.length, observer);
