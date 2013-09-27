@@ -163,6 +163,20 @@ class XULCustomTree extends XULTree
 		if( isset($this->dataSet->idToRow[$rowId]))
             $this->dataSet->idToRow[$rowId]->openStateChanged($open);
 	}
+
+	/**
+	 * Scroll the TreeView to the given row
+	 * @author Mark van Veen
+	 * @param  TreeDataRow $row 
+	 * @return void
+	 */
+	public function scrollIntoView($row) {
+		$this->rootApplication->sendCommand("
+			var elem = {$this->js}.view.idToRow[{$row->id}];
+			var rowId = {$this->js}.view.getRowIndex(elem);
+			{$this->js}.element.boxObject.scrollToRow(rowId);
+		");
+	}
 }
 
 
@@ -449,6 +463,32 @@ class TreeDataItem extends TreeDataSupports
 		if( $this->_isSync )
 			$this->updateProperty( 'properties', $this->_properties );
 
+		return $this;
+	}
+
+	public function getRowProperties() {
+		return $this->_properties;
+	}
+
+	public function addRowProperty($property) {
+		if(array_search($property, $this->_properties) === FALSE) {
+			$this->_properties[] = $property;
+			if( $this->_isSync )
+				$this->updateProperty( 'properties', $this->_properties );
+		}
+		return $this;
+	}
+
+	public function removeRowProperty($property) {
+		$key = array_search($property, $this->_properties);
+		if($key !== FALSE) {
+			
+			unset($this->_properties[$key]);
+			$this->_properties = array_values($this->_properties);
+
+			if( $this->_isSync )
+				$this->updateProperty( 'properties', $this->_properties );
+		}
 		return $this;
 	}
 
@@ -856,7 +896,7 @@ class TreeDataSet extends TreeDataSupports
 		if(! (in_array($type, $types) || is_array($type)) )
 			throw new SFException( "Invalid sort type: $type", ERR_REPORT_APP );
 
-		$this->colSortTypes[$this->getColumnIndex($col->dataId)] = $type;
+		$this->colSortTypes[$this->getColumnIndex(is_string($col) ? $col : $col->dataId)] = $type;
 	}
 
 	/**

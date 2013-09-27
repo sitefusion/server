@@ -55,7 +55,7 @@ if( ! $db )
 
 echo "Create database '$dbname' if it doesn't exist...\n";
 
-if( ! mysql_query( "CREATE DATABASE IF NOT EXISTS `".mysql_escape_string($dbname)."`" ) )
+if( ! mysql_query( "CREATE DATABASE IF NOT EXISTS `".mysql_real_escape_string($dbname)."`" ) )
 	die( "Error: Could not create database: " . mysql_error() );
 
 mysql_select_db( $dbname );

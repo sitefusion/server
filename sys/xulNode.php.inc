@@ -209,6 +209,9 @@ class Node
 			$obj = array($obj);
 		
 		foreach ( $obj as $node ) {
+			if(!($node instanceof Node)) {
+				throw new SFException('Object is not a Node.', ERR_REPORT_APP);
+			}
 			if( ! property_exists( $node, 'isRegistered' ) )
 				throw new SFException( 'Object cannot be yielded because it is not a Node class object', ERR_REPORT_APP );
 			if( ! $node->isRegistered )
