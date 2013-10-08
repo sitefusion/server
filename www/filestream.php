@@ -38,25 +38,30 @@ include( 'functions.php' );
 
 try {
 	if( ! (isset($_GET['cid']) && isset($_GET['sid']) && isset($_GET['ident']) ) )
-		throw new Exception( 'No parameters' );
+		throw new PDOException( 'No parameters' );
 	
-	$db = mysql_connect( $WEBCONFIG['databaseHost'], $WEBCONFIG['databaseUsername'], $WEBCONFIG['databasePassword'] );
-	mysql_select_db( $WEBCONFIG['databaseName'] );
-	$res = mysql_query( "SELECT * FROM `processes` WHERE `id` = '".mysql_real_escape_string($_GET['sid'])."'" );
-	if(! $res )
-		throw new Exception( mysql_error() );
+	$options = array(
+		PDO::ATTR_EMULATE_PREPARES => FALSE,
+		PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+		PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8'
+	);
 	
-	if( ! mysql_num_rows($res) )
-		throw new Exception( 'No session' );
+	$dsn = "mysql:host=" . $WEBCONFIG['databaseHost'] . ";dbname=" . $WEBCONFIG['databaseName'];
+	$dbh = new PDO($dsn, $WEBCONFIG['databaseUsername'], $WEBCONFIG['databasePassword'], $options);	
 	
-	$dbSession = mysql_fetch_assoc( $res );
+	$dbh->prepare("SELECT * FROM `processes` WHERE `id` = ?");
+	$sth->bindValue(1, $_GET['sid']);
+	$sth->execute();
+	
+	$dbSession = $sth->fetch(PDO::FETCH_ASSOC);
+	if ( !$dbSession )
+		throw new PDOException( 'No session' );
 	
 	if( $dbSession['ident'] != $_GET['ident'] )
-		throw new Exception( 'Not authorized' );
+		throw new PDOException( 'Not authorized' );
 	
 	$port = (int) $dbSession['port'];
-}
-catch ( Exception $ex ) {
+} catch ( PDOException $ex ) {
 	echo $ex->getMessage();
 	exit(1);
 }
