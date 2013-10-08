@@ -712,30 +712,57 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
 
 	this.getRowProperties = function( idx, prop ) {
 		var row = this.visibleData[idx];
+		var propStr = '';
 		if( row.properties ) {
 			var aserv = Cc["@mozilla.org/atom-service;1"].getService(Ci.nsIAtomService);
 			for( var n = 0; n < row.properties.length; n++ ) {
-				prop.AppendElement(aserv.getAtom(row.properties[n]));
+				if (typeof prop === 'undefined') {
+					propStr += (propStr.length ? " " : "") + row.properties[n];
+				}
+				else {
+					prop.AppendElement(aserv.getAtom(row.properties[n]));
+				}
 			}
+		}
+		if (propStr.length) {
+			return propStr;
 		}
 	};
 
 	this.getColumnProperties = function( column, prop ) {
+		var propStr = '';
 		if( this.columnProperties[column.index] ) {
 			var aserv = Cc["@mozilla.org/atom-service;1"].getService(Ci.nsIAtomService);
 			for( var n = 0; n < this.columnProperties[column.index].length; n++ ) {
-				prop.AppendElement(aserv.getAtom(this.columnProperties[column.index][n]));
+				if (typeof prop === 'undefined') {
+					propStr += (propStr.length ? " " : "") + this.columnProperties[column.index][n];
+				}
+				else {
+					prop.AppendElement(aserv.getAtom(this.columnProperties[column.index][n]));
+				}
 			}
+		}
+		if (propStr.length) {
+			return propStr;
 		}
 	};
 
 	this.getCellProperties = function( idx, column, prop ) {
 		var row = this.visibleData[idx];
+		var propStr = '';
 		if( row.cellProperties && row.cellProperties[column.index] ) {
 			var aserv = Cc["@mozilla.org/atom-service;1"].getService(Ci.nsIAtomService);
 			for( var n = 0; n < row.cellProperties[column.index].length; n++ ) {
-				prop.AppendElement(aserv.getAtom(row.cellProperties[column.index][n]));
+				if (typeof prop === 'undefined') {
+					propStr += (propStr.length ? " " : "") + row.cellProperties[column.index][n];
+				}
+				else {
+					prop.AppendElement(aserv.getAtom(row.cellProperties[column.index][n]));
+				}
 			}
+		}
+		if (propStr.length) {
+			return propStr;
 		}
 	};
 

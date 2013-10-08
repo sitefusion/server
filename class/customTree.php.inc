@@ -170,11 +170,25 @@ class XULCustomTree extends XULTree
 	 * @param  TreeDataRow $row 
 	 * @return void
 	 */
-	public function scrollIntoView($row) {
+	public function scrollToRow($row) {
 		$this->rootApplication->sendCommand("
 			var elem = {$this->js}.view.idToRow[{$row->id}];
 			var rowId = {$this->js}.view.getRowIndex(elem);
 			{$this->js}.element.boxObject.scrollToRow(rowId);
+		");
+	}
+
+	/**
+	 * Scroll the TreeView to the given row
+	 * @author Mark van Veen
+	 * @param  TreeDataRow $row 
+	 * @return void
+	 */
+	public function ensureRowIsVisible($row) {
+		$this->rootApplication->sendCommand("
+			var elem = {$this->js}.view.idToRow[{$row->id}];
+			var rowId = {$this->js}.view.getRowIndex(elem);
+			{$this->js}.element.boxObject.ensureRowIsVisible(rowId);
 		");
 	}
 }
