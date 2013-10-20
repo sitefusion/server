@@ -22,7 +22,7 @@ $WEBCONFIG['sitefusionPath'] = '/usr/local/sitefusion';
 // Database hostname or IP address
 // This should be the database server that contains the 'sitefusion' database
 
-$WEBCONFIG['databaseHost'] = 'localhost';
+$WEBCONFIG['databaseHost'] = '127.0.0.1';
 
 
 // Username and password for the database server
