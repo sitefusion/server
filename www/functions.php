@@ -30,7 +30,6 @@
  * @package Webfrontend
 */
 
-
 function WriteCommand( $socket, $cmd, $param = NULL, $data = NULL ) {
 	if(! is_array($param) )
 		$param = array();
@@ -51,6 +50,26 @@ function WriteCommand( $socket, $cmd, $param = NULL, $data = NULL ) {
 		if( socket_write( $socket, $data, strlen($data) ) === FALSE )
 			die( 'WriteCommand: socket_write() failed: '.socket_strerror(socket_last_error($socket)) );
 	}
+}
+
+function GetSessionFromSID($sid, $username, $password, $dsn, $host = NULL, $databaseName = NULL) {
+	$db = NULL;
+	if (!$dsn && $host && $databaseName) {
+		$dsn = 'mysql:host='.$host.';dbname='.$databaseName;
+	} 
+	try {
+	    $db = new PDO($dsn, $username, $password);
+	} catch(PDOException $e) {
+	    die("Error connecting to database!");
+	}
+
+	$statement = $db->prepare('SELECT * FROM processes WHERE id = ?');
+	if (!$statement) {
+		die("Error preparing database statement!");
+	}
+	$statement->execute(array($sid));
+	
+	return $statement->fetch();
 }
 
 function ReadCommand( $socket ) {

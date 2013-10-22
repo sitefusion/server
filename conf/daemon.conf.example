@@ -38,19 +38,14 @@ $SFCONFIG['sessionTimeout'] = 60 * 30;
 // service client connection.
 $SFCONFIG['serviceClientTimeout'] = 60 * 5;
 
-// Database hostname or IP address
-// This should be the database server that contains the SiteFusion database
-$SFCONFIG['databaseHost'] = 'localhost';
+//the DSN path for file based databases should be relative to the sitefusiond path
+$WEBCONFIG['databaseDSN'] = "sqlite:../db/sfdb.sq3";
+//$WEBCONFIG['databaseDSN'] = "mysql:host=127.0.0.1;dbname=sitefusion";
 
 // Username and password for the database server
 // This login is only used by the daemon, not by the child processes
 $SFCONFIG['databaseUsername'] = 'root';
 $SFCONFIG['databasePassword'] = 'dev';
-
-// Database name
-// The name of the database that SiteFusion uses to hold process information
-$SFCONFIG['databaseName'] = 'sitefusion';
-
 
 // Path to the SiteFusion directory
 $SFCONFIG['sitefusionPath'] = '/usr/local/sitefusion';

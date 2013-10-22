@@ -57,10 +57,11 @@ class DaemonProcess extends SiteFusionProcess
 		'serviceClientTimeout' => 300,
 		'portSleepTime' => 240,
 		'daemonCycleInterval' => 10000,
-		'databaseHost' => 'localhost',
+		'databaseHost' => '127.0.0.1',
+		'databaseName' => 'sitefusion',
+		'databaseDSN' => '',
 		'databaseUsername' => '',
 		'databasePassword' => '',
-		'databaseName' => 'sitefusion',
 		'databaseFailureRetries' => 5,
 		'databaseFailureRetryInterval' => 1000,
 		'sitefusionPath' => '',
@@ -372,10 +373,8 @@ class DaemonProcess extends SiteFusionProcess
 		
 		foreach ( $read as $socket ) {
 			$child = self::GetChildBySocket( $socket );
-			
 			try {
 				$cmd = self::ReadCommand( $socket );
-				
 				switch ( $cmd->command ) {
 					case 'LIVE':		self::HandleChildCmdKeepalive( $child ); break;
 					case 'LOGIN':		self::ChildStarted( $child, $cmd ); break;
@@ -392,21 +391,18 @@ class DaemonProcess extends SiteFusionProcess
 	}
 	
 	static private function CheckJobSchedule( $minute, $hour, $monthday, $month, $weekday ) {
-		$res = self::DatabaseQuery(
-			"SELECT `owner`,`job`,`args`,`mail_output`
-			FROM `".self::$Options['databaseName']."`.`jobs`
+		$result = self::DatabaseQuery(
+			"SELECT owner,job,args,mail_output
+			FROM ".self::$Database->tblJobs."
 			WHERE
-			(`minute` = -1 || `minute` = $minute) &&
-			(`hour` = -1 || `hour` = $hour) &&
-			(`monthday` = -1 || `monthday` = $monthday) &&
-			(`month` = -1 || `month` = $month) &&
-			(`weekday` = -1 || `weekday` = $weekday)"
+			(minute = -1 OR minute = ?) AND
+			(hour = -1 OR hour = ?) AND
+			(monthday = -1 OR monthday = ?) AND
+			(month = -1 OR month = ?) AND
+			(weekday = -1 OR weekday = ?)",array($minute, $hour, $monthday, $month,$weekday)
 		);
 		
-		$num = mysql_num_rows( $res );
-		
-		for( $n = 0; $n < $num; $n++ ) {
-			$jobdata = mysql_fetch_assoc( $res );
+		foreach($result as $jobdata) {
 			
 			self::StartJob( $jobdata['owner'].($jobdata['owner'] == '' ? '':'/').$jobdata['job'], $jobdata['args'], ($jobdata['mail_output'] ? $jobdata['mail_output'] : NULL) );
 		}
@@ -420,28 +416,18 @@ class DaemonProcess extends SiteFusionProcess
 		$child->app = $param->app;
 		$child->args = $param->args;
 		$child->ip = $param->ip;
+
 		if( $child->type == 'app' )
 			$child->extendedInfo = unserialize($param->data);
 		
-		$res = self::DatabaseQuery( "INSERT INTO `".self::$Options['databaseName']."`.`processes` (
-		`id` ,
-		`type` ,
-		`ident` ,
-		`user` ,
-		`app` ,
-		`args` ,
-		`client_ip` ,
-		`port`,
-		`pid`
-		)
-		VALUES (
-		'".$param->sid."', '".$param->type."', '".$param->ident."', '".mysql_real_escape_string($param->user)."', '".mysql_real_escape_string($param->app)."', '".mysql_real_escape_string($param->args)."', '".mysql_real_escape_string($param->ip)."', '".$child->port."', '".$child->pid."'
-		)
-		" );
-		
-		if( ! $res )
-			throw new SFException( 'ChildStarted: MySQL Error: '.mysql_error() );
-		
+		try {
+			self::DatabaseQuery( "INSERT INTO ".self::$Database->tblProcesses." (id, type, ident, user, app, args, client_ip, port, pid) VALUES (?,?,?,?,?,?,?,?,?)", array($param->sid,$param->type,$param->ident,$param->user,$param->app,$param->args,$param->ip,$child->port,$child->pid));
+		}
+		catch ( Exception $ex ) {
+				self::$Database = NULL;
+				self::Log('ChildStarted: Database Error (code: '.$ex->getCode().'): ' . $ex->getMessage());
+				throw new SFException( 'ChildStarted: Database Error (code: '.$ex->getCode().'): ' . $ex->getMessage() );
+		}
 		switch ( $child->type ) {
 			case 'app':
 				self::Log( "Application started ($child->sessionId) at port $child->port with [pid: $child->pid], [application: $child->app], [args: $child->args], [user: $child->user], [ip: $child->ip]" );
@@ -460,10 +446,13 @@ class DaemonProcess extends SiteFusionProcess
 	}
 	
 	static private function ChildEnded( $child ) {
-		$res = self::DatabaseQuery( "DELETE FROM `".self::$Options['databaseName']."`.`processes` WHERE `id` = '".$child->sessionId."' LIMIT 1" );
-		
-		if( ! $res )
-			throw new SFException( 'ChildEnded: MySQL Error: '.mysql_error() );
+		try {
+			self::DatabaseQuery( "DELETE FROM ".self::$Database->tblProcesses." WHERE id = ?", array($child->sessionId) );
+		}
+		catch ( PDOException $ex ) {
+			self::$Database = NULL;
+			throw new SFException( 'ChildEnded: Database Error (code: '.$ex->getCode().'): ' . $ex->getMessage() );
+		}
 		
 		switch ( $child->type ) {
 			case 'app':
@@ -571,6 +560,10 @@ class DaemonProcess extends SiteFusionProcess
 				self::WriteCommand( $child->socket, 'STATUS', array( 'shutdown' => (int)self::$Shutdown, 'graceful' => (int)self::$Graceful, 'restart' => (int)self::$Restart, 'memory' => memory_get_usage(), 'memory_peak' => memory_get_peak_usage() ) );
 				break;
 			
+			case 'getdaemonprocesslist':
+				self::WriteCommand( $child->socket, 'DAEMONPROCESSLIST', NULL, serialize(self::GetDaemonProcessList()) );
+				break;
+
 			case 'getappinfo':
 				$extendedInfo = NULL;
 				foreach ( self::$Children as $rChild ) {
@@ -588,19 +581,31 @@ class DaemonProcess extends SiteFusionProcess
 				break;
 		}
 	}
+
+	static public function GetDaemonProcessList() {
+		$results = self::DatabaseQuery( "SELECT * FROM ".self::$Database->tblProcesses );
+		
+		foreach( $results as $row) {
+			unset( $row['ident'] );
+			$ret[] = $row;
+		}
+		
+		return $ret;
+	}
 	
 	static private function HandleJobCmd( $child, $cmd ) {
 		switch ( $cmd->action ) {
 			case 'getlist':
-				$res = self::DatabaseQuery(
-					"SELECT *
-					FROM `".self::$Options['databaseName']."`.`jobs`
-					" . ($child->app == 'sitefusion/admin' ? '':"WHERE `owner` = '".mysql_real_escape_string(self::GetApplicationOwnerName($child->app))."'")
-				);
-				$num = mysql_num_rows($res);
-				$ret = array();
-				for( $n = 0; $n < $num; $n++ ) {
-					$ret[] = mysql_fetch_assoc( $res );
+				$statement=NULL;
+				if ($child->app == 'sitefusion/admin') {
+					$sql = "SELECT * FROM ".self::$Database->tblJobs;
+				}
+				else {
+					$sql = "SELECT * FROM ".self::$Database->tblJobs." WHERE owner = ?";
+				}
+				$results = self::DatabaseQuery($sql, self::GetApplicationOwnerName($child->app));
+				foreach( $results as $row ) {
+					$ret[] = $row;
 				}
 				self::WriteCommand( $child->socket, 'JOBS', NULL, serialize($ret) );
 				break;
@@ -608,18 +613,20 @@ class DaemonProcess extends SiteFusionProcess
 			case 'addjob':
 				$param = unserialize( $cmd->data );
 				self::DatabaseQuery(
-					"INSERT INTO `".self::$Options['databaseName']."`.`jobs`
-					(`owner`,`job`,`args`,`minute`,`hour`,`monthday`,`month`,`weekday`,`mail_output`)
-					VALUES (
-					'".mysql_real_escape_string($child->app == 'sitefusion/admin' ? $param['owner'] : self::GetApplicationOwnerName($child->app))."',
-					'".mysql_real_escape_string($param['job'])."',
-					'".mysql_real_escape_string($param['args'])."',
-					'".((int)$param['minute'])."',
-					'".((int)$param['hour'])."',
-					'".((int)$param['monthday'])."',
-					'".((int)$param['month'])."',
-					'".((int)$param['weekday'])."',
-					'".mysql_real_escape_string($param['mail_output'])."')"
+					"INSERT INTO ".self::$Database->tblJobs."
+					(owner,job,args,minute,hour,monthday,month,weekday,mail_output)
+					VALUES (?,?,?,?,?,?,?,?,?)",
+					array(
+						$child->app == 'sitefusion/admin' ? $param['owner'] : self::GetApplicationOwnerName($child->app),
+						self::$Database->quote($param['job']),
+						$param['args'],
+						(int)$param['minute'],
+						(int)$param['hour'],
+						(int)$param['monthday'],
+						(int)$param['month'],
+						(int)$param['weekday'],
+						$param['mail_output']
+					)
 				);
 				
 				self::WriteCommand( $child->socket, 'OK' );
@@ -628,23 +635,42 @@ class DaemonProcess extends SiteFusionProcess
 			case 'changejob':
 				$param = unserialize( $cmd->data );
 				if( $child->app != 'sitefusion/admin' ) {
-					$res = self::DatabaseQuery( "SELECT count(*) FROM `".self::$Options['databaseName']."`.`jobs` WHERE `owner` = '".mysql_real_escape_string(self::GetApplicationOwnerName($child->app))."' && `id` = ".(int)$cmd->id );
-					list($num) = mysql_fetch_row($res);
+					$results = self::DatabaseQuery( "SELECT count(*) FROM ".self::$Database->tblJobs." WHERE owner = ? && id = ?",
+					array(
+						self::GetApplicationOwnerName($child->app),
+						(int)$cmd->id
+					));
+					foreach( $results as $row ) {
+						list($num) = $row;
+					}
 					if( ! $num ) return;
 				}
 				self::DatabaseQuery(
-					"UPDATE `".self::$Options['databaseName']."`.`jobs`
+					"UPDATE ".self::$Database->tblJobs."
 					SET
-					`owner` = '".mysql_real_escape_string($child->app == 'sitefusion/admin' ? $param['owner'] : self::GetApplicationOwnerName($child->app))."',
-					`job` = '".mysql_real_escape_string($param['job'])."',
-					`args` = '".mysql_real_escape_string($param['args'])."',
-					`minute` = '".((int)$param['minute'])."',
-					`hour` = '".((int)$param['hour'])."',
-					`monthday` = '".((int)$param['monthday'])."',
-					`month` = '".((int)$param['month'])."',
-					`weekday` = '".((int)$param['weekday'])."',
-					`mail_output` = '".mysql_real_escape_string($param['mail_output'])."'
-					WHERE `id` = ".(int)$cmd->id
+					owner = ?',
+					job = ?,
+					args = ?,
+					minute = ?,
+					hour = ?,
+					monthday = ?,
+					month = ?,
+					weekday = ?,
+					mail_output = ?
+					WHERE id = ?",
+					array(
+						($child->app == 'sitefusion/admin' ? $param['owner'] : self::GetApplicationOwnerName($child->app)),
+						$param['job'],
+						$param['args'],
+						(int)$param['minute'],
+						(int)$param['hour'],
+						(int)$param['minute'],
+						(int)$param['monthday'],
+						(int)$param['month'],
+						(int)$param['weekday'],
+						$param['mail_output'],
+						(int)$cmd->id
+					)
 				);
 				
 				self::WriteCommand( $child->socket, 'OK' );
@@ -653,12 +679,19 @@ class DaemonProcess extends SiteFusionProcess
 			case 'deletejob':
 				$id = (int) $cmd->id;
 				if( $child->app != 'sitefusion/admin' ) {
-					$res = self::DatabaseQuery( "SELECT count(*) FROM `".self::$Options['databaseName']."`.`jobs` WHERE `owner` = '".mysql_real_escape_string(self::GetApplicationOwnerName($child->app))."' && `id` = ".(int)$cmd->id );
-					list($num) = mysql_fetch_row($res);
+					$results = self::DatabaseQuery( "SELECT count(*) FROM ".self::$Database->tblJobs." WHERE owner = ? && id = ?",
+						array(
+							self::GetApplicationOwnerName($child->app),
+							(int)$cmd->id
+						)
+					);
+					foreach( $results as $row ) {
+						list($num) = $row;
+					}
 					if( ! $num ) return;
 				}
 				self::DatabaseQuery(
-					"DELETE FROM `".self::$Options['databaseName']."`.`jobs` WHERE `id` = ".(int)$cmd->id
+					"DELETE FROM ".self::$Database->tblJobs." WHERE id = ?", array((int)$cmd->id)
 				);
 				
 				self::WriteCommand( $child->socket, 'OK' );
@@ -669,32 +702,31 @@ class DaemonProcess extends SiteFusionProcess
 	static private function HandleServiceCmd( $child, $cmd ) {
 		switch ( $cmd->action ) {
 			case 'getlist':
-				$res = self::DatabaseQuery(
-					"SELECT *
-					FROM `".self::$Options['databaseName']."`.`services`
-					" . ($child->app == 'sitefusion/admin' ? '':"WHERE `owner` = '".mysql_real_escape_string(self::GetApplicationOwnerName($child->app))."'")
+				$results = self::DatabaseQuery(
+					"SELECT * FROM ".self::$Database->tblServices."
+					" . ($child->app == 'sitefusion/admin' ? '':"WHERE owner = ?"), array(self::GetApplicationOwnerName($child->app))
 				);
-				$num = mysql_num_rows($res);
-				$ret = array();
-				for( $n = 0; $n < $num; $n++ ) {
-					$ret[] = mysql_fetch_assoc( $res );
+				foreach( $results as $row ) {
+					$ret[] = $row;
 				}
 				self::WriteCommand( $child->socket, 'SERVICES', NULL, serialize($ret) );
 				break;
 			
 			case 'addservice':
 				$param = unserialize( $cmd->data );
-				self::DatabaseQuery(
-					"INSERT INTO `".self::$Options['databaseName']."`.`services`
-					(`owner`,`service`,`args`,`daemon`)
-					VALUES (
-					'".mysql_real_escape_string($child->app == 'sitefusion/admin' ? $param['owner'] : self::GetApplicationOwnerName($child->app))."',
-					'".mysql_real_escape_string($param['service'])."',
-					'".mysql_real_escape_string($param['args'])."',
-					'".((int)$param['daemon'])."')"
+				$numRows  = self::DatabaseQuery(
+					"INSERT INTO ".self::$Database->tblServices."
+					(owner,service,args,daemon)
+					VALUES (?,?,?,?)",
+					array(
+						($child->app == 'sitefusion/admin' ? $param['owner'] : self::GetApplicationOwnerName($child->app)),
+						$param['service'],
+						$param['args'],
+						(int)$param['daemon']
+					)
 				);
 				if( intval($param['daemon']) )
-					self::StartService( mysql_insert_id(self::$Database) );
+					self::StartService( self::$Database->lastInsertId() );
 				
 				self::WriteCommand( $child->socket, 'OK' );
 				break;
@@ -702,18 +734,33 @@ class DaemonProcess extends SiteFusionProcess
 			case 'changeservice':
 				$param = unserialize( $cmd->data );
 				if( $child->app != 'sitefusion/admin' ) {
-					$res = self::DatabaseQuery( "SELECT count(*) FROM `".self::$Options['databaseName']."`.`services` WHERE `owner` = '".mysql_real_escape_string(self::GetApplicationOwnerName($child->app))."' && `id` = ".(int)$cmd->id );
-					list($num) = mysql_fetch_row($res);
+					$results = self::DatabaseQuery( "SELECT count(*) FROM ".self::$Database->tblServices." WHERE owner = ? && id = ?", 
+						array(
+							self::GetApplicationOwnerName($child->app),
+							(int)$cmd->id
+						)
+					);
+					$num=0;
+					foreach($results as $row) {
+						list($num) = $row;
+					}
 					if( ! $num ) return;
 				}
 				self::DatabaseQuery(
-					"UPDATE `".self::$Options['databaseName']."`.`services`
+					"UPDATE ".self::$Database->tblServices."
 					SET
-					`owner` = '".mysql_real_escape_string($child->app == 'sitefusion/admin' ? $param['owner'] : self::GetApplicationOwnerName($child->app))."',
-					`service` = '".mysql_real_escape_string($param['service'])."',
-					`args` = '".mysql_real_escape_string($param['args'])."',
-					`daemon` = '".((int)$param['daemon'])."'
-					WHERE `id` = ".(int)$cmd->id
+					owner = ?,
+					service = ?,
+					args = ?,
+					daemon = ?
+					WHERE id = ?",
+					array(
+						$child->app == 'sitefusion/admin' ? $param['owner'] : self::GetApplicationOwnerName($child->app),
+						$param['service'],
+						$param['args'],
+						(int)$param['daemon'],
+						(int)$cmd->id
+					)
 				);
 				if( intval($param['daemon']) )
 					self::RestartService( (int)$cmd->id );
@@ -724,23 +771,26 @@ class DaemonProcess extends SiteFusionProcess
 			case 'deleteservice':
 				$id = (int) $cmd->id;
 				if( $child->app != 'sitefusion/admin' ) {
-					$res = self::DatabaseQuery( "SELECT count(*) FROM `".self::$Options['databaseName']."`.`services` WHERE `owner` = '".mysql_real_escape_string(self::GetApplicationOwnerName($child->app))."' && `id` = ".(int)$cmd->id );
-					list($num) = mysql_fetch_row($res);
+					$results = self::DatabaseQuery( "SELECT count(*) FROM ".self::$Database->tblServices." WHERE owner = ? && id = ?",
+					array(
+						self::GetApplicationOwnerName($child->app),
+						(int)$cmd->id
+					));
+					$num = 0;
+					foreach ($results as $row) {
+						list($num) = $row;
+					}
 					if( ! $num ) return;
 				}
 
-				$res = self::DatabaseQuery( "SELECT * FROM `".self::$Options['databaseName']."`.`services` WHERE `id` = ".(int)$cmd->id );
-				$num = mysql_num_rows($res);
-				if( ! $num ) return;
-				$param = mysql_fetch_assoc( $res );
-				
-				self::DatabaseQuery(
-					"DELETE FROM `".self::$Options['databaseName']."`.`services` WHERE `id` = ".(int)$cmd->id
-				);
-				if( intval($param['daemon']) )
-					self::StopService( (int)$cmd->id );
-				
-				self::WriteCommand( $child->socket, 'OK' );
+				$results = self::DatabaseQuery( "SELECT * FROM ".self::$Database->tblServices." WHERE id = ?", array((int)$cmd->id) );
+				foreach( $results as $row ) {
+					self::DatabaseQuery("DELETE FROM ".self::$Database->tblServices." WHERE id = ?". array((int)$cmd->id));
+					if( intval($row['daemon']) )
+						self::StopService( (int)$cmd->id );
+					
+					self::WriteCommand( $child->socket, 'OK' );
+				}
 				break;
 		}
 	}
@@ -748,28 +798,29 @@ class DaemonProcess extends SiteFusionProcess
 	static private function HandleGetServiceCmd( $child, $cmd ) {
 		$id = (int) $cmd->id;
 		
-		$res = self::DatabaseQuery( "SELECT * FROM `".self::$Options['databaseName']."`.`services` WHERE `id` = ".$id );
-		$num = mysql_num_rows($res);
-		if( ! $num ) {
-			self::WriteCommand( $child->socket, 'ERROR' );
-			return;
-		}
-		
-		$srv = mysql_fetch_assoc( $res );
-		
-		if( $srv['daemon'] ) {
-			foreach ( self::$Children as $c ) {
-				if( $c->type == 'service' && $c->serviceId == $id ) {
-					self::WriteCommand( $child->socket, 'OK', array( 'pid' => $c->pid ) );
-					return;
+		$results = self::DatabaseQuery( "SELECT * FROM ".self::$Database->tblServices." WHERE id = ?", array($id) );
+
+		$numRes=0;
+		foreach( $results as $srv ) {
+			$numRes++;
+			if( $srv['daemon'] ) {
+				foreach ( self::$Children as $c ) {
+					if( $c->type == 'service' && $c->serviceId == $id ) {
+						self::WriteCommand( $child->socket, 'OK', array( 'pid' => $c->pid ) );
+						return;
+					}
 				}
+				self::WriteCommand( $child->socket, 'ERROR' );
+				return;
 			}
-			self::WriteCommand( $child->socket, 'ERROR' );
-			return;
+			else {
+				$pid = self::StartService( $id, $child->pid );
+				self::WriteCommand( $child->socket, 'OK', array( 'pid' => $pid ) );
+				return;
+			}
 		}
-		else {
-			$pid = self::StartService( $id, $child->pid );
-			self::WriteCommand( $child->socket, 'OK', array( 'pid' => $pid ) );
+		if( !$numRes ) {
+			self::WriteCommand( $child->socket, 'ERROR' );
 			return;
 		}
 	}
@@ -879,13 +930,19 @@ class DaemonProcess extends SiteFusionProcess
 	}
 	
 	static private function StartService( $id, $master = NULL ) {
-		$res = self::DatabaseQuery( "SELECT * FROM `".self::$Options['databaseName']."`.`services` WHERE `id` = ".(int)$id );
-		$num = mysql_num_rows($res);
-		if( !$num ) return;
-		$srv = mysql_fetch_assoc( $res );
-		if( ($master && $srv['daemon']) || ((!$master) && (!$srv['daemon'])) )
-			return;
+		$results = self::DatabaseQuery( "SELECT * FROM ".self::$Database->tblServices." WHERE id = ?", array((int)$id) );
+
 		
+		$srv = NULL;
+		$numRows=0;
+		foreach ($results as $row) {
+			$numRows++;
+			$srv = $row;
+			if( ($master && $srv['daemon']) || ((!$master) && (!$srv['daemon'])) )
+				return;
+		}
+		if( !$numRows) return;
+
 		list($parentCommandPipe,$childCommandPipe) = self::GetSocketPair();
 		list($parentEventPipe,$childEventPipe) = self::GetSocketPair();
 		$sessionId = md5( time() . $srv['service'] . $srv['owner'] . mt_rand() );
@@ -952,15 +1009,13 @@ class DaemonProcess extends SiteFusionProcess
 	}
 	
 	static private function StartDaemonServices() {
-		$res = self::DatabaseQuery( "SELECT `id` FROM `".self::$Options['databaseName']."`.`services` WHERE `daemon` = 1" );
+		$statement = self::DatabaseQuery( "SELECT id FROM ".self::$Database->tblServices." WHERE daemon = 1");
+		$result = $statement->fetch();
+
+		list($id) = $result;
 		
-		$num = mysql_num_rows( $res );
+		self::StartService( $id );
 		
-		for( $n = 0; $n < $num; $n++ ) {
-			list($id) = mysql_fetch_row( $res );
-			
-			self::StartService( $id );
-		}
 	}
 	
 	static private function GetChildBySocket( $socket ) {
@@ -1110,13 +1165,19 @@ class SiteFusionProcess
 	
 	static protected function GetDatabaseConnection() {
 		$tries = 0;
+		//construct DSN for fallback mysql settings
+		$dsn = (self::$Options['databaseDSN'] ? self::$Options['databaseDSN'] : "mysql:host=".self::$Options['databaseHost'].";dbname=".self::$Options['databaseName']);
 		
+		$username = self::$Options['databaseUsername'];
+		$password  = self::$Options['databasePassword'];
+
 		while( $tries++ <= self::$Options['databaseFailureRetries'] ) {
 			try {
-				self::$Database = mysql_connect( self::$Options['databaseHost'], self::$Options['databaseUsername'], self::$Options['databasePassword'], TRUE );
+				self::$Database = new PDO($dsn, $username, $password);
 			}
-			catch ( Exception $ex ) {
+			catch ( PDOException $ex ) {
 				self::$Database = NULL;
+				throw new SFException( 'Database connection failed (code: '.$ex->getCode().'): ' . $ex->getMessage() );
 			}
 			
 			if( ! self::$Database ) {
@@ -1125,55 +1186,61 @@ class SiteFusionProcess
 			}
 			else break;
 		}
-		
-		if( ! self::$Database )
-			throw new SFException( 'Database connection failed: ' . mysql_error() );
-		
-		if( ! mysql_select_db( self::$Options['databaseName'], self::$Database ) )
-			throw new SFException( "Failed to select database: " . mysql_error() );
+		//prepare table names
+		self::$Database->tblProcesses = "processes";
+		self::$Database->tblJobs = "jobs";
+		self::$Database->tblServices = "services";
 	}
 	
 	static protected function InitDatabase() {
 		self::GetDatabaseConnection();
 		
-		if( ! mysql_query( "TRUNCATE TABLE `".self::$Options['databaseName']."`.`processes`", self::$Database ) )
-			throw new SFException( "Failed to truncate table 'processes': " . mysql_error() );
+		try {
+			self::DatabaseQuery( "DELETE FROM ".self::$Database->tblProcesses);
+		}
+		catch (PDOException $ex ) {
+			throw new SFException( "Failed to truncate table 'processes'(code: ".$ex->getCode()."): ". $ex->getMessage() );
+		}
 	}
 	
 	static protected function CloseDatabase() {
 		if( ! self::$Database )
 			self::GetDatabaseConnection();
-		
-		if( ! mysql_query( "TRUNCATE TABLE `".self::$Options['databaseName']."`.`processes`", self::$Database ) )
-			throw new SFException( "Failed to truncate table 'processes': " . mysql_error() );
+
+		try {
+			self::DatabaseQuery( "DELETE FROM ".self::$Database->tblProcesses);
+		}
+		catch (PDOException $ex ) {
+			throw new SFException( "Failed to truncate table 'processes'(code: ".$ex->getCode()."): ". $ex->getMessage() );
+		}
 	}
 	
 	static protected function ResetDatabase() {
 		try {
-			mysql_close( self::$Database );
+			//http://stackoverflow.com/questions/1046614/do-sql-connections-opened-with-pdo-in-php-have-to-be-closed
+			self::$Database = NULL;
 		}
 		catch ( SFException $ex ) {}
 		
 		self::GetDatabaseConnection();
 	}
 	
-	static protected function DatabaseQuery( $sql ) {
-		$res = FALSE;
-		try {
-			$res = mysql_query( $sql, self::$Database );
+	static protected function DatabaseQuery( $sql, $args=NULL ) {
+		$execSucceeded = FALSE;
+		$statement = self::$Database->prepare($sql);
+		if (!$statement) {
+			throw new SFException( "Database query preparation error for query: $sql");
 		}
-		catch ( Exception $ex ) {}
+		$execSucceeded = (($args && is_array($args))  ? $statement->execute($args) : $statement->execute());
 		
-		if( ! $res ) {
+		if( !$execSucceeded ) {
 			self::GetDatabaseConnection();
-			$res = mysql_query( $sql, self::$Database );
-			if( ! $res )
-				throw new SFException( "Database Query Error: " . mysql_error() );
+			$execSucceeded = (($args && is_array($args))  ? $statement->execute($args) : $statement->execute());
 		}
 		
-		return $res;
+		return $statement;
 	}
-	
+
 	static protected function OpenSocket( $address, $port ) {
 		if (($sock = socket_create(AF_INET, SOCK_STREAM, SOL_TCP)) === false) {
 			throw new SFException( "socket_create() failed: reason: " . socket_strerror(socket_last_error()) );
@@ -1285,6 +1352,7 @@ class SiteFusionProcess
 	
 	static protected function ReadCommand( $socket ) {
 		$cmddata = socket_read( $socket, 4096, PHP_NORMAL_READ );
+
 		if( $cmddata === FALSE )
 			throw new SFException( 'ReadCommand: socket_read() failed: '.socket_strerror(socket_last_error($socket)) );
 	
