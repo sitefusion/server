@@ -305,7 +305,8 @@ SiteFusion.Classes.FileDownloader = Class.create( SiteFusion.Classes.Node, {
                 this.persistObject.saveURI(uri,null,null,null,null,this.targetFile,privacyContext);
             }
         } catch (e) {
-            SiteFusion.Error(e);
+            this.fireEvent( 'failed', [ this.localPath, e.name ] );
+            return;
         }
 
         this.fireEvent( 'started', [ this.localPath ] );

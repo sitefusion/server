@@ -67,7 +67,7 @@ if( ! mysql_query( "CREATE TABLE IF NOT EXISTS `processes` (
 	 `type` varchar(10) NOT NULL,
 	 `ident` varchar(32) NOT NULL,
 	 `user` varchar(32) NOT NULL,
-	 `app` varchar(32) NOT NULL,
+	 `app` varchar(64) NOT NULL,
 	 `args` varchar(64) NOT NULL,
 	 `client_ip` varchar(15) NOT NULL,
 	 `port` int(11) NOT NULL,
