@@ -84,7 +84,14 @@ SiteFusion.Classes.BasicWindow = Class.create( SiteFusion.Classes.Node, {
 	},
 
 	alert: function( text ) {
-		PromptService.alert(this.windowObject,"",text+'');
+        //apply the check for the window being hidden.
+        var targetWindow = this.windowObject;
+
+        winUtils = this.windowObject.QueryInterface(Ci.nsIInterfaceRequestor).getInterface(Ci.nsIDOMWindowUtils);
+        if (winUtils && !winUtils.isParentWindowMainWidgetVisible) {
+            targetWindow = null;
+        }
+        PromptService.alert(targetWindow,"",text+'');
 	},
 
 	setTitle: function( title ) {
@@ -155,7 +162,7 @@ SiteFusion.Classes.Window = Class.create( SiteFusion.Classes.BasicWindow, {
 		this.element.setAttribute( 'id', 'sitefusion-window' );
 		
 		this.initMenuBar();
-		
+
 		var obsService = Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService);
 		
 		var wakeObserver = {
@@ -177,7 +184,7 @@ SiteFusion.Classes.Window = Class.create( SiteFusion.Classes.BasicWindow, {
 					subject.data = true;
 			}
 		};
-		 
+
 		obsService.addObserver( wakeObserver, 'wake_notification', false );
 		//Addition for xulrunner 2.0 addonmanager restart cycle
 		obsService.addObserver( {observe: function( subject, topic, data){ oThis.onClose(); }}, 'quit-application-requested', false );
@@ -289,7 +296,6 @@ SiteFusion.Classes.ChildWindow = Class.create( SiteFusion.Classes.BasicWindow, {
 		this.attachEvents();
 		
 		this.initMenuBar();
-		
 		this.fireEvent( 'initialized' );
 	},
 	
@@ -448,30 +454,47 @@ SiteFusion.Classes.PromptService = Class.create( SiteFusion.Classes.Node, {
 		this.setEventHost();
 	},
 	
+	getTargetWindow: function() {
+		//apply the check for the window being hidden.
+        var targetWindow = this.hostWindow.windowObject;
+
+        if (targetWindow) {
+	        winUtils = targetWindow.QueryInterface(Ci.nsIInterfaceRequestor).getInterface(Ci.nsIDOMWindowUtils);
+
+	        if (winUtils && !winUtils.isParentWindowMainWidgetVisible) {
+	            targetWindow = null;
+	        }
+    	}
+    	else {
+    		targetWindow = null;
+    	}
+        return targetWindow;
+	},
+
 	alert: function( title, text ) {
-		this.promptService.alert( this.hostWindow.windowObject, title+'', text+'' );
+		this.promptService.alert( this.getTargetWindow(), title+'', text+'' );
 	},
 	
 	alertCheck: function( title, text, checkMsg, checkState ) {
 		checkState = { value: checkState };
-		this.promptService.alertCheck( this.hostWindow.windowObject, title+'', text+'', checkMsg+'', checkState );
+		this.promptService.alertCheck( this.getTargetWindow(), title+'', text+'', checkMsg+'', checkState );
 		this.fireEvent( 'yield', [ true, checkState.value, null, null, null ] );
 	},
 	
 	confirm: function( title, text ) {
-		var result = this.promptService.confirm( this.hostWindow.windowObject, title+'', text+'' );
+		var result = this.promptService.confirm( this.getTargetWindow(), title+'', text+'' );
 		this.fireEvent( 'yield', [ result, null, null, null, null ] );
 	},
 	
 	confirmCheck: function( title, text, checkMsg, checkState ) {
 		checkState = { value: checkState };
-		var result = this.promptService.confirmCheck( this.hostWindow.windowObject, title+'', text+'', checkMsg+'', checkState );
+		var result = this.promptService.confirmCheck( this.getTargetWindow(), title+'', text+'', checkMsg+'', checkState );
 		this.fireEvent( 'yield', [ result, checkState.value, null, null, null ] );
 	},
 	
 	confirmEx: function( title, text, buttonFlags, button0Title, button1Title, button2Title, checkMsg, checkState ) {
 		checkState = { value: checkState };
-		var result = this.promptService.confirmEx( this.hostWindow.windowObject, title+'', text+'', buttonFlags, button0Title, button1Title, button2Title, checkMsg, checkState );
+		var result = this.promptService.confirmEx( this.getTargetWindow(), title+'', text+'', buttonFlags, button0Title, button1Title, button2Title, checkMsg, checkState );
 		this.fireEvent( 'yield', [ result, checkState.value, null, null, null ] );
 	},
 	
@@ -479,7 +502,7 @@ SiteFusion.Classes.PromptService = Class.create( SiteFusion.Classes.Node, {
 		if( checkMsg !== null ) checkMsg = checkMsg+'';
 		checkState = { value: checkState };
 		textValue = { value: textValue+'' };
-		var result = this.promptService.prompt( this.hostWindow.windowObject, title+'', text+'', textValue, checkMsg, checkState );
+		var result = this.promptService.prompt( this.getTargetWindow(), title+'', text+'', textValue, checkMsg, checkState );
 		this.fireEvent( 'yield', [ result, checkState.value, textValue.value, null, null ] );
 	},
 	
@@ -488,7 +511,7 @@ SiteFusion.Classes.PromptService = Class.create( SiteFusion.Classes.Node, {
 		checkState = { value: checkState };
 		username = { value: username+'' };
 		password = { value: password+'' };
-		var result = this.promptService.promptUsernameAndPassword( this.hostWindow.windowObject, title+'', text+'', username, password, checkMsg, checkState );
+		var result = this.promptService.promptUsernameAndPassword( this.getTargetWindow(), title+'', text+'', username, password, checkMsg, checkState );
 		this.fireEvent( 'yield', [ result, checkState.value, null, username.value, password.value ] );
 	},
 	

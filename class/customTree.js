@@ -118,7 +118,7 @@ SiteFusion.Classes.CustomTree = Class.create( SiteFusion.Classes.Node, {
 			oThis.element.setAttribute( 'ondblclick', 'sfRootWindow.windowObject.SiteFusion.Registry['+oThis.cid+'].onItemEvent(event, \'itemDoubleClick\');' );
 			oThis.element.setAttribute( 'oncontextmenu', 'sfRootWindow.windowObject.SiteFusion.Registry['+oThis.cid+'].onItemEvent(event, \'itemContextClick\');' );
 		}, 1 );
-		this.hostWindow.windowObject.setTimeout(function() {oThis.element.columns.restoreNaturalOrder();},200);
+		this.hostWindow.windowObject.setTimeout(function() {if (oThis.element.columns){oThis.element.columns.restoreNaturalOrder();}},200);
 	},
 	onItemEvent: function ( eventObj, eventName ) {
 		var row = {}, column = {}, part = {};
