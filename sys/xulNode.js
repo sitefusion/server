@@ -27,7 +27,24 @@
 
 SiteFusion.Classes.Node = Class.create( {
 	preventDeferredInsertion: false,
-	
+	observer: null,
+
+	addObserver: function(topic) {
+		if (!this.observer) {
+			this.observer = new this.Observer( this );
+			this.createEvent('observe', 0);
+		}
+		this.observer.register(topic);
+	},
+
+	removeObserver: function(topic) {
+		if (!this.observer) {
+			return;
+		}
+		this.observer.unregister(topic);
+	},
+
+
 	setEventHost: function( events, exclude ) {
 		this.eventHost = {};
 		
@@ -411,6 +428,62 @@ SiteFusion.Classes.Node = Class.create( {
 		obj.fireEvent( 'sfdragstart' );
 	},
 	
+	Observer: Class.create( {
+		topicIds: [],
+		initialize: function( sfNode ) {
+			this.sfNode = sfNode;
+			this.topicIds = [];
+			this.observerService = Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService);
+			//window.setTimeout( function() { alert('observer initialize'); }, 100);
+		},
+		observe: function(aSubject, aTopic, aData) {
+			
+			var data = '';
+			var subject = '';
+			if (aSubject) { 
+				try {
+					aSubject.QueryInterface(Ci.nsISupportsString);
+					if (aSubject && aSubject.data) {
+						subject = aSubject.data + '';
+					}
+				}
+				catch (e) {}
+			}
+			if (aData) {
+				data = aData + '';
+			}
+			topic = aTopic + '';
+			SiteFusion.consoleMessage(sfNode);
+			//note: we reverse the order since topic is our primary identifier
+     		this.sfNode.fireEvent( 'observe', [ topic, subject, data] );
+  		},
+		register: function(topicId) {
+			//we can only register 1 observer per topicId per SFNode
+			this.unregister(topicId);
+		    
+		    this.topicIds.push(topicId);
+		    this.observerService.addObserver(this, topicId, false);
+	  	},
+	  	unregister: function(topicId) {
+	  		var removeIndex=-1;
+	    	for(var i in this.topicIds){
+	    		if(this.topicIds[i]==topicId){
+			        removeIndex = i;
+			        break;
+		        }
+			}
+			if (removeIndex != -1) {
+	    		this.observerService.removeObserver(this, topicId);
+	    		this.topicIds.splice(removeIndex,1);
+	    	}
+	  	},
+	  	destroy: function() {
+	  		for(var i in this.topicIds){
+	  			this.unregister(this.topicIds[i]);
+	  		}
+	  	}
+	}),
+
 	DropObserver: Class.create( {
 		initialize: function( sfNode, flavors ) {
 			this.sfNode = sfNode;

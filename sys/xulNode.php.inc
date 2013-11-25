@@ -63,6 +63,7 @@ class Node
 	public $eventType		= array();
 	public $handlerFor		= array();
 	public $yielderFor		= array();
+	public $observerTopics	= array();
 	private $_dropHandlerObj = NULL;
 	private $_dropHandlerMethod = NULL;
 	
@@ -80,6 +81,48 @@ class Node
 		}
 	}
 	
+	/* Observers */
+	
+	
+	/**
+	* Add an observer to this Node
+	* 
+	* @link https://developer.mozilla.org/en-US/docs/XUL/School_tutorial/Observer_Notifications
+	* @param string		$topic		Topic to observe
+	*/
+
+	public function addObserver($topic) {
+		if (!in_array($topic,$this->observerTopics)) {
+			$this->observerTopics[] = $topic;
+		}
+		$this->callMethod( 'addObserver', array( $topic ) );
+	}
+
+	/**
+	* Remove an observer from this Node
+	* 
+	* @link https://developer.mozilla.org/en-US/docs/XUL/School_tutorial/Observer_Notifications
+	* @param string		$topic		Topic to stop observing
+	*/
+
+	public function removeObserver($topic) {
+		if (($key = array_search($topic, $this->observerTopics)) !== false) {
+			unset($this->observerTopics[$key]);
+			$this->callMethod( 'removeObserver', array( $topic ) );
+		}
+	}
+
+	/**
+	* Remove all observers from this Node
+	* 
+	* @link https://developer.mozilla.org/en-US/docs/XUL/School_tutorial/Observer_Notifications
+	*/
+
+	public function removeObservers() {
+		foreach ($this->observerTopics as $topic) {
+			$this->removeObserver($topic);
+		}
+	}
 	
 	/* Event Handling */
 	
@@ -762,10 +805,11 @@ class Node
 	/**
 	 * [INTERNAL FUNCTION] Default detach method
 	 * 
-	 * The default action on detach is to call removeElement() and unRegister().
+	 * The default action on detach is to remove all observers, call removeElement() and unRegister().
 	*/
 	
 	public function detach() {
+		$this->removeObservers();
 		$this->removeElement();
 		$this->unRegister();
 	}

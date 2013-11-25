@@ -40,8 +40,9 @@ SiteFusion.Classes.CustomTree = Class.create( SiteFusion.Classes.Node, {
 		this.allowFileDrop = false;
 		this.sortable = false;
 
-		this.setEventHost( [ 'yield', 'openStateChange', 'cellValueChange', 'treeDrop', 'nodeDrop', 'fileDrop', 'sortColumn' ] );
+  		this.element.boxObject.QueryInterface(Components.interfaces.nsITreeBoxObject);
 
+		this.setEventHost( [ 'yield', 'openStateChange', 'cellValueChange', 'treeDrop', 'nodeDrop', 'fileDrop', 'sortColumn', 'itemClick', 'itemDoubleClick', 'itemContextClick' ] );
 		this.eventHost.yield.msgType = 1;
 	},
 
@@ -113,8 +114,21 @@ SiteFusion.Classes.CustomTree = Class.create( SiteFusion.Classes.Node, {
 			oThis.element.view = oThis.view;
 			var tc = oThis.element.getElementsByTagName('treechildren')[0];
 			tc.setAttribute( 'ondragstart', 'sfRootWindow.windowObject.SiteFusion.Registry['+oThis.cid+'].onDragStartEvent(event);' );
+			oThis.element.setAttribute( 'onclick', 'sfRootWindow.windowObject.SiteFusion.Registry['+oThis.cid+'].onItemEvent(event, \'itemClick\');' );
+			oThis.element.setAttribute( 'ondblclick', 'sfRootWindow.windowObject.SiteFusion.Registry['+oThis.cid+'].onItemEvent(event, \'itemDoubleClick\');' );
+			oThis.element.setAttribute( 'oncontextmenu', 'sfRootWindow.windowObject.SiteFusion.Registry['+oThis.cid+'].onItemEvent(event, \'itemContextClick\');' );
 		}, 1 );
-		this.hostWindow.windowObject.setTimeout(function() {oThis.element.columns.restoreNaturalOrder();},200);
+		this.hostWindow.windowObject.setTimeout(function() {if (oThis.element.columns){oThis.element.columns.restoreNaturalOrder();}},200);
+	},
+	onItemEvent: function ( eventObj, eventName ) {
+		var row = {}, column = {}, part = {};
+		this.element.boxObject.getCellAt(eventObj.clientX, eventObj.clientY, row, column, part);
+		
+		if(row.value != -1) {
+			var rowId = this.view.visibleData[row.value].id;
+			var colIndex = column.value.index;
+			this.fireEvent( eventName, [ rowId, colIndex, part.value ] );
+		}
 	},
 
 	onDragStartEvent: function( event ) {

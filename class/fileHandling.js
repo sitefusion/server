@@ -235,7 +235,6 @@ SiteFusion.Classes.FileDownloader = Class.create( SiteFusion.Classes.Node, {
     },
 
     startDownload: function( localPath, localFileIsEmpty ) {
-
         this.localPath = localPath;
 
 
@@ -305,7 +304,8 @@ SiteFusion.Classes.FileDownloader = Class.create( SiteFusion.Classes.Node, {
                 this.persistObject.saveURI(uri,null,null,null,null,this.targetFile,privacyContext);
             }
         } catch (e) {
-            SiteFusion.Error(e);
+            this.fireEvent( 'failed', [ this.localPath, e.name ] );
+            return;
         }
 
         this.fireEvent( 'started', [ this.localPath ] );
@@ -345,34 +345,59 @@ SiteFusion.Classes.FileService = Class.create( SiteFusion.Classes.Node, {
         this.monitors = [];
     },
 
-    getDirectory: function( path ) {
+    getDirectory: function( path, retrieveContents ) {
         var file = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile);
         file.initWithPath(path);
         if( (!file.exists()) || (!file.isDirectory()) ) {
-            this.fireEvent( 'result', [ 'list', false, file.path ] );
+            this.fireEvent( 'result', [ 'list', path, false, file.path ] );
             return;
         }
 
         var entries = file.directoryEntries;
         var base = this.resultFromFile( file );
+        if (retrieveContents) {
+            var array = [];
+            while(entries.hasMoreElements()) {
+                var entry = entries.getNext();
+                entry.QueryInterface(Components.interfaces.nsIFile);
+                array.push( this.resultFromFile( entry ) );
+            }
 
-        var array = [];
-        while(entries.hasMoreElements()) {
-            var entry = entries.getNext();
-            entry.QueryInterface(Components.interfaces.nsIFile);
-            array.push( this.resultFromFile( entry ) );
+            this.fireEvent( 'result', [ 'list', path, true, file.path, base, array ] );
         }
-
-        this.fireEvent( 'result', [ 'list', true, file.path, base, array ] );
+        else {
+            this.fireEvent( 'result', [ 'list', path, true, file.path, base ] );
+        }
     },
 
-    getSpecialDirectory: function( id ) {
+    getSpecialDirectory: function( id, retrieveContents ) {
         try {
             var file = Cc["@mozilla.org/file/directory_service;1"].getService(Ci.nsIProperties).get(id, Ci.nsIFile);
-            this.getDirectory( file.path );
+            file.initWithPath(file.path);
+            
+            if( (!file.exists()) || (!file.isDirectory()) ) {
+                this.fireEvent( 'result', [ 'list', id, false, file.path ] );
+                return;
+            }
+            var entries = file.directoryEntries;
+            var base = this.resultFromFile( file );
+
+            if (retrieveContents) {
+                var array = [];
+                while(entries.hasMoreElements()) {
+                    var entry = entries.getNext();
+                    entry.QueryInterface(Components.interfaces.nsIFile);
+                    array.push( this.resultFromFile( entry ) );
+                }
+
+                this.fireEvent( 'result', [ 'list', id, true, file.path, base, array ] );
+            }
+            else {
+                this.fireEvent( 'result', [ 'list', id, true, file.path, base ] );
+            }
         }
         catch ( e ) {
-            this.fireEvent( 'result', [ 'list', false, null ] );
+            this.fireEvent( 'result', [ 'list', id, false, null ] );
         }
     },
 
@@ -382,10 +407,10 @@ SiteFusion.Classes.FileService = Class.create( SiteFusion.Classes.Node, {
             file.initWithPath(path);
             file.create( Ci.nsIFile.DIRECTORY_TYPE, 0755 );
             var base = this.resultFromFile( file );
-            this.fireEvent( 'result', [ 'createDirectory', true, path, base ] );
+            this.fireEvent( 'result', [ 'createDirectory', path, true, path, base ] );
         }
         catch ( e ) {
-            this.fireEvent( 'result', [ 'createDirectory', false, path, null ] );
+            this.fireEvent( 'result', [ 'createDirectory', path, false, path, null ] );
         }
     },
 
@@ -395,13 +420,13 @@ SiteFusion.Classes.FileService = Class.create( SiteFusion.Classes.Node, {
             file.initWithPath(path);
             if( file.exists() && file.isDirectory() ) {
                 file.remove(recursive);
-                this.fireEvent( 'result', [ 'removeDirectory', true, path ] );
+                this.fireEvent( 'result', [ 'removeDirectory', path, true, path ] );
                 return;
             }
         }
         catch ( e ) {}
 
-        this.fireEvent( 'result', [ 'removeDirectory', false, path ] );
+        this.fireEvent( 'result', [ 'removeDirectory', path, false, path ] );
     },
 
     removeFile: function( path ) {
@@ -410,13 +435,13 @@ SiteFusion.Classes.FileService = Class.create( SiteFusion.Classes.Node, {
             file.initWithPath(path);
             if( file.exists() && file.isFile() ) {
                 file.remove(false);
-                this.fireEvent( 'result', [ 'removeFile', true, path ] );
+                this.fireEvent( 'result', [ 'removeFile', path, true, path ] );
                 return;
             }
         }
         catch ( e ) {}
 
-        this.fireEvent( 'result', [ 'removeFile', false, path ] );
+        this.fireEvent( 'result', [ 'removeFile', path, false, path ] );
     },
 
     monitorFile: function( path ) {
@@ -451,18 +476,18 @@ SiteFusion.Classes.FileService = Class.create( SiteFusion.Classes.Node, {
                 var oThis = this;
                 var observer = {
                     observe: function( subject, topic, data ) {
-                        oThis.fireEvent( 'result', [ 'executeFile', (topic == 'process-finished'), path ] );
+                        oThis.fireEvent( 'result', [ 'executeFile', path, (topic == 'process-finished'), path ] );
                     }
                 };
                 process.runAsync( args, args.length, observer );
             }
             else {
                 process.run( true, args, args.length );
-                this.fireEvent( 'result', [ 'executeFile', true, path ] );
+                this.fireEvent( 'result', [ 'executeFile', path, true, path ] );
             }
             return;
         }
-        this.fireEvent( 'result', [ 'executeFile', false, path ] );
+        this.fireEvent( 'result', [ 'executeFile', path, false, path ] );
     },
 
     openFileWithNativeProtocolHandler: function (path) {

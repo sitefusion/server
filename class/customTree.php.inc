@@ -73,6 +73,9 @@ class XULCustomTree extends XULTree
 		$this->callMethod( 'setView' );
 
 		$this->setEvent( 'cellValueChange', MSG_SEND, $this, 'cellValueYieldCollect' );
+		$this->setEvent( 'itemClick', MSG_SEND, $this, 'itemClickHandler' );
+		$this->setEvent( 'itemDoubleClick', MSG_SEND, $this, 'itemDoubleClickHandler' );
+		$this->setEvent( 'itemContextClick', MSG_SEND, $this, 'itemContextClickHandler' );
 		$this->setEvent( 'treeDrop', MSG_SEND, $this, 'treeDropHandler' );
 		$this->setEvent( 'nodeDrop', MSG_SEND, $this, 'nodeDropHandler' );
 		$this->setEvent( 'fileDrop', MSG_SEND, $this, 'fileDropHandler' );
@@ -88,6 +91,21 @@ class XULCustomTree extends XULTree
 	public function cellValueYieldCollect( $e, $rowId, $colId, $value ) {
 		$value = $this->dataSet->idToRow[$rowId]->pushedUpdate( $colId, $value );
 		$this->fireLocalEvent( 'cellUpdated', array( $this->dataSet->idToRow[$rowId], $this->dataSet->columns[$colId], $value ) );
+	}
+
+	public function itemClickHandler($e, $rowId, $colId, $part) {
+        if(isset($this->dataSet->idToRow[$rowId]) && isset($this->dataSet->columns[$colId]))
+            $this->fireLocalEvent( 'itemClicked', array( $this->dataSet->idToRow[$rowId], $this->dataSet->columns[$colId], $part ) );
+	}
+
+	public function itemDoubleClickHandler($e, $rowId, $colId, $part) {
+        if(isset($this->dataSet->idToRow[$rowId]) && isset($this->dataSet->columns[$colId]))
+            $this->fireLocalEvent( 'itemDoubleClicked', array( $this->dataSet->idToRow[$rowId], $this->dataSet->columns[$colId], $part ) );
+	}
+
+	public function itemContextClickHandler($e, $rowId, $colId, $part) {
+        if(isset($this->dataSet->idToRow[$rowId]) && isset($this->dataSet->columns[$colId]))
+            $this->fireLocalEvent( 'itemContextClicked', array( $this->dataSet->idToRow[$rowId], $this->dataSet->columns[$colId], $part ) );
 	}
 
 	public function treeDropHandler( $e, $sourceTree, $sourceSelection, $targetRow, $orientation ) {

@@ -41,17 +41,17 @@ if (in_array('-c',$_SERVER['argv'])) {
     $dbname = $WEBCONFIG['databaseName'];
 }
 else {
-	$dbhost = readline_c( 'Database hostname (leave empty for localhost): ' );
+	$dbhost = readline_c( 'Database hostname (leave empty for 127.0.0.1): ' );
 	$dbuser = readline_c( 'Database username: ' );
 	$dbpass = readline_c( 'Database password: ' );
 	$dbname = readline_c( 'Database name (leave empty for "sitefusion"): ' );
 	$dbname = ($dbname == '' ? 'sitefusion':$dbname);
 }
 
-$db = mysql_connect( ($dbhost == '' ? 'localhost':$dbhost), $dbuser, $dbpass );
+$db = mysql_connect( ($dbhost == '' ? '127.0.0.1':$dbhost), $dbuser, $dbpass );
 
 if( ! $db )
-	die( "Error: Could not connect to server: " . mysql_error() );
+	die( "Error: Could not connect to server: " . mysql_error(). ".\n");
 
 echo "Create database '$dbname' if it doesn't exist...\n";
 
@@ -67,7 +67,7 @@ if( ! mysql_query( "CREATE TABLE IF NOT EXISTS `processes` (
 	 `type` varchar(10) NOT NULL,
 	 `ident` varchar(32) NOT NULL,
 	 `user` varchar(32) NOT NULL,
-	 `app` varchar(32) NOT NULL,
+	 `app` varchar(64) NOT NULL,
 	 `args` varchar(64) NOT NULL,
 	 `client_ip` varchar(15) NOT NULL,
 	 `port` int(11) NOT NULL,

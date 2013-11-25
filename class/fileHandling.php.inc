@@ -979,9 +979,13 @@ class FileFromStreamDownloader extends Node
 class ClientFileService extends Node
 {
 	public $remoteConstructor = 'FileService';
-	private $handlers = array();
-	private $fileMonitors = array();
-	
+	private $handlersList = array();
+	private $handlersCreateDirectory = array();
+	private $handlersRemoveDirectory = array();
+	private $handlersRemoveFile = array();
+	private $handlersExecuteFile = array();
+	private $handlersMonitorFile = array();
+
 	public function attach() {
 		$this->createRemoteObject( array( $this->hostWindow ) );
 		$this->setEvent( 'result', MSG_SEND, $this, 'onResult' );
@@ -1007,8 +1011,8 @@ class ClientFileService extends Node
 	*/
 	
 	public function getDirectory( $path, $handlerObj, $handlerMethod ) {
-		$this->handlers[] = array( $handlerObj, $handlerMethod );
-		$this->callMethod( 'getDirectory', array( $path ) );
+		$this->handlersList[$path] = array( $handlerObj, $handlerMethod );
+		$this->callMethod( 'getDirectory', array( $path, TRUE ) );
 	}
 	
 	
@@ -1024,11 +1028,12 @@ class ClientFileService extends Node
 	 * @param string		$id					ID of the special folder, see link
 	 * @param object|string	$handlerObj			The object or classname to call the handler on when the operation finishes
 	 * @param string		$handlerMethod		The method to call on the handler object
+	 * @param bool			$retrieveContents	Retrieve the properties of the files in the specialDir
 	*/
 	
-	public function getSpecialDirectory( $id, $handlerObj, $handlerMethod ) {
-		$this->handlers[] = array( $handlerObj, $handlerMethod );
-		$this->callMethod( 'getSpecialDirectory', array( $id ) );
+	public function getSpecialDirectory( $id, $handlerObj, $handlerMethod, $retrieveContents=TRUE ) {
+		$this->handlersList[$id] = array( $handlerObj, $handlerMethod );
+		$this->callMethod( 'getSpecialDirectory', array( $id, $retrieveContents ) );
 	}
 	
 	
@@ -1046,7 +1051,7 @@ class ClientFileService extends Node
 	*/
 	
 	public function createDirectory( $path, $handlerObj = NULL, $handlerMethod = NULL ) {
-		$this->handlers[] = ($handlerObj&&$handlerMethod ? array( $handlerObj, $handlerMethod ) : NULL);
+		$this->handlersCreateDirectory[$path] = ($handlerObj&&$handlerMethod ? array( $handlerObj, $handlerMethod ) : NULL);
 		$this->callMethod( 'createDirectory', array( $path ) );
 	}
 	
@@ -1261,7 +1266,7 @@ class ClientFileService extends Node
 	*/
 	
 	public function removeDirectory( $clientPath, $recursive, $handlerObj = NULL, $handlerMethod = NULL ) {
-		$this->handlers[] = ($handlerObj&&$handlerMethod ? array( $handlerObj, $handlerMethod ) : NULL);
+		$this->handlersRemoveDirectory[$clientPath] = ($handlerObj&&$handlerMethod ? array( $handlerObj, $handlerMethod ) : NULL);
 		$this->callMethod( 'removeDirectory', array( $clientPath, (bool)$recursive ) );
 	}
 	
@@ -1280,7 +1285,7 @@ class ClientFileService extends Node
 	*/
 	
 	public function removeFile( $clientPath, $handlerObj = NULL, $handlerMethod = NULL ) {
-		$this->handlers[] = ($handlerObj&&$handlerMethod ? array( $handlerObj, $handlerMethod ) : NULL);
+		$this->handlersRemoveFile[$clientPath] = ($handlerObj&&$handlerMethod ? array( $handlerObj, $handlerMethod ) : NULL);
 		$this->callMethod( 'removeFile', array( $clientPath ) );
 	}
 	
@@ -1301,10 +1306,10 @@ class ClientFileService extends Node
 	*/
 	
 	public function monitorFile( $clientPath, $handlerObj, $handlerMethod ) {
-		if( isset($this->fileMonitors[$clientPath]) )
+		if( isset($this->handlersMonitorFile[$clientPath]) )
 			throw new SFException( "Path $clientPath is already being monitored!", ERR_REPORT_APP );
 		
-		$this->fileMonitors[$clientPath] = array( $handlerObj, $handlerMethod );
+		$this->handlersMonitorFile[$clientPath] = array( $handlerObj, $handlerMethod );
 		$this->callMethod( 'monitorFile', array( $clientPath ) );
 	}
 	
@@ -1316,7 +1321,7 @@ class ClientFileService extends Node
 	 
 	public function cancelMonitorFile ($clientPath) {
 		$this->callMethod( 'cancelMonitorFile', array( $clientPath ));
-		unset($this->fileMonitors[$clientPath]);	
+		unset($this->handlersMonitorFile[$clientPath]);	
 	}
 	
 	/**
@@ -1326,7 +1331,7 @@ class ClientFileService extends Node
 	 
 	public function cancelAllMonitors () {
 		$this->callMethod( 'cancelAllMonitors');
-		$this->fileMonitors = array();	
+		$this->handlersMonitorFile = array();	
 	}
 	
 	/**
@@ -1345,7 +1350,7 @@ class ClientFileService extends Node
 	*/
 	
 	public function executeFile( $clientPath, $args = array(), $async = TRUE, $handlerObj = NULL, $handlerMethod = NULL ) {
-		$this->handlers[] = ($handlerObj&&$handlerMethod ? array( $handlerObj, $handlerMethod ) : NULL);
+		$this->handlersExecuteFile[$clientPath] = ($handlerObj&&$handlerMethod ? array( $handlerObj, $handlerMethod ) : NULL);
 		$this->callMethod( 'executeFile', array( $clientPath, count($args) ? $args : NULL, $async ) );
 	}
 	
@@ -1385,7 +1390,7 @@ class ClientFileService extends Node
 		$args = func_get_args();
 		$event = array_shift( $args );
 		$op = array_shift( $args );
-		
+		$id = array_shift( $args );
 		switch ( $op ) {
 			case 'list':
 				$status = array_shift( $args );
@@ -1394,14 +1399,18 @@ class ClientFileService extends Node
 				if( $status ) {
 					$dirFile = $this->fileFromResult( $path, $args[0] );
 					$dirFile->entries = array();
-					foreach ( $args[1] as $file ) {
-						$cf = $this->fileFromResult( $path.$this->getDirSeparator().$file[0], $file );
-						$dirFile->entries[$file[0]] = $cf;
+					if (isset($args[1])) {
+						foreach ( $args[1] as $file ) {
+							$cf = $this->fileFromResult( $path.$this->getDirSeparator().$file[0], $file );
+							$dirFile->entries[$file[0]] = $cf;
+						}
 					}
 				}
 				else $dirFile = NULL;
 				
-				call_user_func_array( array_shift($this->handlers), array($this,$status,$dirFile) );
+				if (isset($this->handlersList[$id]) && is_array($this->handlersList[$id])) {
+					call_user_func_array( $this->handlersList[$id], array($this,$status,$dirFile) );
+				}
 			break;
 			
 			case 'createDirectory':
@@ -1413,29 +1422,44 @@ class ClientFileService extends Node
 					$dirFile->entries = array();
 				}
 				else $dirFile = NULL;
-				
-				if( ($handler = array_shift($this->handlers)) !== NULL )
-					call_user_func_array( $handler, array($this,$status,$dirFile) );
+				if (isset($this->handlersCreateDirectory[$id]) && is_array($this->handlersCreateDirectory[$id])) {
+					
+					call_user_func_array( $this->handlersCreateDirectory[$id], array($this,$status,$dirFile) );
+				}
 			break;
 			
 			case 'removeDirectory':
+				$status = array_shift( $args );
+				$path = array_shift( $args );
+
+				if (isset($this->handlersRemoveDirectory[$id]) && is_array($this->handlersRemoveDirectory[$id])) {
+					
+					call_user_func_array( $this->handlersRemoveDirectory[$id], array($this,$status,$path));
+				}
+			break;
 			case 'removeFile':
 				$status = array_shift( $args );
 				$path = array_shift( $args );
-				
-				if( ($handler = array_shift($this->handlers)) !== NULL )
-					call_user_func_array( $handler, array($this,$status,$path) );
+
+				if (isset($this->handlersRemoveFile[$id]) && is_array($this->handlersRemoveFile[$id])) {
+					
+					call_user_func_array( $this->handlersRemoveFile[$id], array($this,$status,$path));
+				}
 			break;
 			
 			case 'fileChanged':
-				list($path,$exists,$modificationTime,$size) = $args;
-				call_user_func_array( $this->fileMonitors[$path], array($this,$path,$exists,$modificationTime,$size) );
+				$path = $id;
+				list($exists,$modificationTime,$size) = $args;
+				call_user_func_array( $this->handlersMonitorFile[$path], array($this,$path,$exists,$modificationTime,$size) );
 			break;
 			
 			case 'executeFile':
 				list($status) = $args;
-				if( ($handler = array_shift($this->handlers)) !== NULL )
-					call_user_func_array( $handler, array($this,$status) );
+
+				if (isset($this->handlersExecuteFile[$id]) && is_array($this->handlersExecuteFile[$id])) {
+					
+					call_user_func_array( $this->handlersExecuteFile[$id], array($this,$status));
+				}
 			break;
 		}
 	}
