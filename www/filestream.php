@@ -39,7 +39,7 @@ include( 'functions.php' );
 try {
 	if( ! (isset($_GET['cid']) && isset($_GET['sid']) && isset($_GET['ident']) ) )
 		throw new Exception( 'No parameters' );
-	
+	$sid = $_GET['sid'];
 	$dbSession = GetSessionFromSID($sid, $WEBCONFIG['databaseUsername'], $WEBCONFIG['databasePassword'], (isset($WEBCONFIG['databaseDSN']) ? $WEBCONFIG['databaseDSN'] : ""), $WEBCONFIG['databaseHost'], $WEBCONFIG['databaseName']);
 	
 	if( $dbSession['ident'] != $_GET['ident'] )
