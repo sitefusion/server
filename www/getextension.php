@@ -35,31 +35,6 @@ ob_implicit_flush();
 include( '../conf/webfrontend.conf' );
 include( 'functions.php' );
 
-/*try {
-	if( ! (isset($_GET['sid']) && isset($_GET['ident']) ) )
-		throw new Exception( 'No parameters' );
-	
-	$db = mysql_connect( $WEBCONFIG['databaseHost'], $WEBCONFIG['databaseUsername'], $WEBCONFIG['databasePassword'] );
-	mysql_select_db( 'sitefusion' );
-	$res = mysql_query( "SELECT * FROM `processes` WHERE `id` = '".mysql_real_escape_string($_GET['sid'])."'" );
-	if(! $res )
-		throw new Exception( mysql_error() );
-	
-	if( ! mysql_num_rows($res) )
-		throw new Exception( 'No session' );
-	
-	$dbSession = mysql_fetch_assoc( $res );
-	
-	if( $dbSession['ident'] != $_GET['ident'] )
-		throw new Exception( 'Not authorized' );
-	
-	$port = (int) $dbSession['port'];
-}
-catch ( Exception $ex ) {
-	echo $ex->getMessage();
-	exit(1);
-}*/
-
 $extension = $_GET['extension'];
 if( strpos($extension,'/') || strpos($extension,"\\") or !file_exists($path = $WEBCONFIG['sitefusionPath'].'/extensions/'.$extension) ) {
 	echo "Invalid extension: $extension";
