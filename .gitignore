@@ -3,3 +3,5 @@ app/*
 !app/testapp/*
 !app/sitefusion
 !app/sitefusion/*
+extensions/*
+lib/*
