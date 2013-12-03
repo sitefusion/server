@@ -115,7 +115,7 @@ catch ( Exception $ex ) {
 		if( $cmd->found )
 			ReturnError( 'php_error', $cmd->data );
 		else
-			ReturnError( 'empty_error' );
+			ReturnError( 'php_error', 'webfrontend revcomm: ReadCommand failed' );
 	}
 	catch ( Exception $ex ) {
 		ReturnError( 'unspecified_error', $ex->getMessage() );

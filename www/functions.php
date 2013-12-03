@@ -45,10 +45,10 @@ function WriteCommand( $socket, $cmd, $param = NULL, $data = NULL ) {
 	$msg .= "\n";
 	
 	if( socket_write( $socket, $msg, strlen($msg) ) === FALSE )
-		die( 'WriteCommand: socket_write() failed: '.socket_strerror(socket_last_error($socket)) );
+		throw new SFException( 'WriteCommand: socket_write() failed: '.socket_strerror(socket_last_error($socket)) );
 	if( $data !== NULL ) {
 		if( socket_write( $socket, $data, strlen($data) ) === FALSE )
-			die( 'WriteCommand: socket_write() failed: '.socket_strerror(socket_last_error($socket)) );
+			throw new SFException( 'WriteCommand: socket_write() failed: '.socket_strerror(socket_last_error($socket)) );
 	}
 }
 
@@ -60,12 +60,12 @@ function GetSessionFromSID($sid, $username, $password, $dsn, $host = NULL, $data
 	try {
 	    $db = new PDO($dsn, $username, $password);
 	} catch(PDOException $e) {
-	    die("Error connecting to database!");
+	    throw new SFException("Error connecting to database!");
 	}
 
 	$statement = $db->prepare('SELECT * FROM processes WHERE id = ?');
 	if (!$statement) {
-		die("Error preparing database statement!");
+		throw new SFException("Error preparing database statement!");
 	}
 	$statement->execute(array($sid));
 	
