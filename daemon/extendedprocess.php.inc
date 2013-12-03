@@ -94,7 +94,7 @@ class ExtendedSiteFusionProcess extends SiteFusionProcess
 	
 	static protected function PollForDebugger() {
 		try {
-			$client = socket_accept( self::$DebugSocket );
+			$client = @socket_accept( self::$DebugSocket );
 		}
 		catch( SFException $ex ) {
 			return FALSE;
