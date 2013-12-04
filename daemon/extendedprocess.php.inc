@@ -361,6 +361,23 @@ class ExtendedSiteFusionProcess extends SiteFusionProcess
 	static public function Shutdown() {
 		self::$Shutdown = TRUE;
 	}
+
+	static public function ForkAndIsolate() {
+		$pid = pcntl_fork();
+		
+		if( $pid == -1 )
+			throw new SFException( "Could not fork" );
+		
+		if( !$pid ) {
+			socket_close( self::$Socket );
+			socket_close( self::$ParentSocket );
+			socket_close( self::$EventPipe );
+			if( self::$Options['debug'] )
+				socket_close( self::$DebugSocket );
+		}
+		
+		return $pid;
+	}
 }
 
 
