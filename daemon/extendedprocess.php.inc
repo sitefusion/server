@@ -94,7 +94,7 @@ class ExtendedSiteFusionProcess extends SiteFusionProcess
 	
 	static protected function PollForDebugger() {
 		try {
-			$client = socket_accept( self::$DebugSocket );
+			$client = @socket_accept( self::$DebugSocket );
 		}
 		catch( SFException $ex ) {
 			return FALSE;
@@ -136,6 +136,12 @@ class ExtendedSiteFusionProcess extends SiteFusionProcess
 		return self::$SessionID;
 	}
 	
+	static public function GetDaemonProcessList() {
+		self::WriteCommand( self::$ParentSocket, 'ADMIN', array( 'action' => 'getdaemonprocesslist' ) );
+		$cmd = self::ReadCommand( self::$ParentSocket );
+		return unserialize( $cmd->data );
+	}
+
 	static public function GetApplicationInfo( $sessionId ) {
 		self::WriteCommand( self::$ParentSocket, 'ADMIN', array( 'action' => 'getappinfo', 'sid' => $sessionId ) );
 		$cmd = self::ReadCommand( self::$ParentSocket );
@@ -200,21 +206,7 @@ class ExtendedSiteFusionProcess extends SiteFusionProcess
 		
 		return unserialize( $cmd->data );
 	}
-	
-	static public function GetDaemonProcessList() {
-		$res = self::DatabaseQuery( "SELECT * FROM `".self::$Options['databaseName']."`.`processes`" );
-		$num = mysql_num_rows( $res );
-		$ret = array();
 		
-		for( $n = 0; $n < $num; $n++ ) {
-			$data = mysql_fetch_assoc( $res );
-			unset( $data['ident'] );
-			$ret[] = $data;
-		}
-		
-		return $ret;
-	}
-	
 	static public function CreateService( $srv ) {
 		self::WriteCommand( self::$ParentSocket, 'SERVICE', array('action'=>'addservice'), serialize($srv) );
 		$cmd = self::ReadCommand( self::$ParentSocket );
@@ -368,6 +360,23 @@ class ExtendedSiteFusionProcess extends SiteFusionProcess
 	
 	static public function Shutdown() {
 		self::$Shutdown = TRUE;
+	}
+
+	static public function ForkAndIsolate() {
+		$pid = pcntl_fork();
+		
+		if( $pid == -1 )
+			throw new SFException( "Could not fork" );
+		
+		if( !$pid ) {
+			socket_close( self::$Socket );
+			socket_close( self::$ParentSocket );
+			socket_close( self::$EventPipe );
+			if( self::$Options['debug'] )
+				socket_close( self::$DebugSocket );
+		}
+		
+		return $pid;
 	}
 }
 

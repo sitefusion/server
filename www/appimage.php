@@ -31,18 +31,15 @@
 */
 
 include( '../conf/webfrontend.conf' );
+include( 'functions.php' );
+
+$sid = isset($_GET['sid']) ? $_GET['sid'] : NULL;
+if (!$sid) {
+	throw new Exception( 'Not authorized' );
+}
 
 try {
-	$db = mysql_connect( $WEBCONFIG['databaseHost'], $WEBCONFIG['databaseUsername'], $WEBCONFIG['databasePassword'] );
-	mysql_select_db( $WEBCONFIG['databaseName'] );
-	$res = mysql_query( "SELECT `ident` FROM `processes` WHERE `id` = '".mysql_real_escape_string($_GET['sid'])."'" );
-	if(! $res )
-		throw new Exception( mysql_error() );
-	
-	if( ! mysql_num_rows($res) )
-		throw new Exception( 'No session' );
-	
-	$dbSession = mysql_fetch_assoc( $res );
+	$dbSession = $dbSession = GetSessionFromSID($sid, $WEBCONFIG['databaseUsername'], $WEBCONFIG['databasePassword'], (isset($WEBCONFIG['databaseDSN']) ? $WEBCONFIG['databaseDSN'] : ""), $WEBCONFIG['databaseHost'], $WEBCONFIG['databaseName']);
 	
 	if( $dbSession['ident'] != $_GET['ident'] )
 		throw new Exception( 'Not authorized' );
