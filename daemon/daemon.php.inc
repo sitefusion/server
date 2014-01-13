@@ -409,6 +409,9 @@ class DaemonProcess extends SiteFusionProcess
 	}
 	
 	static private function ChildStarted( $child, $param ) {
+
+		$param->ip = ($param->ip ? $param->ip : "0.0.0.0");
+
 		$child->loggedIn = TRUE;
 		$child->sessionId = $param->sid;
 		$child->ident = $param->ident;
@@ -1009,13 +1012,11 @@ class DaemonProcess extends SiteFusionProcess
 	}
 	
 	static private function StartDaemonServices() {
-		$statement = self::DatabaseQuery( "SELECT id FROM ".self::$Database->tblServices." WHERE daemon = 1");
-		$result = $statement->fetch();
-
-		list($id) = $result;
-		
-		self::StartService( $id );
-		
+		$results = self::DatabaseQuery( "SELECT id FROM ".self::$Database->tblServices." WHERE daemon = 1");
+		foreach ($results as $result) {
+			list($id) = $result;
+			self::StartService( $id );
+		}
 	}
 	
 	static private function GetChildBySocket( $socket ) {
@@ -1179,7 +1180,8 @@ class SiteFusionProcess
 				self::$Database = NULL;
 				throw new SFException( 'Database connection failed (code: '.$ex->getCode().'): ' . $ex->getMessage() );
 			}
-			
+			self::$Database->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
 			if( ! self::$Database ) {
 				self::Log( 'Database connection failed, retry '.$tries.' in '.self::$Options['databaseFailureRetryInterval'].'ms' );
 				usleep( self::$Options['databaseFailureRetryInterval'] * 1000 );
