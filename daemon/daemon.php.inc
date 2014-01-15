@@ -587,7 +587,7 @@ class DaemonProcess extends SiteFusionProcess
 
 	static public function GetDaemonProcessList() {
 		$results = self::DatabaseQuery( "SELECT * FROM ".self::$Database->tblProcesses );
-		
+		$ret = array();
 		foreach( $results as $row) {
 			unset( $row['ident'] );
 			$ret[] = $row;
