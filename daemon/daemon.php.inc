@@ -606,7 +606,8 @@ class DaemonProcess extends SiteFusionProcess
 				else {
 					$sql = "SELECT * FROM ".self::$Database->tblJobs." WHERE owner = ?";
 				}
-				$results = self::DatabaseQuery($sql, self::GetApplicationOwnerName($child->app));
+				$results = self::DatabaseQuery($sql, array(self::GetApplicationOwnerName($child->app)));
+				$ret = array();
 				foreach( $results as $row ) {
 					$ret[] = $row;
 				}
@@ -705,6 +706,7 @@ class DaemonProcess extends SiteFusionProcess
 	static private function HandleServiceCmd( $child, $cmd ) {
 		switch ( $cmd->action ) {
 			case 'getlist':
+				$ret = array();
 				$results = self::DatabaseQuery(
 					"SELECT * FROM ".self::$Database->tblServices."
 					" . ($child->app == 'sitefusion/admin' ? '':"WHERE owner = ?"), array(self::GetApplicationOwnerName($child->app))
@@ -788,12 +790,11 @@ class DaemonProcess extends SiteFusionProcess
 
 				$results = self::DatabaseQuery( "SELECT * FROM ".self::$Database->tblServices." WHERE id = ?", array((int)$cmd->id) );
 				foreach( $results as $row ) {
-					self::DatabaseQuery("DELETE FROM ".self::$Database->tblServices." WHERE id = ?". array((int)$cmd->id));
+					self::DatabaseQuery("DELETE FROM ".self::$Database->tblServices." WHERE id = ?", array((int)$cmd->id));
 					if( intval($row['daemon']) )
 						self::StopService( (int)$cmd->id );
-					
-					self::WriteCommand( $child->socket, 'OK' );
 				}
+				self::WriteCommand( $child->socket, 'OK' );
 				break;
 		}
 	}
