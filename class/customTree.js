@@ -146,6 +146,8 @@ SiteFusion.Classes.CustomTree = Class.create( SiteFusion.Classes.Node, {
 
 		var tree = event.target.parentNode.sfNode;
 		var selection = tree.getSelection();
+		if(selection.length == 0 || typeof selection[0] == 'undefined')
+			 return;
 		var dragAllowed;
 
 		if( tree.isDraggable ) {

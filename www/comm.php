@@ -58,7 +58,10 @@ try {
 		throw new Exception( 'Not authorized' );
 	}
 
-	$dbSession = GetSessionFromSID($sid, $WEBCONFIG['databaseUsername'], $WEBCONFIG['databasePassword'], (isset($WEBCONFIG['databaseDSN']) ? $WEBCONFIG['databaseDSN'] : ""), $WEBCONFIG['databaseHost'], $WEBCONFIG['databaseName']);
+	$dbDSN =  (isset($WEBCONFIG['databaseDSN']) ? $WEBCONFIG['databaseDSN'] : NULL);
+	$dbHost = (isset($WEBCONFIG['databaseHost']) ? $WEBCONFIG['databaseHost'] : NULL);
+	$dbName = (isset($WEBCONFIG['databaseName']) ? $WEBCONFIG['databaseName'] : NULL);
+	$dbSession = $dbSession = GetSessionFromSID($sid, $WEBCONFIG['databaseUsername'], $WEBCONFIG['databasePassword'],$dbDSN, $dbHost, $dbName);
 	
 	if( $dbSession['ident'] != $_GET['ident'] )
 		throw new Exception( 'Not authorized');

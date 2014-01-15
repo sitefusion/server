@@ -39,8 +39,8 @@ $SFCONFIG['sessionTimeout'] = 60 * 30;
 $SFCONFIG['serviceClientTimeout'] = 60 * 5;
 
 //the DSN path for file based databases should be relative to the sitefusiond path
-$WEBCONFIG['databaseDSN'] = "sqlite:../db/sfdb.sq3";
-//$WEBCONFIG['databaseDSN'] = "mysql:host=127.0.0.1;dbname=sitefusion";
+$SFCONFIG['databaseDSN'] = "sqlite:../db/sfdb.sq3";
+//$SFCONFIG['databaseDSN'] = "mysql:host=127.0.0.1;dbname=sitefusion";
 
 // Username and password for the database server
 // This login is only used by the daemon, not by the child processes
