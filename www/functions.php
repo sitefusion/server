@@ -52,7 +52,7 @@ function WriteCommand( $socket, $cmd, $param = NULL, $data = NULL ) {
 	}
 }
 
-function GetSessionFromSID($sid, $username, $password, $dsn, $host = NULL, $databaseName = NULL) {
+function GetSessionFromSID($sid, $username, $password, $dsn = NULL, $host = NULL, $databaseName = NULL) {
 	$db = NULL;
 	if (!$dsn && $host && $databaseName) {
 		$dsn = 'mysql:host='.$host.';dbname='.$databaseName;
