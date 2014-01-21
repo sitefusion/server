@@ -130,16 +130,6 @@ SiteFusion.Classes.CustomTree = Class.create( SiteFusion.Classes.Node, {
 			this.fireEvent( eventName, [ rowId, colIndex, part.value ] );
 		}
 	},
-	onItemEvent: function ( eventObj, eventName ) {
-		var row = {}, column = {}, part = {};
-		this.element.boxObject.getCellAt(eventObj.clientX, eventObj.clientY, row, column, part);
-		
-		if(row.value != -1) {
-			var rowId = this.view.visibleData[row.value].id;
-			var colIndex = column.value.index;
-			this.fireEvent( eventName, [ rowId, colIndex, part.value ] );
-		}
-	},
 
 	onDragStartEvent: function( event ) {
 		//nsDragAndDrop.startDrag( event, this.DragObserver );
