@@ -127,7 +127,7 @@ SiteFusion.Classes.CustomTree = Class.create( SiteFusion.Classes.Node, {
 		if(row.value != -1) {
 			var rowId = this.view.visibleData[row.value].id;
 			var colIndex = column.value.index;
-			this.fireEvent( eventName, [ rowId, colIndex, part.value ] );
+			this.fireEvent( eventName, [ rowId, colIndex, part.value, eventObj.clientX, eventObj.clientY ] );
 		}
 	},
 
