@@ -93,19 +93,19 @@ class XULCustomTree extends XULTree
 		$this->fireLocalEvent( 'cellUpdated', array( $this->dataSet->idToRow[$rowId], $this->dataSet->columns[$colId], $value ) );
 	}
 
-	public function itemClickHandler($e, $rowId, $colId, $part) {
+	public function itemClickHandler($e, $rowId, $colId, $part, $clientX, $clientY) {
         if(isset($this->dataSet->idToRow[$rowId]) && isset($this->dataSet->columns[$colId]))
-            $this->fireLocalEvent( 'itemClicked', array( $this->dataSet->idToRow[$rowId], $this->dataSet->columns[$colId], $part ) );
+            $this->fireLocalEvent( 'itemClicked', array( $this->dataSet->idToRow[$rowId], $this->dataSet->columns[$colId], $part, $clientX, $clientY ) );
 	}
 
-	public function itemDoubleClickHandler($e, $rowId, $colId, $part) {
+	public function itemDoubleClickHandler($e, $rowId, $colId, $part, $clientX, $clientY) {
         if(isset($this->dataSet->idToRow[$rowId]) && isset($this->dataSet->columns[$colId]))
-            $this->fireLocalEvent( 'itemDoubleClicked', array( $this->dataSet->idToRow[$rowId], $this->dataSet->columns[$colId], $part ) );
+            $this->fireLocalEvent( 'itemDoubleClicked', array( $this->dataSet->idToRow[$rowId], $this->dataSet->columns[$colId], $part, $clientX, $clientY ) );
 	}
 
-	public function itemContextClickHandler($e, $rowId, $colId, $part) {
+	public function itemContextClickHandler($e, $rowId, $colId, $part, $clientX, $clientY) {
         if(isset($this->dataSet->idToRow[$rowId]) && isset($this->dataSet->columns[$colId]))
-            $this->fireLocalEvent( 'itemContextClicked', array( $this->dataSet->idToRow[$rowId], $this->dataSet->columns[$colId], $part ) );
+            $this->fireLocalEvent( 'itemContextClicked', array( $this->dataSet->idToRow[$rowId], $this->dataSet->columns[$colId], $part, $clientX, $clientY ) );
 	}
 
 	public function treeDropHandler( $e, $sourceTree, $sourceSelection, $targetRow, $orientation ) {

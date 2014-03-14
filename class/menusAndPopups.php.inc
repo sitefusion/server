@@ -63,6 +63,20 @@ class XULMenuPopup extends BranchNode
 		$this->createRemoteObject( $this->hostWindow, ($this->parent instanceof XULMenu), ($this->parent instanceof XULMenu ? $this->parent:NULL) );
 		$this->insertElement();
 	}
+
+	public function openPopup($anchorNode = NULL, $position = 'after_pointer', $x = 0, $y = 0, $isContext = TRUE, $attributesOverride = FALSE ){
+		if( !$this->isRegistered)
+			return;
+
+		$anchor = ($anchorNode != NULL ? $anchorNode->js : null);
+		$this->callMethod("element.openPopup",array(
+			$anchor, 
+			$position, 
+			$x, $y, 
+			$isContext, 
+			$attributesOverride
+		));
+	}
 }
 
 
