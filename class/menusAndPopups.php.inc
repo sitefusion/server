@@ -64,7 +64,19 @@ class XULMenuPopup extends BranchNode
 		$this->insertElement();
 	}
 
-	public function openPopup($anchorNode = NULL, $position = 'after_pointer', $x = 0, $y = 0, $isContext = TRUE, $attributesOverride = FALSE ){
+	/**
+	 * [openPopup description]
+	 * @param  [type]  $anchorNode         [description]
+	 * @param  string  $position           [description]
+	 * @param  integer $x                  [description]
+	 * @param  integer $y                  [description]
+	 * @param  boolean $isContext          [description]
+	 * @param  boolean $attributesOverride [description]
+	 * @return [type]                      [description]
+	 *
+	 * AFTER_POINT IS DEPRECATED!!!!
+	 */	
+	public function openPopup($anchorNode = NULL, $position = 'after_end', $x = 0, $y = 0, $isContext = TRUE, $attributesOverride = FALSE ){
 		if( !$this->isRegistered)
 			return;
 
