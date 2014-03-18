@@ -362,21 +362,47 @@ class ExtendedSiteFusionProcess extends SiteFusionProcess
 		self::$Shutdown = TRUE;
 	}
 
-	static public function ForkAndIsolate() {
+	static public function ForkAndIsolate($isolate = TRUE) {
+		self::$Database = NULL;
 		$pid = pcntl_fork();
 		
 		if( $pid == -1 )
 			throw new SFException( "Could not fork" );
 		
-		if( !$pid ) {
-			socket_close( self::$Socket );
-			socket_close( self::$ParentSocket );
-			socket_close( self::$EventPipe );
-			if( self::$Options['debug'] )
-				socket_close( self::$DebugSocket );
+		if( !$pid && $isolate) {
+			self::Isolate();
+		}
+
+		if( $pid > 0 )
+			self::GetDatabaseConnection();
+
+		return $pid;
+	}
+
+	static public function Fork($isolate){
+		self::$Database = NULL;
+		$pid = pcntl_fork();
+		
+		if( $pid == -1 )
+			throw new SFException( "Could not fork" );
+		
+		if( !$pid && $isolate) {
+			self::Isolate();			
 		}
 		
+		if( $pid > 0 )
+			self::GetDatabaseConnection();
+
 		return $pid;
+	}
+
+	static public function Isolate(){
+		socket_close( self::$Socket );
+		socket_close( self::$ParentSocket );
+		socket_close( self::$EventPipe );	
+
+		if( self::$Options['debug'] )
+			socket_close( self::$DebugSocket );
 	}
 }
 
