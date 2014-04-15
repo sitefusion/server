@@ -169,6 +169,10 @@ SiteFusion.Classes.Window = Class.create( SiteFusion.Classes.BasicWindow, {
 			observe: function( subject, topic, data ) {
 				
 				if (topic == 'wake_notification') {
+					//suppress all (session) errors after this message
+					if (typeof(SiteFusion.wakeTitle) != 'undefined') {
+						SiteFusion.WakeOccurred = true;
+					}
 					var promptService = Cc["@mozilla.org/embedcomp/prompt-service;1"].getService(Ci.nsIPromptService);
 					var wakeTitle = 'SiteFusion connection interrupted';
 					var wakeMessage = 'This application has lost connection to the SiteFusion server because of a system sleep. The application will now shut down.';

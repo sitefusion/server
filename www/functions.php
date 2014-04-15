@@ -45,10 +45,10 @@ function WriteCommand( $socket, $cmd, $param = NULL, $data = NULL ) {
 	$msg .= "\n";
 	
 	if( socket_write( $socket, $msg, strlen($msg) ) === FALSE )
-		throw new SFException( 'WriteCommand: socket_write() failed: '.socket_strerror(socket_last_error($socket)) );
+		throw new Exception( 'WriteCommand: socket_write() failed: '.socket_strerror(socket_last_error($socket)) );
 	if( $data !== NULL ) {
 		if( socket_write( $socket, $data, strlen($data) ) === FALSE )
-			throw new SFException( 'WriteCommand: socket_write() failed: '.socket_strerror(socket_last_error($socket)) );
+			throw new Exception( 'WriteCommand: socket_write() failed: '.socket_strerror(socket_last_error($socket)) );
 	}
 }
 
@@ -60,12 +60,12 @@ function GetSessionFromSID($sid, $username, $password, $dsn = NULL, $host = NULL
 	try {
 	    $db = new PDO($dsn, $username, $password);
 	} catch(PDOException $e) {
-	    throw new SFException("Error connecting to database!");
+	    throw new Exception("Error connecting to database!");
 	}
 
 	$statement = $db->prepare('SELECT * FROM processes WHERE id = ?');
 	if (!$statement) {
-		throw new SFException("Error preparing database statement!");
+		throw new Exception("Error preparing database statement!");
 	}
 	$statement->execute(array($sid));
 	
@@ -96,7 +96,7 @@ function ReadCommand( $socket ) {
 			$sbuf = @socket_read( $socket, min($dl-strlen($data),2048), PHP_BINARY_READ );
 			if( $sbuf === FALSE ) {
 				if( socket_last_error($socket) != 35 )
-					throw new SFException( 'ReadCommand: socket_read() failed: '.socket_strerror(socket_last_error($socket)) );
+					throw new Exception( 'ReadCommand: socket_read() failed: '.socket_strerror(socket_last_error($socket)) );
 			}
 			$data .= $sbuf;
 		}
