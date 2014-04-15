@@ -54,7 +54,7 @@ class XULListBox extends BranchNode
 	 * Dynamic Constructor
 	 *
 	 * @param int		$flex
-	 * @param string	$seltype
+	 * @param string	$seltype	String indicating selection style 'single' or 'multiple'
 	 * @param mixed		$childNodes
 	*/
 	
