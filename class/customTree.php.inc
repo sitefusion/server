@@ -567,10 +567,8 @@ class TreeDataRow extends TreeDataItem
 		if( $this->_isContainer )
 			$this->children = array();
 
-		if( $data ) {
-			$this->data = $data;
-			$this->processData( $this->data );
-		}
+		$this->data = ($data === NULL ? array() : $data);
+		$this->processData( $this->data );
 	}
 
 	public function open( $state = NULL ) {
