@@ -217,7 +217,7 @@ class PrefService extends Node {
 
     public function getCharPref($pref) {
         if (isset($this->prefValues[$pref]) && $this->prefTypes[$pref] == "string") {
-        	
+            
             return $this->prefValues[$pref];
         }
         else
@@ -262,7 +262,7 @@ class JScriptService extends Node {
 
         if (is_string($whereFilter)) {
             $query .= " WHERE $whereFilter";
-        } else if (is_array($whereFilter) && count($whereFilter)) {
+        } elseif (is_array($whereFilter) && count($whereFilter)) {
 
             $query .= " WHERE ";
             $keys = array_keys($whereFilter);
@@ -282,7 +282,7 @@ var enumItems = new Enumerator(colItems);
 
 var arr = [];
 for (; !enumItems.atEnd(); enumItems.moveNext()) {
-	var objItem = enumItems.item();
+    var objItem = enumItems.item();
     var ob = {};' . "\r\n";
         foreach ($properties as $prop) {
             $script .= "ob.$prop = objItem.$prop;\r\n";
@@ -298,42 +298,37 @@ exportJSON(arr);';
 
 }
 
-
-
 /**
- * Executes AppleScript code on MacOSX clients
+ * Executes a .command file on MacOSX clients
  *
  * @package API
  * @subpackage Scripting
 */
 
-class AppleScriptService extends Node
+class TerminalCommandService extends Node
 {
-	public $remoteConstructor = 'AppleScriptService';
-	
-	public function attach() {
-		$this->createRemoteObject();
-	}
-	
-	public function detach() {
-		$this->unRegister();
-	}
-	
-	
-	/**
-	 * Executes AppleScript code on the client
-	 * 
-	 * @param string	$code		Code to execute
-	 */
-	
-	public function execute( $code ) {
-		$lines = explode( "\n", $code );
-		for( $n = 0; $n < count($lines); $n++ ) {
-			$lines[$n] = trim($lines[$n]);
-		}
-		$this->callMethod( 'execute', array($lines) );
-	}
+    public $remoteConstructor = 'TerminalCommandService';
+
+    public function attach() {
+        $this->createRemoteObject();
+        $this->createClientEvent('scriptFinished', MSG_SEND);
+    }
+
+    public function detach() {
+        $this->unRegister();
+    }
+    
+    /**
+     * Runs a terminal command on the client
+     * @param  string $command The bash command to be executed
+     * @param  array  $filenames (Optional) An array of filenames to monitor and send the contents to the server
+     * @param  int $id (Optional) The ID of the command event
+     * @return int The ID of the command event
+     */
+    public function execute($command, $filenames = array(), $id = NULL) {
+        $id = ($id == NULL ? time() : $id);
+        $this->callMethod( 'execute', array($command, $filenames, $id) );
+
+        return $id;
+    }
 }
-
-
-
