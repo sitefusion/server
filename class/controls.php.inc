@@ -539,7 +539,12 @@ class XULDatePicker extends Node
         if ($type !== NULL) {
             $this->type($type);
         }
-        if ($value !== NULL) {
+
+        if (is_int($value)) {
+            $this->value(date('Y-m-d', $value));
+        } elseif ($value === NULL) {
+            $this->value(date('Y-m-d'));
+        } else {
             $this->value($value);
         }
 
