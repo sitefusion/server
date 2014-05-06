@@ -473,9 +473,14 @@ class XULTextBox extends BranchNode
  */
 class XULTimePicker extends Node
 {
-
     public $remoteConstructor = 'TimePicker';
 
+    /**
+     * Dynamic constructor
+     * @param mixed $value  The value to set, this is either the unix timestamp or a hh:mm:ss time
+     * @param int   $width  The initial height
+     * @param int   $height The initial width
+     */
     public function __construct($value = '', $width = NULL, $height = NULL) {
         $this->value($value);
         $this->width($width);
@@ -497,8 +502,11 @@ class XULTimePicker extends Node
         $this->timestamp = $timestamp;
     }
 
+    /**
+     * Resets the date value to its default
+     */
     public function reset() {
-        $this->callMethod("reset", array());
+        $this->callMethod('reset');
     }
 
     public function readonly($val = NULL) {
@@ -519,22 +527,21 @@ class XULTimePicker extends Node
  */
 class XULDatePicker extends Node
 {
-
     public $remoteConstructor = 'DatePicker';
-    public $checked = FALSE;
-    public $initAttributes = array('type', 'value');
+    public $initAttributes = array('type');
 
+    /**
+     * Dynamic constructor
+     * @param string   $type  Defines the display type, this should be either 'normal', 'grid' or 'popup'
+     * @param mixed    $value The value to set, this is either the unix timestamp or a yyyy-mm-dd date
+     */
     public function __construct($type = NULL, $value = NULL) {
-        if ($type !== NULL)
+        if ($type !== NULL) {
             $this->type($type);
-
-        // Fixed so it accepts timestamped ints (4-11-2010)
-        if (is_int($value))
-            $this->value(date('Y-m-d', $value));
-        else if ($value === NULL)
-            $this->value(date('Y-m-d'));
-        else
+        }
+        if ($value !== NULL) {
             $this->value($value);
+        }
 
         $this->setEventHandler('yield', $this, 'yieldCollect');
 
@@ -545,20 +552,39 @@ class XULDatePicker extends Node
         $this->value = $value;
     }
 
+    /**
+     * Resets the date value to its default
+     */
+    public function reset() {
+        $this->callMethod('reset');
+    }
+
+    /**
+     * Defines the display type, this should be either 'normal', 'grid' or 'popup'
+     * @param  string $type The display type
+     * @return mixed        Returns the current value or reference to self ($this) for easy chaining of method calls
+     */
     public function type($type = NULL) {
         return $this->attributeMethod('type', $type);
     }
 
-    public function value($value = NULL) {
-        if ($value === NULL)
-            return $this->value;
+    /**
+     * Sets the value
+     * @param  mixed $val The value to set, this is either the unix timestamp or a yyyy-mm-dd date
+     * @return mixed      Returns the current value or reference to self ($this) for easy chaining of method calls
+     */
+    public function value($val = NULL) {
+        if ($val === NULL) {
+            return (isset($this->value) ? $this->value : NULL);
+        }
 
-        $this->value = $value;
+        $this->value = $val;
 
         if ($this->isRegistered) {
-            $this->setProperty('serverValue', $value);
-            $this->setAttribute('value', $value);
+            $this->callMethod( 'value', array($this->value) );
         }
+            
+        return $this;
     }
 }
 
@@ -813,6 +839,14 @@ class XULMenuList extends BranchNode
 
                     break;
                 }
+            }
+        } elseif ($val === NULL) {
+
+            $this->selectedItem = $val;
+            $this->selectedValue = $val;
+
+            if ($this->isRegistered) {
+                $this->callMethod('selectedItem', $val);
             }
         }
         else {
