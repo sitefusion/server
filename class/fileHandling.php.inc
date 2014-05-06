@@ -978,13 +978,16 @@ class FileFromStreamDownloader extends Node
 
 class ClientFileService extends Node
 {
-	public $remoteConstructor = 'FileService';
-	private $handlersList = array();
-	private $handlersCreateDirectory = array();
-	private $handlersRemoveDirectory = array();
-	private $handlersRemoveFile = array();
-	private $handlersExecuteFile = array();
-	private $handlersMonitorFile = array();
+    public $remoteConstructor = 'FileService';
+    private $handlersList = array();
+    private $handlersCreateDirectory = array();
+    private $handlersRemoveDirectory = array();
+    private $handlersGetCryptoHash = array();
+    private $handlersExecuteFile = array();
+    private $handlersMonitorFile = array();
+    private $handlersGetFileInfo = array();
+    private $handlersRemoveFile = array();
+    private $handlersRenameFile = array();
 
 	public function attach() {
 		$this->createRemoteObject( array( $this->hostWindow ) );
@@ -1382,6 +1385,66 @@ class ClientFileService extends Node
 		$this->callMethod( 'openURIWithNativeProtocolHandler', array( $uri ));
 	}
 	
+    /**
+     * Retreives the file info for a specific file
+     *
+     * The handler receives these parameters:
+     * - ClientFileService $fileService  - this object
+     * - bool $status: indicates whether the operation was successful
+     * - ClientFile $file: the ClientFile object with file info
+     *
+     * @param string        $clientPath     The path on the client side
+     * @param object|string $handlerObj	    The object or classname to call the handler on when the operation finishes
+     * @param string        $handlerMethod  The method to call on the handler object
+    */
+    public function getFileInfo($clientPath, $handlerObj = NULL, $handlerMethod = NULL) {
+        $this->handlersGetFileInfo[$clientPath] = ($handlerObj&&$handlerMethod ? array( $handlerObj, $handlerMethod ) : NULL);
+        $this->callMethod( 'getFileInfo', array($clientPath));
+    }
+
+    /**
+     * Generates a hash based on the file located at the specified path, the following hash types are available :
+     * 		1 - MD2
+     * 		2 - MD5
+     * 		3 - SHA1
+     * 		4 - SHA256
+     * 		5 - SHA384
+     * 		6 - SHA512
+     *
+     * The handler receives these parameters:
+     * - ClientFileService $fileService  - this object
+     * - string $path: The path of the file where the hash was generated from
+     * - bool $status: indicates whether the operation was successful
+     * - string $hash: the string containing the returned hash (Empty if status is FALSE)
+     *
+     * @param string        $clientPath    The path leading to the file destination
+     * @param int           $hashType      The type of hash to be generated
+     * @param object|string $handlerObj    The object or classname to call the handler on when the operation finishes
+     * @param string        $handlerMethod The method to call on the handler object
+    */
+    public function getCryptoHash($clientPath, $hashType, $handlerObj = NULL, $handlerMethod = NULL) {
+        $this->handlersGetCryptoHash[$clientPath] = ($handlerObj&&$handlerMethod ? array( $handlerObj, $handlerMethod ) : NULL);
+        $this->callMethod( 'getCryptoHash', array($clientPath, $hashType));
+    }
+
+    /**
+     * Moves a file to the target directory
+     *
+     * The handler receives these parameters:
+     * - ClientFileService $fileService  - this object
+     * - bool $status: indicates whether the operation was successful
+     * - string $newPath : The new path of the file
+     *
+     * @param string        $clientPath    The path on the client side
+     * @param string        $targetPath    The path on the client side
+     * @param object|string $handlerObj    The object or classname to call the handler on when the operation finishes
+     * @param string        $handlerMethod The method to call on the handler object
+    */
+    public function renameFile($clientPath, $targetPath, $handlerObj = NULL, $handlerMethod = NULL) {
+        $this->handlersRenameFile[$clientPath] = ($handlerObj&&$handlerMethod ? array( $handlerObj, $handlerMethod ) : NULL);
+        $this->callMethod( 'renameFile', array($clientPath, $targetPath));
+    }
+
 	/**
 	 * [INTERNAL FUNCTION] Event handler
 	*/
@@ -1461,9 +1524,37 @@ class ClientFileService extends Node
 					call_user_func_array( $this->handlersExecuteFile[$id], array($this,$status));
 				}
 			break;
-		}
-	}
-	
+
+            case 'getFileInfo':
+                $status = array_shift( $args );
+                $fileInfo = array_shift( $args );
+                
+                if (isset($this->handlersGetFileInfo[$id]) && is_array($this->handlersGetFileInfo[$id])) {
+                    call_user_func_array( $this->handlersGetFileInfo[$id], array($this, $status, ($status ? $this->fileFromResult($id, $fileInfo) : $fileInfo)));
+                }
+            break;
+
+            case 'getCryptoHash':
+                $status = array_shift( $args );
+                $hash = array_shift( $args );
+                
+                if (isset($this->handlersGetCryptoHash[$id]) && is_array($this->handlersGetCryptoHash[$id])) {
+                    call_user_func_array( $this->handlersGetCryptoHash[$id], array($this, $id, $status, $hash));
+                }
+            break;
+
+            case 'renameFile':
+                $status = array_shift( $args );
+                $newFile = array_shift( $args );
+                
+                if (isset($this->handlersRenameFile[$id]) && is_array($this->handlersRenameFile[$id])) {
+                    call_user_func_array( $this->handlersRenameFile[$id], array($this, $status, $newFile));
+                }
+            break;
+        }
+    }
+
+
 	public function fileFromResult( $path, $file ) {
 		$cf = ($file[1] ? new ClientDirectory() : new ClientFile());
 		$cf->fileService = $this;
@@ -1625,8 +1716,7 @@ class ClientFile extends ClientBaseFile
 	public function readToStream( $stream, $handlerObj = NULL, $handlerMethod = NULL ) {
 		return $this->fileService->readFileToStream( $this->path, $stream, $handlerObj, $handlerMethod );
 	}
-	
-	
+
 	/**
 	 * Removes the file
 	 * 
@@ -1680,6 +1770,60 @@ class ClientFile extends ClientBaseFile
 	public function execute( $args = array(), $async = TRUE, $handlerObj = NULL, $handlerMethod = NULL ) {
 		$this->fileService->executeFile( $this->path, $args, $async, $handlerObj, $handlerMethod );
 	}
+
+    /**
+    * Retreives the file info for a specific file
+    *
+    * The handler receives these parameters:
+    * - ClientFileService $fileService  - this object
+    * - bool $status: indicates whether the operation was successful
+    * - ClientFile $file: the ClientFile object with file info
+    *
+    * @param object|string  $handlerObj         The object or classname to call the handler on when the operation finishes
+    * @param string     $handlerMethod      The method to call on the handler object
+    */
+    public function getInfo($handlerObj = NULL, $handlerMethod = NULL) {
+        $this->fileService->getFileInfo( $this->path, $handlerObj, $handlerMethod );
+    }
+
+    /**
+     * Generates a hash based on the file, the following hash types are available :
+     * 		1 - MD2
+     * 		2 - MD5
+     * 		3 - SHA1
+     * 		4 - SHA256
+     * 		5 - SHA384
+     * 		6 - SHA512
+     *
+     * The handler receives these parameters:
+     * - ClientFileService $fileService  - this object
+     * - string $path: The path of the file where the hash was generated from
+     * - bool $status: indicates whether the operation was successful
+     * - string $hash: the string containing the returned hash (Empty if status is FALSE)
+     *
+     * @param  int           $hashType      The type of hash to be generated
+     * @param  object|string $handlerObj    The object or classname to call the handler on when the operation finishes
+     * @param  string        $handlerMethod The method to call on the handler object
+     */
+    public function getCryptoHash($hashType, $handlerObj = NULL, $handlerMethod = NULL) {
+        $this->fileService->getCryptoHash( $this->path, $hashType, $handlerObj, $handlerMethod );
+    }
+
+    /**
+     * Moves a file to the target directory
+     *
+     * The handler receives these parameters:
+     * - ClientFileService $fileService  - this object
+     * - bool $status: indicates whether the operation was successful
+     * - string $newPath : The new path of the file
+     *
+     * @param string        $targetPath    The path on the client side
+     * @param object|string $handlerObj    The object or classname to call the handler on when the operation finishes
+     * @param string        $handlerMethod The method to call on the handler object
+    */
+    public function rename($targetPath, $handlerObj = NULL, $handlerMethod = NULL) {
+        $this->fileService->renameFile( $this->path, $targetPath, $handlerObj, $handlerMethod );
+    }
 }
 
 
