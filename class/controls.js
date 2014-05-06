@@ -210,30 +210,34 @@ SiteFusion.Classes.DatePicker = Class.create( SiteFusion.Classes.Node, {
 		var dateVal;
 		if (typeof(text) == "number") {
 			dateVal = new Date(Math.round(text * 1000));
-		} else if (text.length && text.match(/\d\d\d\d?\-\d\d?\-\d\d?/)) {
+		} else if (text.length && text.length == 10 && text.match(/\d{1,4}(\/|-)\d{1,4}(\/|-)\d{1,4}/)) {
 			dateVal = new Date(Date.parse(text));
+		} else {
+			SiteFusion.consoleError('XULDatePicker::value : Value \'' + text + '\' is not a valid date.');
 		}
 
 		if (dateVal != undefined) {
 
 			var obThis = this;
 			window.setTimeout(function() {
-
-				var month = ('0' + (dateVal.getMonth() + 1)).slice(-2);
-				var day = ('0' + dateVal.getDate()).slice(-2);
-
-				obThis.element.value = dateVal.getFullYear() + "-" + month + "-" + day;
-				obThis.element.dateValue = dateVal;
-
+				obThis.setDateValue(dateVal);
 			}, 0);
 
 		}
 	},
-	
-	reset: function() {
-		var dateVal = new Date();
+
+	setDateValue: function(dateVal) {
+
+		var month = ('0' + (dateVal.getMonth() + 1)).slice(-2);
+		var day = ('0' + dateVal.getDate()).slice(-2);
+
 		this.element.value = dateVal.getFullYear() + "-" + month + "-" + day;
 		this.element.dateValue = dateVal;
+
+	},
+	
+	reset: function() {
+		this.setDateValue(new Date());
 	},
 
  	yield: function() {
