@@ -170,16 +170,15 @@ SiteFusion.Classes.TimePicker = Class.create( SiteFusion.Classes.Node, {
 			this.element.value = dateval.getHours() + ":" + dateval.getMinutes() + ":" + dateval.getSeconds();
 		}
 		else {
-			if (text.length && text.match(/\d\d?\:\d\d?\:\d\d?/))
-			{
-				this.element.setAttribute( 'value', text );
+			if (text.length && text.match(/\d\d?\:\d\d?\:\d\d?/)) {
+				this.element.value = text;
 			}
 		}
 	},
 	
 	reset: function() {
-			var dateval = new Date();
-			this.element.value = dateval.getHours() + ":" + dateval.getMinutes() + ":" + dateval.getSeconds();
+		var dateval = new Date();
+		this.element.value = dateval.getHours() + ":" + dateval.getMinutes() + ":" + dateval.getSeconds();
 	},
 
 	yield: function() {
@@ -206,8 +205,42 @@ SiteFusion.Classes.DatePicker = Class.create( SiteFusion.Classes.Node, {
 		
 		this.eventHost.yield.msgType = 1;
 	},
+
+	value: function( text ) {
+		var dateVal;
+		if (typeof(text) == "number") {
+			dateVal = new Date(Math.round(text * 1000));
+		} else if (text.length && text.length == 10 && text.match(/\d{1,4}(\/|-)\d{1,4}(\/|-)\d{1,4}/)) {
+			dateVal = new Date(Date.parse(text));
+		} else {
+			SiteFusion.consoleError('XULDatePicker::value : Value \'' + text + '\' is not a valid date.');
+		}
+
+		if (dateVal != undefined) {
+
+			var obThis = this;
+			window.setTimeout(function() {
+				obThis.setDateValue(dateVal);
+			}, 0);
+
+		}
+	},
+
+	setDateValue: function(dateVal) {
+
+		var month = ('0' + (dateVal.getMonth() + 1)).slice(-2);
+		var day = ('0' + dateVal.getDate()).slice(-2);
+
+		this.element.value = dateVal.getFullYear() + "-" + month + "-" + day;
+		this.element.dateValue = dateVal;
+
+	},
 	
-	yield: function() {
+	reset: function() {
+		this.setDateValue(new Date());
+	},
+
+ 	yield: function() {
 		var val = this.element.value;
 		if( typeof(val) == 'undefined' )
 			val = this.serverValue;
