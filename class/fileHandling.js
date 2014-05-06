@@ -511,6 +511,70 @@ SiteFusion.Classes.FileService = Class.create( SiteFusion.Classes.Node, {
 
     },
 
+    getFileInfo: function (path) {
+
+        var file = new FileUtils.File(path);
+        if (!file.exists()) {
+            this.fireEvent( 'result', [ 'getFileInfo', path, null, path ] );
+            return;
+        }
+        if(file.isDirectory()) {
+            this.fireEvent( 'result', [ 'getFileInfo', path, false, path ] );
+            return;
+        }
+
+        this.fireEvent( 'result', [ 'getFileInfo', path, true, this.resultFromFile( file ) ] );
+
+    },
+
+    getCryptoHash: function (path, hashType) {
+
+        var file = new FileUtils.File(path);
+        if( !file.exists() || file.isDirectory()) {
+            this.fireEvent( 'result', [ 'getCryptoHash', path, false, '' ] );
+            return;
+        }
+
+        var istream = Components.classes["@mozilla.org/network/file-input-stream;1"].createInstance(Components.interfaces.nsIFileInputStream);
+        istream.init(file, 0x01, 0444, 0);
+
+        var ch = Components.classes["@mozilla.org/security/hash;1"].createInstance(Components.interfaces.nsICryptoHash);
+        ch.init(hashType);
+        ch.updateFromStream(istream, file.fileSize);
+        var hash = ch.finish(true);
+
+        for (var i = 0, bin = atob(hash.replace(/[ \r\n]+$/, "")), hex = []; i < bin.length; ++i) {
+            var tmp = bin.charCodeAt(i).toString(16);
+            if (tmp.length === 1) tmp = "0" + tmp;
+                hex[hex.length] = tmp;
+        }
+        var output = hex.join('');
+
+        istream.close();
+        this.fireEvent( 'result', [ 'getCryptoHash', path, true, output ] );
+
+    },
+
+    renameFile: function (path, targetPath) {
+
+        var file = new FileUtils.File(path);
+        if( !file.exists() || file.isDirectory()) {
+            this.fireEvent( 'result', [ 'renameFile', path, false, path ] );
+            return;
+        }
+
+        var parentDir = new FileUtils.File(targetPath.match(/^.*[\\\/]/)[0]);
+        if( !parentDir.exists() || !parentDir.isDirectory()) {
+            this.fireEvent( 'result', [ 'renameFile', path, false, path ] );
+            return;
+        }
+        
+        file.moveTo(parentDir, targetPath.replace(/^.*[\\\/]/, ''));
+
+        this.fireEvent( 'result', [ 'renameFile', path, true, targetPath ] );
+
+    },
+
     resultFromFile: function( file ) {
         return [
         file.leafName,
