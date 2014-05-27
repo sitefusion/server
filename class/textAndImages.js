@@ -98,6 +98,29 @@ SiteFusion.Classes.Video = Class.create( SiteFusion.Classes.Node, {
 	}
 } );
 
+SiteFusion.Classes.Audio = Class.create( SiteFusion.Classes.Node, {
+	sfClassName: 'XULAudio',
+	
+	initialize: function( win, src, width ) {
+		this.element = win.createElementNS("http://www.w3.org/1999/xhtml", 'html:audio');
+		this.element.sfNode = this;
+		
+		this.setEventHost();
+		
+		if( src )
+			this.src( src );
+		if( width )
+			this.width( width );
+
+		this.element.setAttribute("controls", "true");
+	},
+
+	width: function(val) {
+		this.element.style.width = val;
+		this.element.setAttribute( 'width', parseInt(val) );
+	}
+} );
+
 SiteFusion.Classes.Embed = Class.create( SiteFusion.Classes.Node, {
 	sfClassName: 'XULEmbed',
 	
