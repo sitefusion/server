@@ -152,7 +152,7 @@ class XULImage extends Node
 
 class XULHTMLVideo extends Node
 {
-	public $remoteConstructor = 'Video';
+	public $remoteConstructor = 'HTMLVideo';
 	public $initAttributes = array( 'src' );
 	public $src = NULL;
 	public $width = NULL;
@@ -205,7 +205,7 @@ class XULHTMLVideo extends Node
 
 class XULHTMLAudio extends Node
 {
-    public $remoteConstructor = 'Audio';
+    public $remoteConstructor = 'HTMLAudio';
     public $initAttributes = array( 'src' );
     public $src = NULL;
     
@@ -267,7 +267,7 @@ class XULHTMLAudio extends Node
 
 class XULHTMLEmbed extends Node
 {
-	public $remoteConstructor = 'Embed';
+	public $remoteConstructor = 'HTMLEmbed';
 	public $initAttributes = array( 'src' );
 	public $src = NULL;
 	public $width = NULL;
