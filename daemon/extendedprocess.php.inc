@@ -404,6 +404,14 @@ class ExtendedSiteFusionProcess extends SiteFusionProcess
 		if( self::$Options['debug'] )
 			socket_close( self::$DebugSocket );
 	}
+
+	static public function RemoveDatabaseLink(){
+		self::$Database = NULL;
+	}
+	
+	static public function CreateDatabaseLink(){
+		self::GetDatabaseConnection();
+	}
 }
 
 
