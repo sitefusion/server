@@ -58,10 +58,13 @@ try {
         throw new Exception( 'Not authorized' );
     }
 
-    $dbDSN =  (isset($WEBCONFIG['databaseDSN']) ? $WEBCONFIG['databaseDSN'] : NULL);
+    $dbDSN = (isset($WEBCONFIG['databaseDSN']) ? $WEBCONFIG['databaseDSN'] : NULL);
     $dbHost = (isset($WEBCONFIG['databaseHost']) ? $WEBCONFIG['databaseHost'] : NULL);
     $dbName = (isset($WEBCONFIG['databaseName']) ? $WEBCONFIG['databaseName'] : NULL);
-    $dbSession = $dbSession = GetSessionFromSID($sid, (isset($WEBCONFIG['databaseUsername']) ? $WEBCONFIG['databaseUsername'] : NULL), (isset($WEBCONFIG['databasePassword']) ? $WEBCONFIG['databasePassword'] : NULL), $dbDSN, $dbHost, $dbName);
+    $dbUsername = (isset($WEBCONFIG['databaseUsername']) ? $WEBCONFIG['databaseUsername'] : NULL);
+    $dbPassword = (isset($WEBCONFIG['databasePassword']) ? $WEBCONFIG['databasePassword'] : NULL);
+
+    $dbSession = $dbSession = GetSessionFromSID($sid, $dbUsername, $dbPassword, $dbDSN, $dbHost, $dbName);
     
     if( $dbSession['ident'] != $_GET['ident'] )
         throw new Exception( 'Not authorized');
