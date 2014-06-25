@@ -38,18 +38,17 @@ $SFCONFIG['sessionTimeout'] = 60 * 30;
 // service client connection.
 $SFCONFIG['serviceClientTimeout'] = 60 * 5;
 
+// Path to the SiteFusion directory
+$SFCONFIG['sitefusionPath'] = '/usr/local/sitefusion';
+
 //the DSN path for file based databases should be relative to the sitefusiond path
-$SFCONFIG['databaseDSN'] = "sqlite:../db/sfdb.sq3";
+$SFCONFIG['databaseDSN'] = "sqlite:".$SFCONFIG['sitefusionPath']."/db/sfdb.sq3";
 //$SFCONFIG['databaseDSN'] = "mysql:host=127.0.0.1;dbname=sitefusion";
 
 // Username and password for the database server
 // This login is only used by the daemon, not by the child processes
 $SFCONFIG['databaseUsername'] = 'root';
 $SFCONFIG['databasePassword'] = 'dev';
-
-// Path to the SiteFusion directory
-$SFCONFIG['sitefusionPath'] = '/usr/local/sitefusion';
-
 
 // Debug mode (TRUE or FALSE)
 // This enables more extensive logging and the built-in debugger

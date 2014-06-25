@@ -35,90 +35,93 @@ include( '../conf/webfrontend.conf' );
 include( 'functions.php' );
 
 try {
-	if( substr_count($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') ) ob_start("ob_gzhandler");
+    if( substr_count($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') ) ob_start("ob_gzhandler");
 
-	$input = fopen( 'php://input', 'r' );
-	$content = '';
-	while( strlen($content) < $_SERVER['CONTENT_LENGTH'] ) {
-		$content .= fread( $input, 8192 );
-	}
-	fclose( $input );
+    $input = fopen( 'php://input', 'r' );
+    $content = '';
+    while( strlen($content) < $_SERVER['CONTENT_LENGTH'] ) {
+        $content .= fread( $input, 8192 );
+    }
+    fclose( $input );
 
-	if( $_SERVER['CONTENT_TYPE'] == 'application/x-gzip' )
-		$content = gzuncompress($content);
+    if( $_SERVER['CONTENT_TYPE'] == 'application/x-gzip' )
+        $content = gzuncompress($content);
 }
 catch ( Exception $ex ) {
-	ReturnError( 'input_error', $ex->getMessage() );
+    ReturnError( 'input_error', $ex->getMessage() );
 }
 
 
 try {
-	$sid = isset($_GET['sid']) ? $_GET['sid'] : NULL;
-	if (!$sid) {
-		throw new Exception( 'Not authorized' );
-	}
+    $sid = isset($_GET['sid']) ? $_GET['sid'] : NULL;
+    if (!$sid) {
+        throw new Exception( 'Not authorized' );
+    }
 
-	$dbDSN =  (isset($WEBCONFIG['databaseDSN']) ? $WEBCONFIG['databaseDSN'] : NULL);
-	$dbHost = (isset($WEBCONFIG['databaseHost']) ? $WEBCONFIG['databaseHost'] : NULL);
-	$dbName = (isset($WEBCONFIG['databaseName']) ? $WEBCONFIG['databaseName'] : NULL);
-	$dbSession = $dbSession = GetSessionFromSID($sid, $WEBCONFIG['databaseUsername'], $WEBCONFIG['databasePassword'],$dbDSN, $dbHost, $dbName);
-	
-	if( $dbSession['ident'] != $_GET['ident'] )
-		throw new Exception( 'Not authorized');
+    $dbDSN = (isset($WEBCONFIG['databaseDSN']) ? $WEBCONFIG['databaseDSN'] : NULL);
+    $dbHost = (isset($WEBCONFIG['databaseHost']) ? $WEBCONFIG['databaseHost'] : NULL);
+    $dbName = (isset($WEBCONFIG['databaseName']) ? $WEBCONFIG['databaseName'] : NULL);
+    $dbUsername = (isset($WEBCONFIG['databaseUsername']) ? $WEBCONFIG['databaseUsername'] : NULL);
+    $dbPassword = (isset($WEBCONFIG['databasePassword']) ? $WEBCONFIG['databasePassword'] : NULL);
 
-	$port = (int) $dbSession['port'];
+    $dbSession = $dbSession = GetSessionFromSID($sid, $dbUsername, $dbPassword, $dbDSN, $dbHost, $dbName);
+    
+    if( $dbSession['ident'] != $_GET['ident'] )
+        throw new Exception( 'Not authorized');
+
+    $port = (int) $dbSession['port'];
 }
 catch ( Exception $ex ) {
-	ReturnError( 'session_error', $ex->getMessage() );
+    ReturnError( 'session_error', $ex->getMessage() );
 }
 
 try {
-	$socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
-	if ($socket === false)
-		throw new Exception( "socket_create() failed: reason: " . socket_strerror(socket_last_error()) );
+    $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+    if ($socket === false)
+        throw new Exception( "socket_create() failed: reason: " . socket_strerror(socket_last_error()) );
 
-	$result = socket_connect($socket, $WEBCONFIG['address'], $port );
-	if ($result === false)
-		throw new Exception( "socket_connect() failed.\nReason: ($result) " . socket_strerror(socket_last_error($socket)) );
+    $result = socket_connect($socket, $WEBCONFIG['address'], $port );
+    if ($result === false)
+        throw new Exception( "socket_connect() failed.\nReason: ($result) " . socket_strerror(socket_last_error($socket)) );
 }
 catch ( Exception $ex ) {
-	ReturnError( 'server_offline', $ex->getMessage() );
+    ReturnError( 'server_offline', $ex->getMessage() );
 }
 
 try {
-	WriteCommand( $socket, 'COMM', NULL, $content );
+    WriteCommand( $socket, 'COMM', NULL, $content );
 
-	$cmd = ReadCommand( $socket );
-	socket_close($socket);
+    $cmd = ReadCommand( $socket );
+    socket_close($socket);
 }
 catch ( Exception $ex ) {
-	// Give the daemon some time to collect error output
-	usleep( 500000 );
-	
-	try {
-		$socket = @socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
-		if ($socket === false)
-		    throw new Exception( "socket_create() failed: reason: " . socket_strerror(socket_last_error()) );
+    // Give the daemon some time to collect error output
+    usleep( 500000 );
+    
+    try {
+        $socket = @socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
+        if ($socket === false)
+            throw new Exception( "socket_create() failed: reason: " . socket_strerror(socket_last_error()) );
 
-		$result = @socket_connect($socket, $WEBCONFIG['address'], $WEBCONFIG['port'] );
-		if ($result === false)
-		    throw new Exception( "socket_connect() failed.\nReason: ($result) " . socket_strerror(socket_last_error($socket)) );
-		
-		WriteCommand( $socket, 'GETERROR', array( 'clientid' => $_GET['clientid'] ) );
-		$cmd = ReadCommand( $socket );
-		
-		if( $cmd->found )
-			ReturnError( 'php_error', $cmd->data );
-		else
-			ReturnError( 'php_error', 'webfrontend comm: ReadCommand failed' );
-	}
-	catch ( Exception $ex ) {
-		ReturnError( 'unspecified_error', $ex->getMessage() );
-	}
+        $result = @socket_connect($socket, $WEBCONFIG['address'], $WEBCONFIG['port'] );
+        if ($result === false)
+            throw new Exception( "socket_connect() failed.\nReason: ($result) " . socket_strerror(socket_last_error($socket)) );
+        
+        WriteCommand( $socket, 'GETERROR', array( 'clientid' => $_GET['clientid'] ) );
+        $cmd = ReadCommand( $socket );
+        
+        if( $cmd->found )
+            ReturnError( 'php_error', $cmd->data );
+        else
+            ReturnError( 'php_error', 'webfrontend comm: ReadCommand failed' );
+    }
+    catch ( Exception $ex ) {
+        ReturnError( 'unspecified_error', $ex->getMessage() );
+    }
 }
 
 if( substr($cmd->data,-16) != '"EXEC_COMPLETE";' )
-	ReturnError( 'php_error', $cmd->data );
+    ReturnError( 'php_error', $cmd->data );
 else
-	ReturnResult( $cmd->data );
+    ReturnResult( $cmd->data );
 
