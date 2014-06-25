@@ -45,7 +45,7 @@ try {
 	$dbHost = (isset($WEBCONFIG['databaseHost']) ? $WEBCONFIG['databaseHost'] : NULL);
 	$dbName = (isset($WEBCONFIG['databaseName']) ? $WEBCONFIG['databaseName'] : NULL);
 	$dbUsername = (isset($WEBCONFIG['databaseUsername']) ? $WEBCONFIG['databaseUsername'] : NULL);
-    $dbPassword = (isset($WEBCONFIG['databasePassword']) ? $WEBCONFIG['databasePassword'] : NULL);
+	$dbPassword = (isset($WEBCONFIG['databasePassword']) ? $WEBCONFIG['databasePassword'] : NULL);
 
 	$dbSession = $dbSession = GetSessionFromSID($sid, $dbUsername, $dbPassword, $dbDSN, $dbHost, $dbName);
 	
