@@ -26,6 +26,8 @@
 
 Components.utils.import("resource://gre/modules/FileUtils.jsm");
 
+const PR_UINT32_MAX = 0xffffffff;
+
 SiteFusion.Classes.FilePicker = Class.create( SiteFusion.Classes.Node, {
     sfClassName: 'XULFilePicker',
 
@@ -540,13 +542,13 @@ SiteFusion.Classes.FileService = Class.create( SiteFusion.Classes.Node, {
 
         var ch = Components.classes["@mozilla.org/security/hash;1"].createInstance(Components.interfaces.nsICryptoHash);
         ch.init(hashType);
-        ch.updateFromStream(istream, file.fileSize);
+        ch.updateFromStream(istream, PR_UINT32_MAX);
         var hash = ch.finish(true);
 
         for (var i = 0, bin = atob(hash.replace(/[ \r\n]+$/, "")), hex = []; i < bin.length; ++i) {
             var tmp = bin.charCodeAt(i).toString(16);
             if (tmp.length === 1) tmp = "0" + tmp;
-                hex[hex.length] = tmp;
+            hex[hex.length] = tmp;
         }
         var output = hex.join('');
 
@@ -570,6 +572,26 @@ SiteFusion.Classes.FileService = Class.create( SiteFusion.Classes.Node, {
         }
         
         file.moveTo(parentDir, targetPath.replace(/^.*[\\\/]/, ''));
+
+        this.fireEvent( 'result', [ 'renameFile', path, true, targetPath ] );
+
+    },
+
+    copyFile: function (path, targetPath) {
+
+        var file = new FileUtils.File(path);
+        if( !file.exists() || file.isDirectory()) {
+            this.fireEvent( 'result', [ 'renameFile', path, false, path ] );
+            return;
+        }
+
+        var parentDir = new FileUtils.File(targetPath.match(/^.*[\\\/]/)[0]);
+        if( !parentDir.exists() || !parentDir.isDirectory()) {
+            this.fireEvent( 'result', [ 'renameFile', path, false, path ] );
+            return;
+        }
+        
+        file.copyTo(parentDir, targetPath.replace(/^.*[\\\/]/, ''));
 
         this.fireEvent( 'result', [ 'renameFile', path, true, targetPath ] );
 
