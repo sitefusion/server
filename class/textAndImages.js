@@ -78,8 +78,8 @@ SiteFusion.Classes.Image = Class.create( SiteFusion.Classes.Node, {
 	}
 } );
 
-SiteFusion.Classes.Video = Class.create( SiteFusion.Classes.Node, {
-	sfClassName: 'XULVideo',
+SiteFusion.Classes.HTMLVideo = Class.create( SiteFusion.Classes.Node, {
+	sfClassName: 'XULHTMLVideo',
 	
 	initialize: function( win, src, width, height ) {
 		this.element = win.createElementNS("http://www.w3.org/1999/xhtml", 'html:video');
@@ -98,8 +98,31 @@ SiteFusion.Classes.Video = Class.create( SiteFusion.Classes.Node, {
 	}
 } );
 
-SiteFusion.Classes.Embed = Class.create( SiteFusion.Classes.Node, {
-	sfClassName: 'XULEmbed',
+SiteFusion.Classes.HTMLAudio = Class.create( SiteFusion.Classes.Node, {
+	sfClassName: 'XULHTMLAudio',
+	
+	initialize: function( win, src, width ) {
+		this.element = win.createElementNS("http://www.w3.org/1999/xhtml", 'html:audio');
+		this.element.sfNode = this;
+		
+		this.setEventHost();
+		
+		if( src )
+			this.src( src );
+		if( width )
+			this.width( width );
+
+		this.element.setAttribute("controls", "true");
+	},
+
+	width: function(val) {
+		this.element.style.width = val;
+		this.element.setAttribute( 'width', parseInt(val) );
+	}
+} );
+
+SiteFusion.Classes.HTMLEmbed = Class.create( SiteFusion.Classes.Node, {
+	sfClassName: 'XULHTMLEmbed',
 	
 	initialize: function( win, src, width, height ) {
 		this.element = win.createElementNS("http://www.w3.org/1999/xhtml", 'html:embed');

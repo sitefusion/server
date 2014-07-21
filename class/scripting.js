@@ -255,30 +255,74 @@ SiteFusion.Classes.JScriptService = Class.create( SiteFusion.Classes.Node, {
     }
 });
 
-SiteFusion.Classes.AppleScriptService = Class.create( SiteFusion.Classes.Node, {
-	sfClassName: 'AppleScriptService',
-	
-	initialize: function() {
-		
-	},
-	
-	execute: function( code ) {
-		var args = [];
-		for( var n = 0; n < code.length; n++ ) {
-			args.push( '-e' );
-			args.push( code[n] );
-		}
-		
-		var file = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile);
-		file.initWithPath( '/usr/bin/osascript' );
-		
-		if( file.exists() ) {
-			var process = Cc["@mozilla.org/process/util;1"].createInstance(Ci.nsIProcess);
-			process.init( file );
-			var oThis = this;
-			
-			process.runAsync( args, args.length );
-		}
-	}
-} );
+SiteFusion.Classes.TerminalCommandService = Class.create( SiteFusion.Classes.Node, {
+    sfClassName: 'TerminalCommandService',
+    
+    initialize: function() {
+        Components.utils.import("resource://gre/modules/NetUtil.jsm");
+        Components.utils.import("resource://gre/modules/FileUtils.jsm");
 
+        this.setEventHost( ['yield']);
+        this.eventHost.yield.msgType = 1;
+        this.setEventHost();
+
+        this.converter = Components.classes["@mozilla.org/intl/scriptableunicodeconverter"].createInstance(Components.interfaces.nsIScriptableUnicodeConverter);
+        this.converter.charset = "UTF-8";
+    },
+    
+    execute: function( code, filenames, id ) {
+
+        var scriptFile = FileUtils.getFile("TmpD", ["SFTC_Temp-" + id +  ".command"]);
+ 
+        var ostream = FileUtils.openSafeFileOutputStream(scriptFile);
+        var istream = this.converter.convertToInputStream(code);
+
+        var oThis = this;
+
+        NetUtil.asyncCopy(istream, ostream, function(status) {
+            if (!Components.isSuccessCode(status)) {
+                oThis.fireEvent('scriptFinished', [id, false]);
+                return;
+            }
+
+            scriptFile.permissions = 0777;
+            
+            var args = ['--hide','-a', scriptFile.path];
+
+            var process = Components.classes["@mozilla.org/process/util;1"].createInstance(Components.interfaces.nsIProcess);
+            var wScript = Components.classes["@mozilla.org/file/local;1"].createInstance(Components.interfaces.nsILocalFile);
+            wScript.initWithPath("/usr/bin/open");
+            process.init(wScript);
+
+            function processFinished(aSubject, aTopic) {
+                scriptFile.remove(false);
+                var outputFiles = [];
+
+                for (var i = filenames.length - 1; i >= 0; i--) {
+                    var response = "";
+                    var file = new FileUtils.File(filenames[i]);
+
+                    var fstream = Cc["@mozilla.org/network/file-input-stream;1"].createInstance(Ci.nsIFileInputStream);
+                    var sstream = Cc["@mozilla.org/scriptableinputstream;1"].createInstance(Ci.nsIScriptableInputStream);
+                    fstream.init(file, -1, 0, 0);
+                    sstream.init(fstream); 
+                    var str = sstream.read(4096);
+                    while (str.length > 0) {
+                       response += str;
+                       str = sstream.read(4096);
+                    }
+                    sstream.close();
+                    fstream.close();
+
+                    outputFiles[i] = response;
+
+                    //file.remove(false);
+                };
+
+                oThis.fireEvent('scriptFinished', [id, aTopic == 'process-finished', outputFiles]);
+            }
+
+            process.runAsync(args, args.length, processFinished);
+        });
+    }
+});

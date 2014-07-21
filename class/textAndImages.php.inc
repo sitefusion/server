@@ -152,7 +152,7 @@ class XULImage extends Node
 
 class XULHTMLVideo extends Node
 {
-	public $remoteConstructor = 'Video';
+	public $remoteConstructor = 'HTMLVideo';
 	public $initAttributes = array( 'src' );
 	public $src = NULL;
 	public $width = NULL;
@@ -196,6 +196,66 @@ class XULHTMLVideo extends Node
 }
 
 /**
+ * HTML Audio element
+ * 
+ * @link https://developer.mozilla.org/En/HTML/Element/audio
+ * @package API
+ * @subpackage TextAndImages
+*/
+
+class XULHTMLAudio extends Node
+{
+    public $remoteConstructor = 'HTMLAudio';
+    public $initAttributes = array( 'src' );
+    public $src = NULL;
+    
+    /**
+     * Constructor
+     *
+     * @param string    $src
+     * @param int   $width
+    */
+    
+    public function __construct( $src = NULL, $width = NULL ) {
+        if( $src !== NULL )
+            $this->src( $src );
+        if( $width !== NULL )
+            $this->width( $width );
+        
+        parent::__construct();
+    }
+
+    public function attach() {
+        $this->createRemoteObject( array( $this->hostWindow, $this->src ) );
+        $this->insertElement();
+    }
+
+    public function width( $width = NULL ) {
+        if( $width === NULL )
+            return (isset($this->width) ? $this->width : NULL);
+        
+        $this->width = $width;
+        
+        if( $this->isRegistered )
+            $this->callMethod('width', array($width));
+        
+        return $this;
+    }
+    
+    public function src( $src = NULL ) {
+        if( $src === NULL )
+            return (isset($this->src) ? $this->src : NULL);
+        
+        $this->src = $src;
+        
+        if( $this->isRegistered )
+            $this->callMethod( 'src', array($src) );
+        
+        return $this;
+    }
+}
+
+/**
  * HTML Embed element
  * 
  * Use this element to include a mozilla plugin in your SiteFusion program.
@@ -207,7 +267,7 @@ class XULHTMLVideo extends Node
 
 class XULHTMLEmbed extends Node
 {
-	public $remoteConstructor = 'Embed';
+	public $remoteConstructor = 'HTMLEmbed';
 	public $initAttributes = array( 'src' );
 	public $src = NULL;
 	public $width = NULL;
