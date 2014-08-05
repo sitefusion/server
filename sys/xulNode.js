@@ -505,8 +505,11 @@ SiteFusion.Classes.Node = Class.create( {
 			if (types.length) {
 				event.stopPropagation();
 				event.preventDefault();
-				
-				this.sfNode.fireEvent( 'sfdragover', [ event.target.sfNode ] );
+				var newEvent = {};
+				newEvent.type = 'sfdragover';
+				newEvent.dataTransfer = event.dataTransfer;
+				newEvent.target = event.target;
+				this.sfNode.fireEvent( newEvent, [ event.target.sfNode ] );
 			}
 		},
 
