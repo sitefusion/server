@@ -257,27 +257,39 @@ SiteFusion.Classes.Editor = Class.create( SiteFusion.Classes.Node, {
 
 	insertImage: function( src, width, height, align, alt ) {
 		this.restoreSelection();
+
+		if ( width === parseInt( width ) )
+			width += 'px';
+
+		if ( height === parseInt( height ) )
+			height += 'px';
 		
 		var img, newel = false;
-		if(! (img = this.htmlEditor.getSelectedElement( 'IMG' )) ) {
-			var html = '<img src="'+src+'" border="0" style="width: '+width+'px; height: '+height+'px;"'+(align != null ? ' align="'+align+'"' : '')+' alt="'+(alt != null ? alt:'')+'">';
-			this.htmlEditor.insertHTML( html );
-		}
-		else {
+		if ( img = this.htmlEditor.getSelectedElement( 'IMG' ) ) {
 			if( src != null )
 				img.src = src;
-			if( width != null )
-				img.style.width = width + 'px';
-			if( height != null )
-				img.style.height = height + 'px';
+			
+			if( width != null ) {
+				img.style.width = width;
+				img.setAttribute( 'width', width );
+			}
+
+			if( height != null ) {
+				img.style.height = height;
+				img.setAttribute( 'height', height );
+			}
+
 			if( align != null )
 				img.align = align;
 			if( alt != null )
 				img.alt = alt;
 		
 			img.setAttribute( 'border', '0' );
+		} else {
+			var html = '<img src="'+src+'" border="0" style="width: '+width+'; height: '+height+';"'+(align != null ? ' align="'+align+'"' : '')+' alt="'+(alt != null ? alt:'')+'">';
+			this.htmlEditor.insertHTML( html );
 		}
-		
+
 		var oThis = this;
 		window.setTimeout( function() { oThis.checkDocumentState(); }, 200 );
 	},
@@ -532,7 +544,7 @@ SiteFusion.Classes.Editor = Class.create( SiteFusion.Classes.Node, {
 			if( img && this.elementIsEditable(img) ) {
 				imageState = true;
 				imageElement = img;
-				imageAttr = [ img.getAttribute('src'), img.width, img.height, img.align, img.className, img.alt ];
+				imageAttr = [ img.getAttribute('src'), img.width, img.height, img.align, img.className, img.getAttribute('alt') ];
 			}
 			
 	
