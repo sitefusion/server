@@ -28,20 +28,6 @@
 SiteFusion.Classes.BasicWindow = Class.create( SiteFusion.Classes.Node, {
 	lastWindowState: STATE_NORMAL,
 
-	initialize: function() {
-		this.setEventHost( [ 'sizemodechange', 'activate', 'deactivate' ] );
-
-		var onSizeModeChanged = function(event) { oThis.onSizeModeChanged(event); };
-		this.windowObject.addEventListener( 'sizemodechange', onSizeModeChanged, true );
-		this.eventHost.sizemodechange.msgType = SiteFusion.Comm.MSG_SEND;
-
-		var onActivate = function(event) { oThis.onActivate(event); };
-		this.windowObject.addEventListener( 'activate', onActivate, true );
-
-		var onDeactivate = function(event) { oThis.onDeactivate(event); };
-		this.windowObject.addEventListener( 'deactivate', onDeactivate, true );
-	},
-
 	maximize: function() {
 		var oThis = this;
 		this.windowObject.setTimeout( function() { oThis.windowObject.maximize(); }, 100 );
@@ -409,7 +395,7 @@ SiteFusion.Classes.Dialog = Class.create( SiteFusion.Classes.ChildWindow, {
 		
 		this.isClosing = false;
 		
-		this.setEventHost( [ 'initialized', 'accept', 'cancel', 'close', 'help', 'disclosure', 'extra1', 'extra2', 'hasClosed', 'activate', 'deactivate' ] );
+		this.setEventHost( [ 'initialized', 'accept', 'cancel', 'close', 'help', 'disclosure', 'extra1', 'extra2', 'hasClosed', 'sizemodechange', 'activate', 'deactivate' ] );
 		
 		this.eventHost.initialized.msgType = 0;
 		this.eventHost.initialized.blocking = true;
@@ -442,6 +428,10 @@ SiteFusion.Classes.Dialog = Class.create( SiteFusion.Classes.ChildWindow, {
 		this.windowObject.addEventListener( 'dialogdisclosure', onDialogButton, true );
 		this.windowObject.addEventListener( 'dialogextra1', onDialogButton, true );
 		this.windowObject.addEventListener( 'dialogextra2', onDialogButton, true );
+
+		var onSizeModeChanged = function(event) { oThis.onSizeModeChanged(event); };
+		this.windowObject.addEventListener( 'sizemodechange', onSizeModeChanged, true );
+		this.eventHost.sizemodechange.msgType = SiteFusion.Comm.MSG_SEND;
 
 		var onActivate = function(event) { oThis.onActivate(event); };
 		this.windowObject.addEventListener( 'activate', onActivate, true );
