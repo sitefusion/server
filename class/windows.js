@@ -26,6 +26,8 @@
 
 
 SiteFusion.Classes.BasicWindow = Class.create( SiteFusion.Classes.Node, {
+	lastWindowState: STATE_NORMAL,
+
 	maximize: function() {
 		var oThis = this;
 		this.windowObject.setTimeout( function() { oThis.windowObject.maximize(); }, 100 );
@@ -122,6 +124,37 @@ SiteFusion.Classes.BasicWindow = Class.create( SiteFusion.Classes.Node, {
 		SiteFusion.Interface.RegisterChildWindow(win);
 		win.onclose = function() {SiteFusion.Interface.UnregisterChildWindow(win); };
 		setTimeout(function(){SiteFusion.Interface.CursorIdle();},50);
+	},
+
+	addBasicEvents: function() {
+
+		var oThis = this;
+
+		var onSizeModeChanged = function(event) { oThis.onSizeModeChanged(event); };
+		this.windowObject.addEventListener( 'sizemodechange', onSizeModeChanged, true );
+		this.eventHost.sizemodechange.msgType = SiteFusion.Comm.MSG_SEND;
+
+		var onActivate = function(event) { oThis.onActivate(event); };
+		this.windowObject.addEventListener( 'activate', onActivate, true );
+
+		var onDeactivate = function(event) { oThis.onDeactivate(event); };
+		this.windowObject.addEventListener( 'deactivate', onDeactivate, true );
+
+	},
+
+	onSizeModeChanged: function(event) {
+		if (this.lastWindowState != this.windowObject.windowState) { // See mozilla bug https://bugzilla.mozilla.org/show_bug.cgi?id=715867
+			this.fireEvent( 'sizemodechange', [this.windowObject.windowState] );
+			this.lastWindowState = this.windowObject.windowState;
+		}
+	},
+
+	onActivate: function(event) {
+		this.fireEvent( 'activate' );
+	},
+
+	onDeactivate: function(event) {
+		this.fireEvent( 'deactivate' );
 	}
 } );
 
@@ -139,7 +172,7 @@ SiteFusion.Classes.Window = Class.create( SiteFusion.Classes.BasicWindow, {
 		winobj.sfNode = this;
 		winobj.sfRootWindow = this;
 		
-		this.setEventHost( [ 'initialized', 'close' ] );
+		this.setEventHost( [ 'initialized', 'close', 'sizemodechange', 'activate', 'deactivate' ] );
 		
 		this.eventHost.initialized.msgType = SiteFusion.Comm.MSG_SEND;
 		this.eventHost.initialized.blocking = true;
@@ -152,8 +185,9 @@ SiteFusion.Classes.Window = Class.create( SiteFusion.Classes.BasicWindow, {
 		
 		var onResize = function(event) { oThis.onResize(event); };
 		this.windowObject.addEventListener( 'resize', onResize, true );
-		
-		
+
+		this.addBasicEvents();
+
 		SiteFusion.Comm.AddToRegistry( 0, this );
 		
 		SiteFusion.Comm.BusyHandlers.push( SiteFusion.Interface.CursorBusy );
@@ -253,7 +287,7 @@ SiteFusion.Classes.ChildWindow = Class.create( SiteFusion.Classes.BasicWindow, {
 		
 		this.isClosing = false;
 		
-		this.setEventHost( [ 'initialized', 'close', 'hasClosed' ] );
+		this.setEventHost( [ 'initialized', 'close', 'hasClosed', 'sizemodechange', 'activate', 'deactivate' ] );
 		
 		this.eventHost.initialized.msgType = 0;
 		this.eventHost.initialized.blocking = true;
@@ -310,12 +344,13 @@ SiteFusion.Classes.ChildWindow = Class.create( SiteFusion.Classes.BasicWindow, {
 		
 		var onResize = function(event) { oThis.onResize(event); };
 		this.windowObject.addEventListener( 'resize', onResize, true );
+
+		this.addBasicEvents();
 	},
 
 	close: function() {
 		this.windowObject.close();
 	},
-	
 	
 	onResize: function( event ) {
 		this.fireEvent( 'resize' );
@@ -340,7 +375,6 @@ SiteFusion.Classes.ChildWindow = Class.create( SiteFusion.Classes.BasicWindow, {
 		return true;
 	}
 	
-	
 } );
 
 
@@ -361,7 +395,7 @@ SiteFusion.Classes.Dialog = Class.create( SiteFusion.Classes.ChildWindow, {
 		
 		this.isClosing = false;
 		
-		this.setEventHost( [ 'initialized', 'accept', 'cancel', 'close', 'help', 'disclosure', 'extra1', 'extra2', 'hasClosed' ] );
+		this.setEventHost( [ 'initialized', 'accept', 'cancel', 'close', 'help', 'disclosure', 'extra1', 'extra2', 'hasClosed', 'sizemodechange', 'activate', 'deactivate' ] );
 		
 		this.eventHost.initialized.msgType = 0;
 		this.eventHost.initialized.blocking = true;
@@ -394,6 +428,8 @@ SiteFusion.Classes.Dialog = Class.create( SiteFusion.Classes.ChildWindow, {
 		this.windowObject.addEventListener( 'dialogdisclosure', onDialogButton, true );
 		this.windowObject.addEventListener( 'dialogextra1', onDialogButton, true );
 		this.windowObject.addEventListener( 'dialogextra2', onDialogButton, true );
+
+		this.addBasicEvents();
 	},
 	
 	onDialogButton: function( event ) {
@@ -572,20 +608,6 @@ SiteFusion.Classes.AlertNotification = Class.create( SiteFusion.Classes.Node, {
 	        alertsService.showAlertNotification( (imageUrl != '' ? this.parseImageURL(imageUrl):''), title, text, textClickable, '', observer, name );
 	    }
 	    catch( e ) {
-			if( navigator.platform.match(/mac/i) ) {
-				var appDir = Cc["@mozilla.org/file/directory_service;1"].getService(Ci.nsIProperties).get("CurProcD", Ci.nsIFile).parent.parent;
-				var appleScriptService = new SiteFusion.Classes.AppleScriptService();
-				var appName = appDir.leafName.replace( /\.app$/, '' );
-				
-				appleScriptService.execute( [
-					'tell application "GrowlHelperApp"',
-					'set the allNotificationsList to {"' + name.replace(/\"/g,"\\\"") + '"}',
-					'set the enabledNotificationsList to {"' + name.replace(/\"/g,"\\\"") + '"}',
-					'register as application "' + appName.replace(/\"/g,"\\\"") + '" all notifications allNotificationsList default notifications enabledNotificationsList icon of application "' + appName.replace(/\"/g,"\\\"") + '"',
-					'notify with name "' + name.replace(/\"/g,"\\\"") + '" title "' + title.replace(/\"/g,"\\\"") + '" description "' + text.replace(/\"/g,"\\\"") + '" application name "' + appName.replace(/\"/g,"\\\"") + '"',
-					'end tell'
-				] );
-			}
 	    	this.fireEvent( 'finished' );
 	    }
 	}
