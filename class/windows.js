@@ -126,6 +126,22 @@ SiteFusion.Classes.BasicWindow = Class.create( SiteFusion.Classes.Node, {
 		setTimeout(function(){SiteFusion.Interface.CursorIdle();},50);
 	},
 
+	addBasicEvents: function() {
+
+		var oThis = this;
+
+		var onSizeModeChanged = function(event) { oThis.onSizeModeChanged(event); };
+		this.windowObject.addEventListener( 'sizemodechange', onSizeModeChanged, true );
+		this.eventHost.sizemodechange.msgType = SiteFusion.Comm.MSG_SEND;
+
+		var onActivate = function(event) { oThis.onActivate(event); };
+		this.windowObject.addEventListener( 'activate', onActivate, true );
+
+		var onDeactivate = function(event) { oThis.onDeactivate(event); };
+		this.windowObject.addEventListener( 'deactivate', onDeactivate, true );
+
+	},
+
 	onSizeModeChanged: function(event) {
 		if (this.lastWindowState != this.windowObject.windowState) { // See mozilla bug https://bugzilla.mozilla.org/show_bug.cgi?id=715867
 			this.fireEvent( 'sizemodechange', [this.windowObject.windowState] );
@@ -170,15 +186,7 @@ SiteFusion.Classes.Window = Class.create( SiteFusion.Classes.BasicWindow, {
 		var onResize = function(event) { oThis.onResize(event); };
 		this.windowObject.addEventListener( 'resize', onResize, true );
 
-		var onSizeModeChanged = function(event) { oThis.onSizeModeChanged(event); };
-		this.windowObject.addEventListener( 'sizemodechange', onSizeModeChanged, true );
-		this.eventHost.sizemodechange.msgType = SiteFusion.Comm.MSG_SEND;
-
-		var onActivate = function(event) { oThis.onActivate(event); };
-		this.windowObject.addEventListener( 'activate', onActivate, true );
-
-		var onDeactivate = function(event) { oThis.onDeactivate(event); };
-		this.windowObject.addEventListener( 'deactivate', onDeactivate, true );
+		this.addBasicEvents();
 
 		SiteFusion.Comm.AddToRegistry( 0, this );
 		
@@ -337,15 +345,7 @@ SiteFusion.Classes.ChildWindow = Class.create( SiteFusion.Classes.BasicWindow, {
 		var onResize = function(event) { oThis.onResize(event); };
 		this.windowObject.addEventListener( 'resize', onResize, true );
 
-		var onSizeModeChanged = function(event) { oThis.onSizeModeChanged(event); };
-		this.windowObject.addEventListener( 'sizemodechange', onSizeModeChanged, true );
-		this.eventHost.sizemodechange.msgType = SiteFusion.Comm.MSG_SEND;
-
-		var onActivate = function(event) { oThis.onActivate(event); };
-		this.windowObject.addEventListener( 'activate', onActivate, true );
-
-		var onDeactivate = function(event) { oThis.onDeactivate(event); };
-		this.windowObject.addEventListener( 'deactivate', onDeactivate, true );
+		this.addBasicEvents();
 	},
 
 	close: function() {
@@ -429,15 +429,7 @@ SiteFusion.Classes.Dialog = Class.create( SiteFusion.Classes.ChildWindow, {
 		this.windowObject.addEventListener( 'dialogextra1', onDialogButton, true );
 		this.windowObject.addEventListener( 'dialogextra2', onDialogButton, true );
 
-		var onSizeModeChanged = function(event) { oThis.onSizeModeChanged(event); };
-		this.windowObject.addEventListener( 'sizemodechange', onSizeModeChanged, true );
-		this.eventHost.sizemodechange.msgType = SiteFusion.Comm.MSG_SEND;
-
-		var onActivate = function(event) { oThis.onActivate(event); };
-		this.windowObject.addEventListener( 'activate', onActivate, true );
-
-		var onDeactivate = function(event) { oThis.onDeactivate(event); };
-		this.windowObject.addEventListener( 'deactivate', onDeactivate, true );
+		this.addBasicEvents();
 	},
 	
 	onDialogButton: function( event ) {
