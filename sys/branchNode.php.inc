@@ -221,7 +221,7 @@ class BranchNode extends Node {
             $obj = $args[$n];
 
             if (( $index = array_search($obj, $this->children, TRUE) ) === FALSE)
-                ( 'Node is not a child of this BranchNode' );
+                throw new SFException('Node is not a child of this BranchNode', ERR_REPORT_APP);
 
             $this->fireLocalEvent('onBeforeRemoveChild', array($obj));
 
