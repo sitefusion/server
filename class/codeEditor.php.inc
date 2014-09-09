@@ -37,10 +37,8 @@ class XULCodeEditor extends XULEditor
 	
 	public function afterMadeEditable()
 	{
-		$this->callMethod( 'editorLoaded');
+		$this->callMethod( 'editorLoaded', $this->value);
 		$this->editable = TRUE;
-		
-		$this->callMethod( 'setSource', $this->value);
 	}
 	
 	public function value($value = NULL)
