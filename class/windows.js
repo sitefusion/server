@@ -24,6 +24,7 @@
 //
 // - - - - - - - - - - - - - - END LICENSE BLOCK - - - - - - - - - - - - -
 
+const { console } = Components.utils.import("resource://gre/modules/devtools/Console.jsm", {});
 
 SiteFusion.Classes.BasicWindow = Class.create( SiteFusion.Classes.Node, {
 	lastWindowState: STATE_NORMAL,
@@ -101,15 +102,22 @@ SiteFusion.Classes.BasicWindow = Class.create( SiteFusion.Classes.Node, {
 	},
 	
 	initMenuBar: function() {
+		//if we find the old-style systemMenuBar, delete it.
 		var menubar = this.windowObject.document.getElementById('systemMenuBar');
-		if( navigator.platform.match(/mac/i) ) {
+		this.systemMenuBar = null;
+
+		//if there's no systemMenuBar found, return. We don't have to do anything since it's a recent client
+		if (!menubar) return;
+
+		if( navigator.platform.match(/mac/i)) {
 			this.systemMenuBar = menubar;
 			var quitItem = this.windowObject.document.getElementById('menu_FileQuitItem');
-			quitItem.setAttribute( 'oncommand', 'sfRootWindow.onClose(event);' );
+			if (quitItem) {
+				quitItem.setAttribute( 'oncommand', 'sfRootWindow.onClose(event);' );
+			}
 		}
 		else {
 			menubar.parentNode.removeChild( menubar );
-			this.systemMenuBar = null;
 		}
 	},
 	
