@@ -203,20 +203,19 @@ SiteFusion.Comm.Transmission = Class.create( {
 						transmission.handleResponse();
 				};
 			}
-			
-			this.request[this.payloadEncoding == 'application/x-gzip' ? 'sendAsBinary':'send']( this.payload );
+
+			this.request.send( this.payload );
 		}
 		catch ( e ) {
 			var oThis = this;
 			setTimeout( function() { oThis.openHttpRequest(); }, 1000 );
 			return;
 		}
-			
 		
 		if( !aSync )
 			this.handleResponse();
 	},
-	
+
 	handleResponse: function() {
 		if( this.request.status != 200 ) {
 			if( !this.reverseInitiative ) {
@@ -296,7 +295,14 @@ SiteFusion.Comm.Transmission.Compressor = Class.create( {
 	onStartRequest: function( request, context ) {},
 	
 	onStopRequest: function( request, context, statuscode ) {
-		this.transmission.payload = this.buffer;
+		var sData = this.buffer;
+		var nBytes = sData.length;
+		var ui8Data = new Uint8Array(nBytes);
+        for(var nIdx = 0; nIdx < nBytes; nIdx++) {
+            ui8Data[nIdx] = sData.charCodeAt(nIdx) & 0xff;
+        }
+
+		this.transmission.payload = ui8Data;
 		this.transmission.openHttpRequest();
 	},
 	
