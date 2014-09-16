@@ -119,26 +119,27 @@ SiteFusion.Classes.TextBox = Class.create( SiteFusion.Classes.Node, {
 	},
 	
 	value: function( text ) {
-		if( this.element.type == 'number' )
-		{
-			this.element.valueNumber = text;
-		}
-		else
-		{
+		if ( this.element.type == 'number' ) {
+			this.element.setAttribute( 'value', text );
+			this.element.value = text;
+		} else {
 			this.element.setAttribute( 'value', '' + text );
 			this.element.value = '' + text;
-			if( this.element.inputField )
-				this.element.inputField.value = text;
+		}
+
+		if ( this.element.inputField ) {
+			this.element.inputField.value = text;
 		}
 
 	},
 
 	yield: function() {
 		var val;
-		if( this.element.type == 'number' )
-			val = this.element.valueNumber;
-		else
+		if( this.element.type == 'number' ) {
+			val = this.element.inputField.value;
+		} else {
 			val = this.element.inputField.value + '';
+		}
 				
 		var validityObj = {};
 		if( this.element.type != 'number' ){
