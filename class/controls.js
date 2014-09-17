@@ -119,36 +119,29 @@ SiteFusion.Classes.TextBox = Class.create( SiteFusion.Classes.Node, {
 	},
 	
 	value: function( text ) {
-		if ( this.element.type == 'number' ) {
-			this.element.setAttribute( 'value', text );
-			this.element.value = text;
-		} else {
-			this.element.setAttribute( 'value', '' + text );
-			this.element.value = '' + text;
-		}
+		this.element.setAttribute( 'value', text );
+        this.element.value = text;
 
-		if ( this.element.inputField ) {
-			this.element.inputField.value = text;
-		}
-
+        if ( this.element.inputField ) {
+            this.element.inputField.value = text;
+        }
 	},
 
 	yield: function() {
-		var val;
-		if( this.element.type == 'number' ) {
-			val = this.element.inputField.value;
-		} else {
-			val = this.element.inputField.value + '';
-		}
-				
-		var validityObj = {};
-		if( this.element.type != 'number' ){
-		  for( var prop in this.element.inputField.validity){
-			  validityObj[prop] = this.element.inputField.validity[prop];	
-		  }
-		}
-		
-		this.fireEvent( 'yield', [ val, JSON.stringify(validityObj) ] );
+		var val = this.element.inputField.value + '';
+        if (this.element.type == 'number') {
+            val = val.replace(/\,/g, '.');
+            val = parseFloat(val);
+        }
+
+        var validityObj = {};
+        if( this.element.type != 'number' ){
+          for( var prop in this.element.inputField.validity){
+              validityObj[prop] = this.element.inputField.validity[prop];   
+          }
+        }
+        
+        this.fireEvent( 'yield', [ val, JSON.stringify(validityObj) ] );
 	}
 } );
 
