@@ -121,7 +121,7 @@ SiteFusion.Classes.TextBox = Class.create( SiteFusion.Classes.Node, {
 	value: function( text ) {
 		if (this.element.number !== 'number') {
 			this.element.setAttribute( 'value', text );
-	        this.element.value = text;
+	        this.element.value = text + '';
 
 	        if ( this.element.inputField ) {
 	            this.element.inputField.value = text;
@@ -137,7 +137,7 @@ SiteFusion.Classes.TextBox = Class.create( SiteFusion.Classes.Node, {
 		} else {
 			var val = this.element.inputField.value + '';
 		}
-		
+
         var validityObj = {};
         if( this.element.type != 'number' ){
           for( var prop in this.element.inputField.validity){
