@@ -209,7 +209,7 @@ SiteFusion.Classes.DatePicker = Class.create( SiteFusion.Classes.Node, {
 		if (typeof(text) == "number") {
 			dateVal = new Date(Math.round(text * 1000));
 		} else if (text.length && text.length == 10 && text.match(/\d{1,4}(\/|-)\d{1,4}(\/|-)\d{1,4}/)) {
-			dateVal = new Date(Date.parse(text));
+			dateVal = new Date(text);
 		} else {
 			SiteFusion.consoleError('XULDatePicker::value : Value \'' + text + '\' is not a valid date.');
 		}
@@ -226,11 +226,16 @@ SiteFusion.Classes.DatePicker = Class.create( SiteFusion.Classes.Node, {
 
 	setDateValue: function(dateVal) {
 
-		var month = ('0' + (dateVal.getMonth() + 1)).slice(-2);
-		var day = ('0' + dateVal.getDate()).slice(-2);
+		// Kevin Meijer: Below is the workaround which is the EXACT code from datetimepicker.xml, for some reason the instanceof check fails in the XML file while it works out here
+		// Workaround start
+		if (!(dateVal instanceof Date))
+			throw "Invalid Date";
 
-		this.element.value = dateVal.getFullYear() + "-" + month + "-" + day;
-		this.element.dateValue = dateVal;
+		this.element._setValueNoSync(dateVal);
+		if (this.element.attachedControl) {
+			this.element.attachedControl._setValueNoSync(dateVal);
+		}
+		// Workaround end
 
 	},
 	
