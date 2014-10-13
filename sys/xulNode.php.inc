@@ -1767,6 +1767,13 @@ class Node
 		$this->callMethod( 'setDraggable', $send );
 	}
 	
+	public function unsetDraggable() {
+		if (!$this->isRegistered) {
+			throw new SFException("Can't call unsetDraggable() on unregistered node", ERR_REPORT_APP);
+		}
+
+		$this->callMethod('unsetDraggable');
+	}
 	
 	/**
 	 * Set this element as a dropzone

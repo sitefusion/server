@@ -411,6 +411,14 @@ SiteFusion.Classes.Node = Class.create( {
 		this.draggableFlavours = flavours;
 	},
 
+	unsetDraggable: function() {
+		this.element.removeEventListener('dragstart', this.onDragStartEvent, true);
+
+		this.draggable = false;
+		this.draggableClassname = '';
+		this.draggableFlavours = [];
+	},
+
 	setDroppable: function() {
 		this.dropObserver = new this.DropObserver( this, arguments );
 		this.droppable = true;
