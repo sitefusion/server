@@ -165,7 +165,11 @@ SiteFusion.Classes.TimePicker = Class.create( SiteFusion.Classes.Node, {
 	value: function( text ) {
 		if (typeof(text) == "number") {
 			var dateval = new Date(Math.round(text * 1000));
-			this.element.value = dateval.getHours() + ":" + dateval.getMinutes() + ":" + dateval.getSeconds();
+			var strVal = dateval.getHours() + ":" + dateval.getMinutes() + ":" + dateval.getSeconds();
+			var oThis = this;
+			window.setTimeout(function() {
+				oThis.element.value = strVal;
+			}, 10);
 		}
 		else {
 			if (text.length && text.match(/\d\d?\:\d\d?\:\d\d?/)) {
