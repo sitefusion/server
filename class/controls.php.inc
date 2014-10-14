@@ -660,6 +660,7 @@ class XULRadioGroup extends BranchNode
     public $remoteConstructor = 'RadioGroup';
     public $value = NULL;
     public $selectedItem = NULL;
+    public $selectAfterAttach = NULL;
 
     /**
      * Dynamic Constructor
@@ -669,6 +670,14 @@ class XULRadioGroup extends BranchNode
     public function __construct() {
         $args = func_get_args();
         parent::__construct($args);
+    }
+
+    public function attach() {
+        parent::attach();
+        if ($this->selectAfterAttach != NULL) {
+            $this->selectItem($this->selectAfterAttach);
+            $this->selectAfterAttach = NULL;
+        }
 
         $this->setEventHandler('yield', $this, 'yieldCollect');
     }
@@ -683,6 +692,41 @@ class XULRadioGroup extends BranchNode
     public function clearSelection() {
         $this->setProperty("element.selectedIndex", -1);
     }
+
+    public function selectItem($val) {
+        if (!$this->isRegistered) {
+            $this->selectAfterAttach = $val;
+            return;
+        }
+
+        if ($val instanceof XULRadio) {
+            foreach ($this->children as $item) {
+                if ($item instanceof XULRadio && $item === $val) {
+                    $item->selected(TRUE);
+
+                    break;
+                }
+            }
+        } else if ($val === NULL) {
+            $this->selectedItem = $val;
+            $this->value = $val;
+
+            foreach ($this->children as $item) {
+                if ($item instanceof XULRadio && $item->selected()) {
+                    $item->selected(FALSE);
+                }
+            }
+        } else {
+            foreach ($this->children as $item) {
+                if ($item instanceof XULRadio && $item->value() == $val) {
+                    $item->selected(TRUE);
+                }
+            }
+        }
+
+        return $this;
+    }
+
 }
 
 /**
