@@ -516,7 +516,7 @@ class Node
 	 * @return Node	Returns reference to self ($this) for easy chaining of method calls
 	*/
 	
-	public function yield() {
+	public function triggerYield() {
 		if(! $this->isRegistered )
 			throw new SFException( 'Unregistered node cannot yield', ERR_REPORT_APP );
 		
@@ -527,6 +527,9 @@ class Node
 		return $this;
 	}
 	
+	public function yield() {
+		return $this->triggerYield();
+	}
 	
 	/**
 	 * [INTERNAL FUNCTION] Removes event handler and yielder links to other nodes
