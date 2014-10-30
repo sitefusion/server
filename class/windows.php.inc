@@ -590,6 +590,7 @@ class PromptService extends Node {
     private $handlerObj = NULL;
     private $handlerMethod = NULL;
     private $carryValue = NULL;
+    private $closure = NULL;
     
     public function attach() {
         parent::attach();
@@ -650,6 +651,23 @@ class PromptService extends Node {
         $this->callMethod( 'confirm', array($title,$text) );
     }
     
+    /**
+     * Shows a confirm box with OK and Cancel buttons
+     *
+     * @param string    $title          Title of the dialog box
+     * @param string    $text           Body text
+     * @param object    $closure        Closure
+     */
+    public function confirmClosure($title, $text, $closure) {
+        if ($this->promptInProgress) {
+            throw new SFException('PromptService: a prompt is already in progress', ERR_REPORT_APP);
+        }
+
+        $this->promptInProgress = TRUE;
+        $this->closure = $closure;
+        $this->callMethod('confirm', array($title, $text));
+    }
+
     /**
      * Shows a confirm box with OK and Cancel buttons and a checkbox
      *
@@ -876,14 +894,20 @@ class PromptService extends Node {
         $this->password = $password;
         
         $this->promptInProgress = FALSE;
-        $ho = $this->handlerObj;
-        $hm = $this->handlerMethod;
-        $cv = $this->carryValue;
-        $this->handlerObj = NULL;
-        $this->handlerMethod = NULL;
-        $this->carryValue = NULL;
-        
-        $ho->{$hm}( $this, $cv );
+        if ($this->closure) {
+            $this->closure->__invoke($this);
+            $this->closure = NULL;
+        } else {
+            $ho = $this->handlerObj;
+            $hm = $this->handlerMethod;
+            $cv = $this->carryValue;
+
+            $this->handlerObj = NULL;
+            $this->handlerMethod = NULL;
+            $this->carryValue = NULL;
+            
+            $ho->{$hm}( $this, $cv );
+        }
     }
 }
 
