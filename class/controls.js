@@ -119,7 +119,7 @@ SiteFusion.Classes.TextBox = Class.create( SiteFusion.Classes.Node, {
 	},
 	
 	value: function( text ) {
-		if (this.element.number !== 'number') {
+		if (this.element.type !== 'number') {
 			this.element.setAttribute( 'value', text );
 	        this.element.value = text + '';
 
@@ -132,7 +132,7 @@ SiteFusion.Classes.TextBox = Class.create( SiteFusion.Classes.Node, {
 	},
 
 	yield: function() {
-		if (this.element.number == 'number') {
+		if (this.element.type == 'number') {
 			var val = this.element.valueNumber
 		} else {
 			var val = this.element.inputField.value + '';
