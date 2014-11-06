@@ -719,6 +719,31 @@ class PromptService extends Node {
         $this->carryValue = $carryValue;
         $this->callMethod( 'confirmEx', array($title,$text,$buttonFlags,$button0Title,$button1Title,$button2Title,$checkMsg,$checkState) );
     }
+
+    /**
+     * Shows a custom confirm box with up to three buttons and a checkbox
+     *
+     * @param string    $title          Title of the dialog box
+     * @param string    $text           Body text
+     * @param int       $buttonFlags    Button flags
+     * @param string    $button0Title   Optional custom title for button 0
+     * @param string    $button1Title   Optional custom title for button 1
+     * @param string    $button2Title   Optional custom title for button 2
+     * @param string    $checkMsg       Label text of the checkbox
+     * @param bool      $checkState     Initial state of the checkbox
+     * @param object    $closure        Closure
+     * 
+     * @link https://developer.mozilla.org/en/nsIPromptService#confirmEx example
+     */
+    public function confirmExClosure($title, $text, $buttonFlags, $button0Title, $button1Title, $button2Title, $checkMsg, $checkState, $closure) {
+        if ($this->promptInProgress) {
+            throw new SFException( 'PromptService: a prompt is already in progress', ERR_REPORT_APP );
+        }
+
+        $this->promptInProgress = TRUE;
+        $this->closure = $closure;
+        $this->callMethod( 'confirmEx', array($title,$text,$buttonFlags,$button0Title,$button1Title,$button2Title,$checkMsg,$checkState) );
+    }
     
     /**
      * Shows a prompt box with a textinput and OK and Cancel buttons
