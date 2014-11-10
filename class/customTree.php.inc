@@ -89,8 +89,10 @@ class XULCustomTree extends XULTree
 	}
 
 	public function cellValueYieldCollect( $e, $rowId, $colId, $value ) {
-		$value = $this->dataSet->idToRow[$rowId]->pushedUpdate( $colId, $value );
-		$this->fireLocalEvent( 'cellUpdated', array( $this->dataSet->idToRow[$rowId], $this->dataSet->columns[$colId], $value ) );
+		if (isset($this->dataSet->idToRow[$rowId]) && isset($this->dataSet->columns[$colId])) {
+			$value = $this->dataSet->idToRow[$rowId]->pushedUpdate( $colId, $value );
+			$this->fireLocalEvent( 'cellUpdated', array( $this->dataSet->idToRow[$rowId], $this->dataSet->columns[$colId], $value ) );
+		}
 	}
 
 	public function itemClickHandler($e, $rowId, $colId, $part, $clientX, $clientY) {
@@ -111,13 +113,22 @@ class XULCustomTree extends XULTree
 	public function treeDropHandler( $e, $sourceTree, $sourceSelection, $targetRow, $orientation ) {
 		$selectedRows = array();
 		foreach ( explode(',',$sourceSelection) as $rowId ) {
-			$selectedRows[] = $sourceTree->dataSet->idToRow[$rowId];
+			if (isset($this->dataSet->idToRow[$rowId])) {
+				$selectedRows[] = $sourceTree->dataSet->idToRow[$rowId];
+			}
 		}
 
-		if( $targetRow !== NULL )
-			$targetRow = $this->dataSet->idToRow[$targetRow];
+		if( $targetRow !== NULL ) {
+			if (isset($this->dataSet->idToRow[$targetRow])) {
+				$targetRow = $this->dataSet->idToRow[$targetRow];
+			} else {
+				$targetRow = NULL;
+			}
+		}
 
-		$this->fireLocalEvent( 'treeItemDropped', array( $sourceTree, $selectedRows, $targetRow, $orientation ) );
+		if (!empty($selectedRows)) {
+			$this->fireLocalEvent( 'treeItemDropped', array( $sourceTree, $selectedRows, $targetRow, $orientation ) );
+		}
 	}
 
 	public function nodeDropHandler( $e, $sourceNode, $targetRow, $orientation ) {
