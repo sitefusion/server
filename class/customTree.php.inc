@@ -113,7 +113,7 @@ class XULCustomTree extends XULTree
 	public function treeDropHandler( $e, $sourceTree, $sourceSelection, $targetRow, $orientation ) {
 		$selectedRows = array();
 		foreach ( explode(',',$sourceSelection) as $rowId ) {
-			if (isset($this->dataSet->idToRow[$rowId])) {
+			if (isset($sourceTree->dataSet->idToRow[$rowId])) {
 				$selectedRows[] = $sourceTree->dataSet->idToRow[$rowId];
 			}
 		}
