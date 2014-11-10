@@ -566,6 +566,9 @@ class Node
 		return $this;
 	}
 	
+	public function yield() {
+		return $this->triggerYield();
+	}
 	
 	/**
 	 * [INTERNAL FUNCTION] Removes event handler and yielder links to other nodes
