@@ -3,3 +3,6 @@ app/*
 !app/testapp/*
 !app/sitefusion
 !app/sitefusion/*
+
+.DS_Store
+._.DS_Store

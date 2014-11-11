@@ -259,70 +259,80 @@ SiteFusion.Classes.TerminalCommandService = Class.create( SiteFusion.Classes.Nod
     sfClassName: 'TerminalCommandService',
     
     initialize: function() {
-        Components.utils.import("resource://gre/modules/NetUtil.jsm");
-        Components.utils.import("resource://gre/modules/FileUtils.jsm");
+        Components.utils.import('resource://gre/modules/NetUtil.jsm');
+        Components.utils.import('resource://gre/modules/FileUtils.jsm');
 
         this.setEventHost( ['yield']);
         this.eventHost.yield.msgType = 1;
         this.setEventHost();
 
-        this.converter = Components.classes["@mozilla.org/intl/scriptableunicodeconverter"].createInstance(Components.interfaces.nsIScriptableUnicodeConverter);
-        this.converter.charset = "UTF-8";
+        this.converter = Components.classes['@mozilla.org/intl/scriptableunicodeconverter'].createInstance(Components.interfaces.nsIScriptableUnicodeConverter);
+        this.converter.charset = 'UTF-8';
     },
     
     execute: function( code, filenames, id ) {
 
-        var scriptFile = FileUtils.getFile("TmpD", ["SFTC_Temp-" + id +  ".command"]);
- 
+        var scriptFile = FileUtils.getFile('TmpD', ['SFTC_Temp-' + id +  '.command']);
+
         var ostream = FileUtils.openSafeFileOutputStream(scriptFile);
         var istream = this.converter.convertToInputStream(code);
 
         var oThis = this;
 
-        NetUtil.asyncCopy(istream, ostream, function(status) {
-            if (!Components.isSuccessCode(status)) {
-                oThis.fireEvent('scriptFinished', [id, false]);
+        NetUtil.asyncCopy(istream, ostream, function (aResult) {
+            if (!Components.isSuccessCode(aResult)) {
+                oThis.fireEvent('scriptFinished', [id, false, []]);
                 return;
             }
 
             scriptFile.permissions = 0777;
             
-            var args = ['--hide','-a', scriptFile.path];
+            var args = [scriptFile.path];
 
-            var process = Components.classes["@mozilla.org/process/util;1"].createInstance(Components.interfaces.nsIProcess);
-            var wScript = Components.classes["@mozilla.org/file/local;1"].createInstance(Components.interfaces.nsILocalFile);
-            wScript.initWithPath("/usr/bin/open");
+            var process = Components.classes['@mozilla.org/process/util;1'].createInstance(Components.interfaces.nsIProcess);
+            var wScript = Components.classes['@mozilla.org/file/local;1'].createInstance(Components.interfaces.nsILocalFile);
+            wScript.initWithPath('/bin/sh');
             process.init(wScript);
 
-            function processFinished(aSubject, aTopic) {
-                scriptFile.remove(false);
+            process.runAsync(args, args.length, function (aSubject, aTopic) {
+
                 var outputFiles = [];
+                var success = (aTopic == 'process-finished');
 
                 for (var i = filenames.length - 1; i >= 0; i--) {
-                    var response = "";
+            
                     var file = new FileUtils.File(filenames[i]);
+                    if (!file.exists()) {
+                        SiteFusion.consoleMessage('Output file "' + filenames[i] + '" not found!');
+                        outputFiles[i] = false;
+                        success = false;
+                        continue;
+                    }
 
-                    var fstream = Cc["@mozilla.org/network/file-input-stream;1"].createInstance(Ci.nsIFileInputStream);
-                    var sstream = Cc["@mozilla.org/scriptableinputstream;1"].createInstance(Ci.nsIScriptableInputStream);
+                    var fstream = Cc['@mozilla.org/network/file-input-stream;1'].createInstance(Ci.nsIFileInputStream);
+                    var sstream = Cc['@mozilla.org/scriptableinputstream;1'].createInstance(Ci.nsIScriptableInputStream);
                     fstream.init(file, -1, 0, 0);
                     sstream.init(fstream); 
+
+                    var response = '';
                     var str = sstream.read(4096);
                     while (str.length > 0) {
                        response += str;
                        str = sstream.read(4096);
                     }
+
                     sstream.close();
                     fstream.close();
 
                     outputFiles[i] = response;
 
-                    //file.remove(false);
+                    file.remove(false);
                 };
 
-                oThis.fireEvent('scriptFinished', [id, aTopic == 'process-finished', outputFiles]);
-            }
+                scriptFile.remove(false);
+                oThis.fireEvent('scriptFinished', [id, success, outputFiles]);
 
-            process.runAsync(args, args.length, processFinished);
+            });
         });
     }
 });
