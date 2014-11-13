@@ -246,7 +246,7 @@ class XULScale extends Node
 {
 
     public $remoteConstructor = 'Scale';
-    public $initAttributes = array('min', 'max', 'value');
+    public $initAttributes = array('min', 'max', 'value', 'increment');
 
     public function __construct($min = NULL, $max = NULL, $value = NULL) {
         if ($min !== NULL)
@@ -274,6 +274,10 @@ class XULScale extends Node
 
     public function value($value = NULL) {
         return $this->attributeMethod('value', $value);
+    }
+
+    public function increment($increment = NULL) {
+        return $this->attributeMethod('increment', $increment);
     }
 
     public function yieldCollect($e, $value = NULL) {
