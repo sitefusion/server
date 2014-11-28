@@ -333,6 +333,104 @@ SiteFusion.Classes.FileDownloader = Class.create( SiteFusion.Classes.Node, {
     }
 } );
 
+SiteFusion.Classes.URLDownloader = Class.create(SiteFusion.Classes.Node, {
+    sfClassName: 'URLDownloader',
+
+    initialize: function() {
+        this.element = document.createElement('label');
+        this.setEventHost(['started', 'failed', 'cycle', 'finished', 'cancelled']);
+    },
+
+    startDownload: function(localPath, url) {
+        this.localPath = localPath;
+        this.url = url;
+
+        var progressListener = {
+            stateIsRequest: false,
+            lastCycle: 0,
+            cycleCount: 0,
+            done: false,
+            QueryInterface : function(aIID) {
+                if (aIID.equals(Components.interfaces.nsIWebProgressListener2) ||
+                    aIID.equals(Components.interfaces.nsISupportsWeakReference) ||
+                    aIID.equals(Components.interfaces.nsISupports))
+                    return this;
+                throw Components.results.NS_NOINTERFACE;
+            },
+            onStateChange: function(webProgress, request, stateFlags, status) {},
+            onProgressChange64: function(webProgress, request, curSelfProgress, maxSelfProgress, curTotalProgress, maxTotalProgress) {
+                if (curSelfProgress == maxSelfProgress) {
+                    this.done = true;
+                    this.cycleCount++;
+                    this.downloader.fireEvent('cycle', [maxSelfProgress, curSelfProgress, this.cycleCount]);
+                    this.downloader.fireEvent('finished', [this.downloader.localPath, this.downloader.url]);
+                } else {
+                    var now = Date.now();
+                    if (now - this.lastCycle > 500) {
+                        this.cycleCount++;
+                        this.downloader.fireEvent('cycle', [maxSelfProgress, curSelfProgress, this.cycleCount]);
+                        this.lastCycle = now;
+                    }
+                }
+            },
+            onLocationChange: function(webProgress, request, location) {},
+            onStatusChange: function(webProgress, request, status, message) {},
+            onSecurityChange: function(webProgress, request, state) {}
+        };
+
+        progressListener.downloader = this;
+
+        try {
+            this.targetFile = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile);
+            this.targetFile.initWithPath(localPath);
+
+            if(this.targetFile.exists() && this.targetFile.isFile() && this.targetFile.isWritable()) {
+                this.targetFile.remove(false);
+            }
+
+            this.targetFile.create(0x00,0644);
+
+            var uri = Cc["@mozilla.org/network/io-service;1"].getService(Ci.nsIIOService).newURI(this.url, null, null);
+            this.persistObject = Cc["@mozilla.org/embedding/browser/nsWebBrowserPersist;1"].createInstance(Ci.nsIWebBrowserPersist);
+
+            this.persistObject.progressListener = progressListener;
+            var nsIWBP = Ci.nsIWebBrowserPersist;
+
+            this.persistObject.persistFlags = nsIWBP.PERSIST_FLAGS_REPLACE_EXISTING_FILES |
+            nsIWBP.PERSIST_FLAGS_BYPASS_CACHE |
+            nsIWBP.PERSIST_FLAGS_FAIL_ON_BROKEN_LINKS |
+            nsIWBP.PERSIST_FLAGS_CLEANUP_ON_FAILURE;
+
+            var privacyContext = window.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+            .getInterface(Components.interfaces.nsIWebNavigation)
+            .QueryInterface(Components.interfaces.nsILoadContext);
+
+            this.persistObject.saveURI(uri, null, null, null, null, this.targetFile, privacyContext);
+        } catch (e) {
+            this.fireEvent('failed', [this.localPath, this.url, e.name]);
+            return;
+        }
+
+        this.fireEvent('started', [this.localPath, this.url]);
+    },
+
+    cancelDownload: function() {
+        if (!this.persistObject) {
+            return;
+        }
+
+        if ((!this.persistObject.progressListener) || this.persistObject.progressListener.done) {
+            return;
+        }
+
+        this.persistObject.cancelSave();
+        try {
+            this.targetFile.remove(false);
+        } catch(e) {}
+
+        this.fireEvent('cancelled', [this.localPath, this.url]);
+    }
+});
 
 SiteFusion.Classes.FileService = Class.create( SiteFusion.Classes.Node, {
     sfClassName: 'FileService',

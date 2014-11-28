@@ -946,6 +946,90 @@ class FileFromStreamDownloader extends Node {
     }
 }
 
+/**
+ * Background url downloader
+ * 
+ * This class constructs a node that downloads a file from url to the client in 
+ * the background. Construct it with the url as the first argument and
+ * the remote (client) path as the second argument, and call startDownload(). This control
+ * fires a 'started' event when the download starts, a 'finished' event when the download 
+ * is finished and a 'cancelled' event when the download is cancelled.
+ * 
+ * @see XULFilePicker
+ * @package API
+ * @subpackage FileHandling
+*/
+class URLDownloader extends Node {
+
+    public $remoteConstructor = 'URLDownloader';
+
+    public $url = NULL;
+    public $destPath = NULL;
+    
+    /**
+     * Constructor
+     *
+     * @param string    $url        The url of the file
+     * @param string    $destPath   Destination file path on the client side
+     */
+    public function __construct($url = NULL, $destPath = NULL) {
+        if ($url) {
+            $this->url = $url;
+        }
+
+        if ($destPath) {
+            $this->destPath = $destPath;
+        }
+
+        parent::__construct();
+    }
+    
+    public function attach() {
+        $this->createRemoteObject(array($this->hostWindow));
+        $this->setEventType('failed', MSG_SEND);
+        $this->setEventType('finished', MSG_SEND);
+        $this->setEventType('cancelled', MSG_SEND);
+    }
+    
+    public function detach() {
+        $this->unRegister();
+    }
+    
+    /**
+     * Set the source and destination paths
+     *
+     * @param string    $url        The url of the file
+     * @param string    $destPath   Destination file path on the client side
+     */
+    public function setPaths($url, $destPath) {
+        $this->url = $url;
+        $this->destPath = $destPath;
+    }
+    
+    
+    /**
+     * Cancel a running download
+     * 
+     * Cancels the downloader which fires the 'cancelled' event
+    */
+    public function cancelDownload() {
+        $this->callMethod('cancelDownload');
+    }
+
+    /**
+     * Start the download
+     * 
+     * Starts the downloader which fires the 'started' event beforehand
+    */
+    public function startDownload() {
+        if (empty($this->url) || empty($this->destPath)) {
+            throw new SFException('No URL or path given. Use setPaths()', ERR_REPORT_APP);
+        }
+        
+        $this->callMethod('startDownload', array($this->destPath, $this->url));
+    }
+}
+
 
 /**
  * Client filesystem service
