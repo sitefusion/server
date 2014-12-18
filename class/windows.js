@@ -24,7 +24,6 @@
 //
 // - - - - - - - - - - - - - - END LICENSE BLOCK - - - - - - - - - - - - -
 
-const { console } = Components.utils.import("resource://gre/modules/devtools/Console.jsm", {});
 
 SiteFusion.Classes.BasicWindow = Class.create( SiteFusion.Classes.Node, {
 	lastWindowState: STATE_NORMAL,
