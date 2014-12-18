@@ -411,6 +411,14 @@ SiteFusion.Classes.Node = Class.create( {
 		this.draggableFlavours = flavours;
 	},
 
+	unsetDraggable: function() {
+		this.element.removeEventListener('dragstart', this.onDragStartEvent, true);
+
+		this.draggable = false;
+		this.draggableClassname = '';
+		this.draggableFlavours = [];
+	},
+
 	setDroppable: function() {
 		this.dropObserver = new this.DropObserver( this, arguments );
 		this.droppable = true;
@@ -505,8 +513,11 @@ SiteFusion.Classes.Node = Class.create( {
 			if (types.length) {
 				event.stopPropagation();
 				event.preventDefault();
-				
-				this.sfNode.fireEvent( 'sfdragover', [ event.target.sfNode ] );
+				var newEvent = {};
+				newEvent.type = 'sfdragover';
+				newEvent.dataTransfer = event.dataTransfer;
+				newEvent.target = event.target;
+				this.sfNode.fireEvent( newEvent, [ event.target.sfNode ] );
 			}
 		},
 

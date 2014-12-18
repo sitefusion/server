@@ -59,6 +59,7 @@ class Node
 	public $rootWindow;
 	public $rootApplication;
 	public $eventHandler		= array();
+	public $eventHandlerClosure = array();
 	public $eventYielder		= array();
 	public $eventType		= array();
 	public $handlerFor		= array();
@@ -192,8 +193,40 @@ class Node
 		
 		return $this;
 	}
-	
-	
+
+	/**
+	 * Sets an event handler closure
+	 *
+	 * This method sets a closure to call when a certain event fires.
+	 *
+	 * @param string $event   Event name
+	 * @param string $name    Closure name/identifier
+	 * @param object $closure Closure
+	 */
+	public function setEventHandlerClosure($event, $name, $closure) {	
+		if (!isset($this->eventHandlerClosure[$event])) {
+			$this->eventHandlerClosure[$event] = array();
+		}
+
+		$this->eventHandlerClosure[$event][$name] = $closure;
+				
+		return $this;
+	}
+
+	/**
+	 * Removes an event handler closure
+	 *
+	 * This method removes the reference to the closure on a certain event with a certain name.
+	 * 
+	 * @param  string $event Event name
+	 * @param  string $name  Closure name/identifier
+	 */
+	public function removeEventHandlerClosure($event, $name) {
+		if (isset($this->eventHandlerClosure[$event][$name])) {
+			unset($this->eventHandlerClosure[$event][$name]);
+		}
+	}
+		
 	/**
 	 * Removes an event handler
 	 * 
@@ -454,6 +487,12 @@ class Node
 				
 				if( $eventobj->cancel == TRUE )
 					break;
+			}
+		}
+
+		if (isset($this->eventHandlerClosure[$event])) {
+			foreach ($this->eventHandlerClosure[$event] as $closure) {
+				call_user_func_array(array($closure, '__invoke'), $data);
 			}
 		}
 		
@@ -1731,6 +1770,13 @@ class Node
 		$this->callMethod( 'setDraggable', $send );
 	}
 	
+	public function unsetDraggable() {
+		if (!$this->isRegistered) {
+			throw new SFException("Can't call unsetDraggable() on unregistered node", ERR_REPORT_APP);
+		}
+
+		$this->callMethod('unsetDraggable');
+	}
 	
 	/**
 	 * Set this element as a dropzone
