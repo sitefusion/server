@@ -199,20 +199,25 @@ SiteFusion.Classes.CustomTree = Class.create( SiteFusion.Classes.Node, {
 	},
 
 	select: function( itemJSON ) {
-		if( ! this.view.selection ) {
+		if (!this.view.selection) {
 			var oThis = this;
-			this.hostWindow.windowObject.setTimeout( function() { oThis.select( itemJSON ); }, 10 );
+			this.hostWindow.windowObject.setTimeout(function() { oThis.select( itemJSON ); }, 10);
 			return;
 		}
+
+		this.view.selection.selectEventsSuppressed = true;
 
 		var idx, ids = eval('('+itemJSON+')');
 		this.view.selection.clearSelection();
 
-		for( var n = 0; n < ids.length; n++ ) {
-			idx = this.view.getRowIndex( this.view.idToRow[ids[n]] );
-			if( idx !== false )
-				this.view.selection.toggleSelect( idx );
+		for (var n = 0; n < ids.length; n++) {
+			idx = this.view.getRowIndex(this.view.idToRow[ids[n]]);
+			if (idx !== false) {
+				this.view.selection.toggleSelect(idx);
+			}
 		}
+
+		this.view.selection.selectEventsSuppressed = false;
 	}
 } );
 

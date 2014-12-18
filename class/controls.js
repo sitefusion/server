@@ -203,12 +203,16 @@ SiteFusion.Classes.DatePicker = Class.create( SiteFusion.Classes.Node, {
 		this.element = win.createElement( 'datepicker' );
 		this.element.sfNode = this;
 		
+		this.element.timeoutloop = null;
+
 		this.setEventHost( [ 'yield' ] );
 		
 		this.eventHost.yield.msgType = 1;
 	},
 
 	value: function( text ) {
+		this.initialValue = text;
+
 		var dateVal;
 		if (typeof(text) == "number") {
 			dateVal = new Date(Math.round(text * 1000));
@@ -218,8 +222,7 @@ SiteFusion.Classes.DatePicker = Class.create( SiteFusion.Classes.Node, {
 			SiteFusion.consoleError('XULDatePicker::value : Value \'' + text + '\' is not a valid date.');
 		}
 
-		if (dateVal != undefined) {
-
+		if (typeof dateVal !== 'undefined') {
 			var obThis = this;
 			window.setTimeout(function() {
 				obThis.setDateValue(dateVal);
@@ -229,18 +232,33 @@ SiteFusion.Classes.DatePicker = Class.create( SiteFusion.Classes.Node, {
 	},
 
 	setDateValue: function(dateVal) {
-
-		// Kevin Meijer: Below is the workaround which is the EXACT code from datetimepicker.xml, for some reason the instanceof check fails in the XML file while it works out here
 		// Workaround start
 		if (!(dateVal instanceof Date))
 			throw "Invalid Date";
 
-		this.element._setValueNoSync(dateVal);
-		if (this.element.attachedControl) {
-			this.element.attachedControl._setValueNoSync(dateVal);
+		if (this.isBound()) {
+			this.element._setValueNoSync(dateVal);
+			if (this.element.attachedControl) {
+				this.element.attachedControl._setValueNoSync(dateVal);
+			}
+		} else {
+			if (this.element.timeoutloop) {
+				window.clearTimeout(this.element.timeoutloop);
+				this.element.timeoutloop = null;
+			}
+
+			var self = this;
+			this.element.timeoutloop = window.setTimeout(function() {
+				self.setDateValue(dateVal);
+			}, 200);
+			
 		}
 		// Workaround end
 
+	},
+
+	isBound: function() {
+		return (typeof this.element._setValueNoSync !== 'undefined');
 	},
 	
 	reset: function() {
@@ -248,9 +266,16 @@ SiteFusion.Classes.DatePicker = Class.create( SiteFusion.Classes.Node, {
 	},
 
  	yield: function() {
-		var val = this.element.value;
-		if( typeof(val) == 'undefined' )
-			val = this.serverValue;
+ 		var val;
+ 		if (this.isBound()) {
+ 			val = this.element.value;
+			if (typeof(val) == 'undefined') {
+				val = this.serverValue;
+			}
+		} else {
+			// element binding has not kicked in, so return initial value
+			val = this.initialValue;
+		}
 		this.fireEvent( 'yield', [ val ] );
 	}
 } );
