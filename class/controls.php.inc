@@ -557,7 +557,7 @@ class XULDatePicker extends Node
         parent::__construct();
     }
 
-    public function yieldCollect($e, $value) {
+    public function yieldCollect($e, $value = NULL) {
         $this->value = $value;
     }
 
