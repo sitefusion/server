@@ -510,28 +510,40 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 		self::$IncludePath = self::$Options['sitefusionPath'] . '/';
 		$_SERVER['HTTP_HOST'] = 'localhost';
 		
-		if( (!preg_match( '/^[a-zA-Z0-9_\-\/]+$/', $app )) || (! file_exists(self::$Options['sitefusionPath'].'/app/' . $app . '.startup.php.inc')) )
-			return array( 'success' => 0, 'error' => 'invalid_app' );
+		if ((!preg_match('/^[a-zA-Z0-9_\-\/]+$/', $app )) || (!file_exists(self::$Options['sitefusionPath'] . '/app/' . $app . '.startup.php.inc'))) {
+			return array('success' => 0, 'error' => 'invalid_app');
+		}
 
-		include_once( 'sys/application.php.inc' );
-		include_once( 'app/' . $app . '.startup.php.inc' );
+		include_once('sys/application.php.inc');
+		include_once('app/' . $app . '.startup.php.inc');
 
-		if( function_exists( 'authorizeLogin' ) )
-			$granted = authorizeLogin( $args, $user, $pass );
-		else
-			return array( 'success' => 0, 'error' => 'no_auth_func' );
+		if (function_exists('authorizeLogin')) {
+			$granted = authorizeLogin($args, $user, $pass);
+			if (is_array($granted)) {
+				if (isset($granted['success'])) {
+					if ($granted['success'] == 0) {
+						if (!isset($granted['error']) || version_compare(self::$ClientID, '3.5.0', '<')) {
+							$granted['error'] = 'invalid_login';
+						}
 
-		if( ! $granted )
-			return array( 'success' => 0, 'error' => 'invalid_login' );
+						return $granted;
+					}
+				} else {
+					return array('success' => 0, 'error' => 'invalid_login');
+				}
+			} elseif (!$granted) {
+				return array('success' => 0, 'error' => 'invalid_login');
+			}
+		} else {
+			return array('success' => 0, 'error' => 'no_auth_func');
+		}
 
-		$ident = md5( $ip . $user . md5($pass) . mt_rand() . time() );
+		$ident = md5($ip . $user . md5($pass) . mt_rand() . time());
 
-		$class = getApplication( $args );
-		
-		self::$Application = new $class ( $user, $ip, $ident, $app, $args );
+		$class = getApplication($args);
+		self::$Application = new $class($user, $ip, $ident, $app, $args);
 		
 		ob_end_clean();
-		
 		
 		$extensionPolicy = array();
 		
