@@ -89,6 +89,10 @@ class XULListBox extends BranchNode
 		$items = (is_array($items) ? $items:array($items));
 		$this->callMethod( 'selectItem', array( $items ) );
 	}
+
+	public function clearSelection() {
+		$this->callMethod('clearSelection');
+	}
 	
 	public function removeItems()
 	{

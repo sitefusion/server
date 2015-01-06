@@ -62,6 +62,10 @@ SiteFusion.Classes.ListBox = Class.create( SiteFusion.Classes.Node, {
 		}
 		
 		this.fireEvent( 'yield', items );
+	},
+
+	clearSelection: function() {
+		this.element.clearSelection();
 	}
 } );
 
