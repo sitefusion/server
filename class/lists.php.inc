@@ -91,6 +91,9 @@ class XULListBox extends BranchNode
 	}
 
 	public function clearSelection() {
+		$this->selectedItems = array();
+        $this->selectedItem = NULL;
+        $this->selectedValue = NULL;
 		$this->callMethod('clearSelection');
 	}
 	
