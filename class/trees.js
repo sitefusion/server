@@ -66,10 +66,10 @@ SiteFusion.Classes.TreeCol = function() {
 
     this.initialize.apply(this, arguments);
 };
-SiteFusion.Classes.TreeCols.prototype = Object.create(SiteFusion.Classes.Node.prototype);
-SiteFusion.Classes.TreeCols.prototype.constructor = SiteFusion.Classes.TreeCols;
+SiteFusion.Classes.TreeCol.prototype = Object.create(SiteFusion.Classes.Node.prototype);
+SiteFusion.Classes.TreeCol.prototype.constructor = SiteFusion.Classes.TreeCol;
     
-    SiteFusion.Classes.TreeCols.prototype.initialize = function( win ) {
+    SiteFusion.Classes.TreeCol.prototype.initialize = function( win ) {
         this.element = win.createElement( 'treecol' );
         this.element.sfNode = this;
         
