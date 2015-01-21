@@ -9,6 +9,8 @@ SiteFusion.Classes.TabBox.prototype = Object.create(SiteFusion.Classes.Node.prot
 SiteFusion.Classes.TabBox.prototype.constructor = SiteFusion.Classes.TabBox;
     
     SiteFusion.Classes.TabBox.prototype.initialize = function( win ) {
+        SiteFusion.consoleMessage('tabbox');
+        
         this.element = win.createElement( 'tabbox' );
         this.element.sfNode = this;
         

@@ -476,6 +476,7 @@ SiteFusion.Classes.PrefWindow.prototype.constructor = SiteFusion.Classes.PrefWin
 
 SiteFusion.Classes.PrefPane = function() {
     SiteFusion.Classes.Node.call(this);
+    
     this.sfClassName = 'XULPrefPane';
 
     this.initialize.apply(this, arguments);
