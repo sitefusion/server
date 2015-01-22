@@ -310,7 +310,7 @@ SiteFusion.Classes.CheckBox.prototype.constructor = SiteFusion.Classes.CheckBox;
         this.eventHost.yield.msgType = 1;
     };
     
-    SiteFusion.Classes.DatePicker.prototype.yield = function() {
+    SiteFusion.Classes.CheckBox.prototype.yield = function() {
         this.fireEvent( 'yield', [ this.element.checked ] );
     };
 
