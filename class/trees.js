@@ -1,5 +1,5 @@
 SiteFusion.Classes.Tree =  function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULTree';
 
@@ -45,7 +45,7 @@ SiteFusion.Classes.Tree.prototype.constructor = SiteFusion.Classes.Tree;
 
 
 SiteFusion.Classes.TreeCols = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
     this.sfClassName = 'XULTreeCols';
 
     this.initialize.apply(this, arguments);
@@ -61,7 +61,7 @@ SiteFusion.Classes.TreeCols.prototype.constructor = SiteFusion.Classes.TreeCols;
 
 
 SiteFusion.Classes.TreeCol = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
     this.sfClassName = 'XULTreeCol';
 
     this.initialize.apply(this, arguments);
@@ -78,7 +78,7 @@ SiteFusion.Classes.TreeCol.prototype.constructor = SiteFusion.Classes.TreeCol;
 
 
 SiteFusion.Classes.TreeChildren = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
     this.sfClassName = 'XULTreeChildren';
 
     this.initialize.apply(this, arguments);
@@ -94,7 +94,7 @@ SiteFusion.Classes.TreeChildren.prototype.constructor = SiteFusion.Classes.TreeC
     };
 
 SiteFusion.Classes.TreeItem = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
     this.sfClassName = 'XULTreeItem';
 
     this.initialize.apply(this, arguments);
@@ -110,7 +110,7 @@ SiteFusion.Classes.TreeItem.prototype.constructor = SiteFusion.Classes.TreeItem;
     };
 
 SiteFusion.Classes.TreeRow = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
     this.sfClassName = 'XULTreeRow';
 
     this.initialize.apply(this, arguments);
@@ -127,7 +127,7 @@ SiteFusion.Classes.TreeRow.prototype.constructor = SiteFusion.Classes.TreeRow;
 
 
 SiteFusion.Classes.TreeCell = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
     this.sfClassName = 'XULTreeCell';
 
     this.initialize.apply(this, arguments);
@@ -144,7 +144,7 @@ SiteFusion.Classes.TreeCell.prototype.constructor = SiteFusion.Classes.TreeCell;
 
 
 SiteFusion.Classes.TreeSeparator = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
     this.sfClassName = 'XULTreeSeparator';
 
     this.initialize.apply(this, arguments);

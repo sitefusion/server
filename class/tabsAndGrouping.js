@@ -1,5 +1,5 @@
 SiteFusion.Classes.TabBox = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULTabBox';
 
@@ -9,8 +9,6 @@ SiteFusion.Classes.TabBox.prototype = Object.create(SiteFusion.Classes.Node.prot
 SiteFusion.Classes.TabBox.prototype.constructor = SiteFusion.Classes.TabBox;
     
     SiteFusion.Classes.TabBox.prototype.initialize = function( win ) {
-        SiteFusion.consoleMessage('tabbox');
-        
         this.element = win.createElement( 'tabbox' );
         this.element.sfNode = this;
         
@@ -35,7 +33,7 @@ SiteFusion.Classes.TabBox.prototype.constructor = SiteFusion.Classes.TabBox;
 
 
 SiteFusion.Classes.Tabs = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULTabs';
 
@@ -70,7 +68,7 @@ SiteFusion.Classes.Tabs.prototype.constructor = SiteFusion.Classes.Tabs;
 
 
 SiteFusion.Classes.Tab = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULTab';
 
@@ -88,7 +86,7 @@ SiteFusion.Classes.Tab.prototype.constructor = SiteFusion.Classes.Tab;
 
 
 SiteFusion.Classes.TabPanels = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULTabPanels';
 
@@ -106,7 +104,7 @@ SiteFusion.Classes.TabPanels.prototype.constructor = SiteFusion.Classes.TabPanel
 
 
 SiteFusion.Classes.TabPanel = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULTabPanel';
 
@@ -124,7 +122,7 @@ SiteFusion.Classes.TabPanel.prototype.constructor = SiteFusion.Classes.TabPanel;
 
 
 SiteFusion.Classes.GroupBox = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULGroupBox';
 
@@ -142,7 +140,7 @@ SiteFusion.Classes.GroupBox.prototype.constructor = SiteFusion.Classes.GroupBox;
 
 
 SiteFusion.Classes.Caption = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULCaption';
 
@@ -160,7 +158,7 @@ SiteFusion.Classes.Caption.prototype.constructor = SiteFusion.Classes.Caption;
 
 
 SiteFusion.Classes.Separator = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULSeparator';
 
@@ -178,7 +176,7 @@ SiteFusion.Classes.Separator.prototype.constructor = SiteFusion.Classes.Separato
 
 
 SiteFusion.Classes.Spacer = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULSpacer';
 

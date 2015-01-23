@@ -32,7 +32,7 @@ consolelog = function(msg) {
 };
 
 SiteFusion.Classes.Label = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULLabel';
 
@@ -50,7 +50,7 @@ SiteFusion.Classes.Label.prototype.constructor = SiteFusion.Classes.Label;
 
 
 SiteFusion.Classes.Description = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULDescription';
 
@@ -77,7 +77,7 @@ SiteFusion.Classes.Description.prototype.constructor = SiteFusion.Classes.Descri
     };
 
 SiteFusion.Classes.Image = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULImage';
 
@@ -102,7 +102,7 @@ SiteFusion.Classes.Image.prototype.constructor = SiteFusion.Classes.Image;
 
 
 SiteFusion.Classes.HTMLVideo = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULHTMLVideo';
 
@@ -129,7 +129,7 @@ SiteFusion.Classes.HTMLVideo.prototype.constructor = SiteFusion.Classes.HTMLVide
 
 
 SiteFusion.Classes.HTMLAudio = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULHTMLAudio';
 
@@ -159,7 +159,7 @@ SiteFusion.Classes.HTMLAudio.prototype.constructor = SiteFusion.Classes.HTMLAudi
 
 
 SiteFusion.Classes.HTMLEmbed = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULHTMLEmbed';
 
@@ -186,7 +186,7 @@ SiteFusion.Classes.HTMLEmbed.prototype.constructor = SiteFusion.Classes.HTMLEmbe
 
 
 SiteFusion.Classes.DirectImage = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULDirectImage';
 
@@ -218,7 +218,7 @@ SiteFusion.Classes.DirectImage.prototype.constructor = SiteFusion.Classes.Direct
 
 
 SiteFusion.Classes.FileSystemImage = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULFileSystemImage';
 
@@ -246,7 +246,7 @@ SiteFusion.Classes.FileSystemImage.prototype.constructor = SiteFusion.Classes.Fi
 
 
 SiteFusion.Classes.ImageSvg = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULImageSvg';
 

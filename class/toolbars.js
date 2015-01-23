@@ -1,5 +1,5 @@
 SiteFusion.Classes.ToolBarSeparator = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULToolBarSeparator';
 
@@ -17,7 +17,7 @@ SiteFusion.Classes.ToolBarSeparator.prototype.constructor = SiteFusion.Classes.T
 
 
 SiteFusion.Classes.ToolBox = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULToolBox';
 
@@ -35,7 +35,7 @@ SiteFusion.Classes.ToolBox.prototype.constructor = SiteFusion.Classes.ToolBox;
 
 
 SiteFusion.Classes.ToolBar = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULToolBar';
 
@@ -53,7 +53,7 @@ SiteFusion.Classes.ToolBar.prototype.constructor = SiteFusion.Classes.ToolBar;
 
 
 SiteFusion.Classes.ToolBarButton = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULToolBarButton';
 

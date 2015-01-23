@@ -1,5 +1,5 @@
 SiteFusion.Classes.FlashProxy = function() {
-    SiteFusion.Classes.Browser.call(this);
+    SiteFusion.Classes.Browser.apply(this, arguments);
 
     this.sfClassName = 'XULFlashProxy';
 

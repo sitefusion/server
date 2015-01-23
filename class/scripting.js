@@ -1,5 +1,5 @@
 SiteFusion.Classes.KeySet = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULKeySet';
 
@@ -17,7 +17,7 @@ SiteFusion.Classes.KeySet.prototype.constructor = SiteFusion.Classes.KeySet;
 
 
 SiteFusion.Classes.Key = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULKey';
 
@@ -38,7 +38,7 @@ SiteFusion.Classes.Key.prototype.constructor = SiteFusion.Classes.Key;
 
 
 SiteFusion.Classes.Trigger = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'Trigger';
 
@@ -75,7 +75,7 @@ SiteFusion.Classes.Trigger.prototype.constructor = SiteFusion.Classes.Trigger;
 
 
 SiteFusion.Classes.PrefService = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'PrefService';
 
@@ -165,7 +165,7 @@ SiteFusion.Classes.PrefService.prototype.constructor = SiteFusion.Classes.PrefSe
 
 
 SiteFusion.Classes.JScriptService = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'JScriptService';
 
@@ -261,7 +261,7 @@ SiteFusion.Classes.JScriptService.prototype.constructor = SiteFusion.Classes.JSc
 
 
 SiteFusion.Classes.TerminalCommandService = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'TerminalCommandService';
 

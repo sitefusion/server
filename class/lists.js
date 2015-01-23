@@ -1,5 +1,5 @@
 SiteFusion.Classes.ListBox = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULListBox';
 
@@ -51,7 +51,7 @@ SiteFusion.Classes.ListBox.prototype.constructor = SiteFusion.Classes.ListBox;
 
 
 SiteFusion.Classes.ListItem = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULListItem';
 
@@ -69,7 +69,7 @@ SiteFusion.Classes.ListItem.prototype.constructor = SiteFusion.Classes.ListItem;
 
 
 SiteFusion.Classes.ListCols = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULListCols';
 
@@ -87,7 +87,7 @@ SiteFusion.Classes.ListCols.prototype.constructor = SiteFusion.Classes.ListCols;
 
 
 SiteFusion.Classes.ListCol = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULListCol';
 
@@ -105,7 +105,7 @@ SiteFusion.Classes.ListCol.prototype.constructor = SiteFusion.Classes.ListCol;
 
 
 SiteFusion.Classes.ListHead = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULListHead';
 
@@ -123,7 +123,7 @@ SiteFusion.Classes.ListHead.prototype.constructor = SiteFusion.Classes.ListHead;
 
 
 SiteFusion.Classes.ListHeader = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULListHeader';
 
@@ -141,7 +141,7 @@ SiteFusion.Classes.ListHeader.prototype.constructor = SiteFusion.Classes.ListHea
 
 
 SiteFusion.Classes.ListCell = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULListCell';
 
@@ -159,7 +159,7 @@ SiteFusion.Classes.ListCell.prototype.constructor = SiteFusion.Classes.ListCell;
 
 
 SiteFusion.Classes.RichListBox = function() {
-    SiteFusion.Classes.ListBox.call(this);
+    SiteFusion.Classes.ListBox.apply(this, arguments);
 
     this.sfClassName = 'XULRichListBox';
 
@@ -178,7 +178,7 @@ SiteFusion.Classes.RichListBox.prototype.constructor = SiteFusion.Classes.ListBo
     };
 
 SiteFusion.Classes.RichListItem = function() {
-    SiteFusion.Classes.ListItem.call(this);
+    SiteFusion.Classes.ListItem.apply(this, arguments);
 
     this.sfClassName = 'XULRichListItem';
     

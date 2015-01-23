@@ -1,5 +1,5 @@
 SiteFusion.Classes.Button = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULButton';
     
@@ -16,7 +16,7 @@ SiteFusion.Classes.Button.prototype.constructor = SiteFusion.Classes.Button;
     };
 
 SiteFusion.Classes.ProgressMeter = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULProgressMeter';
     
@@ -36,7 +36,7 @@ SiteFusion.Classes.ProgressMeter.prototype.constructor = SiteFusion.Classes.Prog
     };
 
 SiteFusion.Classes.Splitter = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULSplitter';
     
@@ -53,7 +53,7 @@ SiteFusion.Classes.Splitter.prototype.constructor = SiteFusion.Classes.Splitter;
     };
 
 SiteFusion.Classes.ColorPicker = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULColorPicker';
     
@@ -74,7 +74,7 @@ SiteFusion.Classes.ColorPicker.prototype.constructor = SiteFusion.Classes.ColorP
     };
 
 SiteFusion.Classes.Scale = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULScale';
     
@@ -95,7 +95,7 @@ SiteFusion.Classes.Scale.prototype.constructor = SiteFusion.Classes.Scale;
     };
 
 SiteFusion.Classes.TextBox = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULTextBox';
     
@@ -152,7 +152,7 @@ SiteFusion.Classes.TextBox.prototype.constructor = SiteFusion.Classes.TextBox;
     };
 
 SiteFusion.Classes.TimePicker = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULTimePicker';
     
@@ -202,7 +202,7 @@ SiteFusion.Classes.TimePicker.prototype.constructor = SiteFusion.Classes.TimePic
     };
 
 SiteFusion.Classes.DatePicker = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULDatePicker';
     
@@ -292,7 +292,7 @@ SiteFusion.Classes.DatePicker.prototype.constructor = SiteFusion.Classes.DatePic
     };
 
 SiteFusion.Classes.CheckBox = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULCheckBox';
     
@@ -315,7 +315,7 @@ SiteFusion.Classes.CheckBox.prototype.constructor = SiteFusion.Classes.CheckBox;
     };
 
 SiteFusion.Classes.RadioGroup = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULRadioGroup';
     
@@ -348,7 +348,7 @@ SiteFusion.Classes.RadioGroup.prototype.constructor = SiteFusion.Classes.RadioGr
     };
 
 SiteFusion.Classes.Radio = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULRadio';
     
@@ -365,7 +365,7 @@ SiteFusion.Classes.Radio.prototype.constructor = SiteFusion.Classes.Radio;
     };
 
 SiteFusion.Classes.MenuList = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULMenuList';
     

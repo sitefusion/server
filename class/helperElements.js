@@ -1,5 +1,5 @@
 SiteFusion.Classes.Grippy = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULGrippy';
 
@@ -17,7 +17,7 @@ SiteFusion.Classes.Grippy.prototype.constructor = SiteFusion.Classes.Grippy;
 
 
 SiteFusion.Classes.ArrowScrollBox = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULArrowScrollBox';
 
@@ -35,7 +35,7 @@ SiteFusion.Classes.ArrowScrollBox.prototype.constructor = SiteFusion.Classes.Arr
 
 
 SiteFusion.Classes.Dropmarker = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULDropmarker';
 
@@ -52,7 +52,7 @@ SiteFusion.Classes.Dropmarker.prototype.constructor = SiteFusion.Classes.Dropmar
     };
 
 SiteFusion.Classes.Sound = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULSound';
 

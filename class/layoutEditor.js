@@ -1,5 +1,5 @@
 SiteFusion.Classes.Editor = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULEditor';
 
@@ -805,7 +805,7 @@ SiteFusion.Classes.Editor.prototype.constructor = SiteFusion.Classes.Editor;
     };
 
 SiteFusion.Classes.LayoutEditor = function() {
-    SiteFusion.Classes.Editor.call(this);
+    SiteFusion.Classes.Editor.apply(this, arguments);
 
     this.sfClassName = 'XULLayoutEditor';
 };

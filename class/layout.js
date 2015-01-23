@@ -1,5 +1,5 @@
 SiteFusion.Classes.Box = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULBox';
 
@@ -17,7 +17,7 @@ SiteFusion.Classes.Box.prototype.constructor = SiteFusion.Classes.Box;
 
 
 SiteFusion.Classes.HBox = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULHBox';
 
@@ -35,7 +35,7 @@ SiteFusion.Classes.HBox.prototype.constructor = SiteFusion.Classes.HBox;
 
 
 SiteFusion.Classes.VBox = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULVBox';
 
@@ -53,7 +53,7 @@ SiteFusion.Classes.VBox.prototype.constructor = SiteFusion.Classes.VBox;
 
 
 SiteFusion.Classes.BBox = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULBBox';
 
@@ -71,7 +71,7 @@ SiteFusion.Classes.BBox.prototype.constructor = SiteFusion.Classes.BBox;
 
 
 SiteFusion.Classes.ScrollBox = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULScrollBox';
 
@@ -107,7 +107,7 @@ SiteFusion.Classes.ScrollBox.prototype.constructor = SiteFusion.Classes.ScrollBo
 
 
 SiteFusion.Classes.HTMLBox = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULHTMLBox';
 
@@ -139,7 +139,7 @@ SiteFusion.Classes.HTMLBox.prototype.constructor = SiteFusion.Classes.HTMLBox;
 
 
 SiteFusion.Classes.Stack = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULStack';
 
@@ -157,7 +157,7 @@ SiteFusion.Classes.Stack.prototype.constructor = SiteFusion.Classes.Stack;
 
 
 SiteFusion.Classes.Deck = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULDeck';
 
@@ -180,7 +180,7 @@ SiteFusion.Classes.Deck.prototype.constructor = SiteFusion.Classes.Deck;
 
 
 SiteFusion.Classes.Grid = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULGrid';
 
@@ -198,7 +198,7 @@ SiteFusion.Classes.Grid.prototype.constructor = SiteFusion.Classes.Grid;
 
 
 SiteFusion.Classes.Columns = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULColumns';
 
@@ -216,7 +216,7 @@ SiteFusion.Classes.Columns.prototype.constructor = SiteFusion.Classes.Columns;
 
 
 SiteFusion.Classes.Rows = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULRows';
 
@@ -234,7 +234,7 @@ SiteFusion.Classes.Rows.prototype.constructor = SiteFusion.Classes.Rows;
 
 
 SiteFusion.Classes.Column = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULColumn';
 
@@ -252,7 +252,7 @@ SiteFusion.Classes.Column.prototype.constructor = SiteFusion.Classes.Column;
 
 
 SiteFusion.Classes.Row = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULRow';
 

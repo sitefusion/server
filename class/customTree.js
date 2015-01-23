@@ -1,5 +1,5 @@
 SiteFusion.Classes.CustomTree = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULCustomTree';
 

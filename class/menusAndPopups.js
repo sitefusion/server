@@ -1,5 +1,5 @@
 SiteFusion.Classes.MenuBar = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULMenuBar';
 
@@ -18,7 +18,7 @@ SiteFusion.Classes.MenuBar.prototype.constructor = SiteFusion.Classes.MenuBar;
 
 
 SiteFusion.Classes.MenuPopup = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULMenuPopup';
 
@@ -43,7 +43,7 @@ SiteFusion.Classes.MenuPopup.prototype.constructor = SiteFusion.Classes.MenuPopu
 
 
 SiteFusion.Classes.MenuSeparator = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULMenuSeparator';
 
@@ -61,7 +61,7 @@ SiteFusion.Classes.MenuSeparator.prototype.constructor = SiteFusion.Classes.Menu
 
 
 SiteFusion.Classes.Menu = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULMenu';
 
@@ -91,7 +91,7 @@ SiteFusion.Classes.Menu.prototype.constructor = SiteFusion.Classes.Menu;
 
 
 SiteFusion.Classes.MenuItem = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULMenuItem';
 
@@ -116,7 +116,7 @@ SiteFusion.Classes.MenuItem.prototype.constructor = SiteFusion.Classes.MenuItem;
     };
 
 SiteFusion.Classes.PopupSet = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULPopupSet';
 
@@ -134,7 +134,7 @@ SiteFusion.Classes.PopupSet.prototype.constructor = SiteFusion.Classes.PopupSet;
 
 
 SiteFusion.Classes.Popup = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULPopup';
 
@@ -153,7 +153,7 @@ SiteFusion.Classes.Popup.prototype.constructor = SiteFusion.Classes.Popup;
 
 
 SiteFusion.Classes.ToolTip = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULToolTip';
 
@@ -172,7 +172,7 @@ SiteFusion.Classes.ToolTip.prototype.constructor = SiteFusion.Classes.ToolTip;
 
 
 SiteFusion.Classes.Panel = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULPanel';
 

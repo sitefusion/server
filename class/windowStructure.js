@@ -1,5 +1,5 @@
 SiteFusion.Classes.Browser = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULBrowser';
 
@@ -27,7 +27,7 @@ SiteFusion.Classes.Browser.prototype.constructor = SiteFusion.Classes.Browser;
 
 
 SiteFusion.Classes.PrintBox = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULPrintBox';
 
@@ -121,7 +121,7 @@ SiteFusion.Classes.PrintBox.prototype.constructor = SiteFusion.Classes.PrintBox;
 
 
 SiteFusion.Classes.Statusbar = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULStatusbar';
 
@@ -139,7 +139,7 @@ SiteFusion.Classes.Statusbar.prototype.constructor = SiteFusion.Classes.Statusba
 
 
 SiteFusion.Classes.StatusbarPanel = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULStatusbarPanel';
 
@@ -157,7 +157,7 @@ SiteFusion.Classes.StatusbarPanel.prototype.constructor = SiteFusion.Classes.Sta
 
 
 SiteFusion.Classes.DialogHeader = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULDialogHeader';
 

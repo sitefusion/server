@@ -1,6 +1,6 @@
 SiteFusion.Classes.RichTextEditor = function() {
-    SiteFusion.Classes.Editor.call(this);
-
+    SiteFusion.Classes.Editor.apply(this, arguments);
+    
     this.sfClassName = 'XULRichTextEditor';
     
     this.initialize.apply(this, arguments);
@@ -8,7 +8,7 @@ SiteFusion.Classes.RichTextEditor = function() {
 SiteFusion.Classes.RichTextEditor.prototype = Object.create(SiteFusion.Classes.Editor.prototype);
 SiteFusion.Classes.RichTextEditor.prototype.constructor = SiteFusion.Classes.RichTextEditor;
 
-    SiteFusion.Classes.RichTextEditor.prototype.initialize = function( win ) {
+    SiteFusion.Classes.RichTextEditor.prototype.initialize = function( win ) {        
         this.element = win.createElement( 'editor' );
         
         this.element.sfNode = this;

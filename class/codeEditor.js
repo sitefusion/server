@@ -77,7 +77,7 @@ var EditorListener = {
 };
 
 SiteFusion.Classes.CodeEditor = function() {
-    SiteFusion.Classes.Editor.call(this);
+    SiteFusion.Classes.Editor.apply(this, arguments);
     
     this.sfClassName = 'XULCodeEditor';
 

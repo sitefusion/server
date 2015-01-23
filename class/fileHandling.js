@@ -3,7 +3,7 @@ Components.utils.import("resource://gre/modules/FileUtils.jsm");
 const PR_UINT32_MAX = 0xffffffff;
 
 SiteFusion.Classes.FilePicker = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULFilePicker';
 
@@ -97,7 +97,7 @@ SiteFusion.Classes.FilePicker.prototype.constructor = SiteFusion.Classes.FilePic
 
 
 SiteFusion.Classes.FileUploader = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'FileUploader';
 
@@ -209,7 +209,7 @@ SiteFusion.Classes.FileUploader.prototype.constructor = SiteFusion.Classes.FileU
 
 
 SiteFusion.Classes.FileDownloader = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'FileDownloader';
 
@@ -322,7 +322,7 @@ SiteFusion.Classes.FileDownloader.prototype.constructor = SiteFusion.Classes.Fil
 
 
 SiteFusion.Classes.URLDownloader = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'URLDownloader';
 
@@ -429,7 +429,7 @@ SiteFusion.Classes.URLDownloader.prototype.constructor = SiteFusion.Classes.URLD
 
 
 SiteFusion.Classes.FileService = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'FileService';
 

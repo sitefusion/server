@@ -1,5 +1,5 @@
 SiteFusion.Classes.BasicWindow = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
 
     this.lastWindowState = STATE_NORMAL;
 };
@@ -144,7 +144,7 @@ SiteFusion.Classes.BasicWindow.prototype.constructor = SiteFusion.Classes.BasicW
 
 
 SiteFusion.Classes.Window = function() {
-    SiteFusion.Classes.BasicWindow.call(this);
+    SiteFusion.Classes.BasicWindow.apply(this, arguments);
 
     this.sfClassName = 'XULWindow';
 
@@ -261,7 +261,7 @@ SiteFusion.Classes.Window.prototype.constructor = SiteFusion.Classes.Window;
 
 
 SiteFusion.Classes.ChildWindow = function() {
-    SiteFusion.Classes.BasicWindow.call(this);
+    SiteFusion.Classes.BasicWindow.apply(this, arguments);
 
     this.sfClassName = 'XULChildWindow';
 
@@ -375,7 +375,7 @@ SiteFusion.Classes.ChildWindow.prototype.constructor = SiteFusion.Classes.BasicW
 
 
 SiteFusion.Classes.Dialog = function() {
-    SiteFusion.Classes.ChildWindow.call(this);
+    SiteFusion.Classes.ChildWindow.apply(this, arguments);
 
     this.sfClassName = 'XULDialog';
 
@@ -458,7 +458,7 @@ SiteFusion.Classes.Dialog.prototype.constructor = SiteFusion.Classes.Dialog;
 
 
 SiteFusion.Classes.PrefWindow = function() {
-    SiteFusion.Classes.Dialog.call(this);
+    SiteFusion.Classes.Dialog.apply(this, arguments);
 
     this.sfClassName = 'XULPrefWindow';
 };
@@ -475,7 +475,7 @@ SiteFusion.Classes.PrefWindow.prototype.constructor = SiteFusion.Classes.PrefWin
 
 
 SiteFusion.Classes.PrefPane = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
     
     this.sfClassName = 'XULPrefPane';
 
@@ -493,7 +493,7 @@ SiteFusion.Classes.PrefPane.prototype.constructor = SiteFusion.Classes.PrefPane;
 
 
 SiteFusion.Classes.PromptService = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
     this.sfClassName = 'PromptService';
 
     this.initialize.apply(this, arguments);
@@ -592,7 +592,7 @@ SiteFusion.Classes.PromptService.prototype.constructor = SiteFusion.Classes.Prom
 
 
 SiteFusion.Classes.AlertNotification = function() {
-    SiteFusion.Classes.Node.call(this);
+    SiteFusion.Classes.Node.apply(this, arguments);
     this.sfClassName = 'AlertNotification';
 
     this.initialize.apply(this, arguments);
