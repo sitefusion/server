@@ -184,7 +184,7 @@ SiteFusion.Classes.RichListItem = function() {
     
     this.initialize.apply(this, arguments);
 };
-SiteFusion.Classes.RichListItem.prototype = Object.create(SiteFusion.Classes.ListItem);
+SiteFusion.Classes.RichListItem.prototype = Object.create(SiteFusion.Classes.ListItem.prototype);
 SiteFusion.Classes.RichListItem.prototype.constructor = SiteFusion.Classes.ListItem;
 
     SiteFusion.Classes.RichListItem.prototype.initialize = function( win ) {
