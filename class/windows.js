@@ -268,7 +268,7 @@ SiteFusion.Classes.ChildWindow = function() {
     this.initialize.apply(this, arguments);
 };
 SiteFusion.Classes.ChildWindow.prototype = Object.create(SiteFusion.Classes.BasicWindow.prototype);
-SiteFusion.Classes.ChildWindow.prototype.constructor = SiteFusion.Classes.BasicWindow;
+SiteFusion.Classes.ChildWindow.prototype.constructor = SiteFusion.Classes.ChildWindow;
 
     SiteFusion.Classes.ChildWindow.prototype.initialize = function( win ) {
         this.isPainted = true;
