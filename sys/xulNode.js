@@ -401,18 +401,18 @@ SiteFusion.Classes.Node = Class.create( {
 		var flavours = [];
 
 		for( var n = 1; n < arguments.length; n++ ) {
-			flavours.push( arguments[n] );
+			flavours.push(arguments[n]);
 		}
-
-		this.element.addEventListener( 'dragstart', this.onDragStartEvent, true );
 		
 		this.draggable = true;
 		this.draggableClassname = clsName;
 		this.draggableFlavours = flavours;
+
+        this.element.addEventListener('dragstart', this.onDragStartEvent.bind(this), true);
 	},
 
 	unsetDraggable: function() {
-		this.element.removeEventListener('dragstart', this.onDragStartEvent, true);
+		this.element.removeEventListener('dragstart', this.onDragStartEvent.bind(this), true);
 
 		this.draggable = false;
 		this.draggableClassname = '';
@@ -424,16 +424,13 @@ SiteFusion.Classes.Node = Class.create( {
 		this.droppable = true;
 	},
 	
-	onDragStartEvent: function( event ) {
-		var obj = event.target.sfNode;
-		
-		event.dataTransfer.setData( 'sfNode/'+obj.draggableClassname, obj.cid );
-		
-		for( var n = 0; n < obj.draggableFlavours.length; n += 2 ) {
-			event.dataTransfer.setData( obj.draggableFlavours[n], obj.draggableFlavours[n+1] );
+	onDragStartEvent: function(event) {
+		event.dataTransfer.setData('sfNode/' + this.draggableClassname, this.cid);
+		for (var n = 0; n < this.draggableFlavours.length; n += 2) {
+			event.dataTransfer.setData(this.draggableFlavours[n], this.draggableFlavours[n + 1]);
 		}
 		
-		obj.fireEvent( 'sfdragstart' );
+		this.fireEvent('sfdragstart');
 	},
 	
 	Observer: Class.create( {
