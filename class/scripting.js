@@ -14,33 +14,46 @@
 // The Original Code is sitefusion.sourceforge.net code.
 //
 // The Initial Developer of the Original Code is
-// FrontDoor Media Group.
+// theFrontDoor.
 // Portions created by the Initial Developer are Copyright (C) 2009
 // the Initial Developer. All Rights Reserved.
 //
 // Contributor(s):
 //   Nikki Auburger <nikki@thefrontdoor.nl> (original author)
 //   Tom Peeters <tom@thefrontdoor.nl>
+//   Pieter Janssen <pieter.janssen@thefrontdoor.nl>
 //
 // - - - - - - - - - - - - - - END LICENSE BLOCK - - - - - - - - - - - - -
 
+SiteFusion.Classes.KeySet = function() {
+    SiteFusion.Classes.Node.apply(this, arguments);
 
-SiteFusion.Classes.KeySet = Class.create( SiteFusion.Classes.Node, {
-    sfClassName: 'XULKeySet',
+    this.sfClassName = 'XULKeySet';
 
-    initialize: function( win ) {
+    this.initialize.apply(this, arguments);
+};
+SiteFusion.Classes.KeySet.prototype = Object.create(SiteFusion.Classes.Node.prototype);
+SiteFusion.Classes.KeySet.prototype.constructor = SiteFusion.Classes.KeySet;
+
+    SiteFusion.Classes.KeySet.prototype.initialize = function( win ) {
         this.element = win.createElement( 'keyset' );
         this.element.sfNode = this;
 
         this.setEventHost();
-    }
-} );
+    };
 
 
-SiteFusion.Classes.Key = Class.create( SiteFusion.Classes.Node, {
-    sfClassName: 'XULKey',
+SiteFusion.Classes.Key = function() {
+    SiteFusion.Classes.Node.apply(this, arguments);
 
-    initialize: function( win ) {
+    this.sfClassName = 'XULKey';
+
+    this.initialize.apply(this, arguments);
+};
+SiteFusion.Classes.Key.prototype = Object.create(SiteFusion.Classes.Node.prototype);
+SiteFusion.Classes.Key.prototype.constructor = SiteFusion.Classes.Key;
+
+    SiteFusion.Classes.Key.prototype.initialize = function( win ) {
         this.hostWindow = win;
         this.element = win.createElement( 'key' );
         this.element.sfNode = this;
@@ -48,14 +61,20 @@ SiteFusion.Classes.Key = Class.create( SiteFusion.Classes.Node, {
         this.setEventHost();
 
         this.element.setAttribute( 'oncommand', 'return true;' );
-    }
-} );
+    };
 
 
-SiteFusion.Classes.Trigger = Class.create( SiteFusion.Classes.Node, {
-    sfClassName: 'Trigger',
+SiteFusion.Classes.Trigger = function() {
+    SiteFusion.Classes.Node.apply(this, arguments);
 
-    initialize: function( iter, delay ) {
+    this.sfClassName = 'Trigger';
+
+    this.initialize.apply(this, arguments);
+};
+SiteFusion.Classes.Trigger.prototype = Object.create(SiteFusion.Classes.Node.prototype);
+SiteFusion.Classes.Trigger.prototype.constructor = SiteFusion.Classes.Trigger;
+
+    SiteFusion.Classes.Trigger.prototype.initialize = function( iter, delay ) {
         this.iterations = iter;
         this.delay = delay;
 
@@ -63,29 +82,36 @@ SiteFusion.Classes.Trigger = Class.create( SiteFusion.Classes.Node, {
 
         var oThis = this;
 
-        if( iter == 0 )
+        if ( iter == 0 ) {
             this.timer = setInterval( function() {
                 oThis.fireEvent( 'yield' );
             }, delay );
-        else
+        } else {
             this.timer = setInterval( function() {
                 oThis.fireEvent( 'yield' );
                 if( --oThis.iterations == 0 ) clearInterval(oThis.timer);
             }, delay );
+        }
 
         this.setEventHost( [ 'yield' ] );
-    },
+    };
 
-    cancel: function() {
+    SiteFusion.Classes.Trigger.prototype.cancel = function() {
         clearInterval( this.timer );
-    }
-} );
+    };
 
 
-SiteFusion.Classes.PrefService = Class.create( SiteFusion.Classes.Node, {
-    sfClassName: 'PrefService',
+SiteFusion.Classes.PrefService = function() {
+    SiteFusion.Classes.Node.apply(this, arguments);
 
-    initialize: function( win ) {
+    this.sfClassName = 'PrefService';
+
+    this.initialize.apply(this, arguments);
+};
+SiteFusion.Classes.PrefService.prototype = Object.create(SiteFusion.Classes.Node.prototype);
+SiteFusion.Classes.PrefService.prototype.constructor = SiteFusion.Classes.PrefService;
+
+    SiteFusion.Classes.PrefService.prototype.initialize = function( win ) {
         this.hostWindow = win;
         this.element = win.createElement( 'box' );
         this.element.hidden = true;
@@ -95,80 +121,87 @@ SiteFusion.Classes.PrefService = Class.create( SiteFusion.Classes.Node, {
         this.setEventHost( ['yield']);
         this.eventHost.yield.msgType = 1;
         this.setEventHost();
-    },
+    };
 
-    yield: function(prefTypes) {
+    SiteFusion.Classes.PrefService.prototype.yield = function(prefTypes) {
         var ret = {};
         try {
             for (var pref in this.prefTypes) {
-            	
                 switch(this.prefTypes[pref]) {
                     case "int":
                         var retval = this.getIntPref(pref);
-                        if (typeof ret === "number") {
+                        if (typeof retval === "number") {
                             ret[pref] = retval;
                         }
-                        break;
+                    break;
                     case "string":
                         var retval = this.getCharPref(pref);
-
                         if (typeof retval === "string") {
                             ret[pref] = retval;
                         }
-                        break;
+                    break;
                     case "bool":
                         var retval = this.getBoolPref(pref);
                         if (retval != -1) {
                             ret[pref] = retval;
                         }
-                        break;
+                    break;
                 }
             }
-        }
-         
-        catch (e) {
+        } catch (e) {
             alert('error: ' + e);
         }
         this.fireEvent( 'yield', [ ret ] );
-    },
+    };
 
-
-    setIntPref: function(pref, value) {
+    SiteFusion.Classes.PrefService.prototype.setIntPref = function(pref, value) {
         this.prefService.setIntPref(pref, value);
-    },
-    getIntPref: function(pref) {
-        if( this.prefService.getPrefType(pref) == this.prefService.PREF_INT ) {
+    };
+
+    SiteFusion.Classes.PrefService.prototype.getIntPref = function(pref) {
+        if ( this.prefService.getPrefType(pref) == this.prefService.PREF_INT ) {
             return this.prefService.getIntPref(pref);
+        } else {
+            return false;
         }
-        else return false;
-    },
-    setCharPref: function(pref, value) {
+    };
+
+    SiteFusion.Classes.PrefService.prototype.setCharPref = function(pref, value) {
         this.prefService.setCharPref(pref, value);
-    },
-    getCharPref: function(pref) {
+    };
+
+    SiteFusion.Classes.PrefService.prototype.getCharPref = function(pref) {
         if( this.prefService.getPrefType(pref) == this.prefService.PREF_STRING ) {
             return this.prefService.getCharPref(pref);
+        } else {
+            return false;
         }
-        else return false;
-
-    },
-    setBoolPref: function(pref, value) {
+    };
+    
+    SiteFusion.Classes.PrefService.prototype.setBoolPref = function(pref, value) {
         this.prefService.setBoolPref(pref, value);
-    },
-    getBoolPref: function(pref) {
+    };
+
+    SiteFusion.Classes.PrefService.prototype.getBoolPref = function(pref) {
         if( this.prefService.getPrefType(pref) == this.prefService.PREF_BOOL ) {
             return this.prefService.getBoolPref(pref);
+        } else {
+            return -1;
         }
-        else return -1;
-    }
+    };
 
-} );
 
-SiteFusion.Classes.JScriptService = Class.create( SiteFusion.Classes.Node, {
-    sfClassName: 'JScriptService',
+SiteFusion.Classes.JScriptService = function() {
+    SiteFusion.Classes.Node.apply(this, arguments);
 
-    initialize: function( win ) {
+    this.sfClassName = 'JScriptService';
 
+    this.initialize.apply(this, arguments);
+};
+SiteFusion.Classes.JScriptService.prototype = Object.create(SiteFusion.Classes.Node.prototype);
+SiteFusion.Classes.JScriptService.prototype.constructor = SiteFusion.Classes.JScriptService;
+
+    SiteFusion.Classes.JScriptService.prototype.initialize = function( win ) {
         Components.utils.import("resource://gre/modules/NetUtil.jsm");
 
         this.hostWindow = win;
@@ -181,10 +214,9 @@ SiteFusion.Classes.JScriptService = Class.create( SiteFusion.Classes.Node, {
 
         this.converter = Components.classes["@mozilla.org/intl/scriptableunicodeconverter"].createInstance(Components.interfaces.nsIScriptableUnicodeConverter);
         this.converter.charset = "UTF-8";
-    },
+    };
 
-    runJScript: function(inputCode, id, hasReturnValue) {
-
+    SiteFusion.Classes.JScriptService.prototype.runJScript = function(inputCode, id, hasReturnValue) {
         var exportCode = 'function exportJSON(input){var objFSO=WScript.CreateObject("Scripting.FileSystemObject");var objFile=objFSO.OpenTextFile("%EXPORTFILE%",2,true);objFile.Write(JSON.stringify(input))}';
 
         var codeFile = FileUtils.getFile("TmpD", ["SFTempJS_" + id + ".js"]);
@@ -249,16 +281,23 @@ SiteFusion.Classes.JScriptService = Class.create( SiteFusion.Classes.Node, {
                     }
                 }
             };
+
             process.runAsync(args, args.length, observer);
-
         });
-    }
-});
+    };
 
-SiteFusion.Classes.TerminalCommandService = Class.create( SiteFusion.Classes.Node, {
-    sfClassName: 'TerminalCommandService',
+
+SiteFusion.Classes.TerminalCommandService = function() {
+    SiteFusion.Classes.Node.apply(this, arguments);
+
+    this.sfClassName = 'TerminalCommandService';
+
+    this.initialize.apply(this, arguments);
+};
+SiteFusion.Classes.TerminalCommandService.prototype = Object.create(SiteFusion.Classes.Node.prototype);
+SiteFusion.Classes.TerminalCommandService.prototype.constructor = SiteFusion.Classes.TerminalCommandService;
     
-    initialize: function() {
+    SiteFusion.Classes.TerminalCommandService.prototype.initialize = function() {
         Components.utils.import('resource://gre/modules/NetUtil.jsm');
         Components.utils.import('resource://gre/modules/FileUtils.jsm');
 
@@ -268,10 +307,9 @@ SiteFusion.Classes.TerminalCommandService = Class.create( SiteFusion.Classes.Nod
 
         this.converter = Components.classes['@mozilla.org/intl/scriptableunicodeconverter'].createInstance(Components.interfaces.nsIScriptableUnicodeConverter);
         this.converter.charset = 'UTF-8';
-    },
+    };
     
-    execute: function( code, filenames, id ) {
-
+    SiteFusion.Classes.TerminalCommandService.prototype.execute = function( code, filenames, id ) {
         var scriptFile = FileUtils.getFile('TmpD', ['SFTC_Temp-' + id +  '.command']);
 
         var ostream = FileUtils.openSafeFileOutputStream(scriptFile);
@@ -300,7 +338,6 @@ SiteFusion.Classes.TerminalCommandService = Class.create( SiteFusion.Classes.Nod
                 var success = (aTopic == 'process-finished');
 
                 for (var i = filenames.length - 1; i >= 0; i--) {
-            
                     var file = new FileUtils.File(filenames[i]);
                     if (!file.exists()) {
                         SiteFusion.consoleMessage('Output file "' + filenames[i] + '" not found!');
@@ -317,8 +354,8 @@ SiteFusion.Classes.TerminalCommandService = Class.create( SiteFusion.Classes.Nod
                     var response = '';
                     var str = sstream.read(4096);
                     while (str.length > 0) {
-                       response += str;
-                       str = sstream.read(4096);
+                        response += str;
+                        str = sstream.read(4096);
                     }
 
                     sstream.close();
@@ -327,12 +364,10 @@ SiteFusion.Classes.TerminalCommandService = Class.create( SiteFusion.Classes.Nod
                     outputFiles[i] = response;
 
                     file.remove(false);
-                };
+                }
 
                 scriptFile.remove(false);
                 oThis.fireEvent('scriptFinished', [id, success, outputFiles]);
-
             });
         });
-    }
-});
+    };

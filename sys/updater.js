@@ -14,7 +14,7 @@
 // The Original Code is sitefusion.sourceforge.net code.
 //
 // The Initial Developer of the Original Code is
-// FrontDoor Media Group.
+// theFrontDoor.
 // Portions created by the Initial Developer are Copyright (C) 2009
 // the Initial Developer. All Rights Reserved.
 //
@@ -25,16 +25,17 @@
 // - - - - - - - - - - - - - - END LICENSE BLOCK - - - - - - - - - - - - -
 
 SiteFusion.Updates = {
-	openUpdates: function() {
-    var um = Cc["@mozilla.org/updates/update-manager;1"].getService(Ci.nsIUpdateManager);
-    var prompter = Cc["@mozilla.org/updates/update-prompt;1"].createInstance(Ci.nsIUpdatePrompt);
+    openUpdates: function() {
+        var um = Cc["@mozilla.org/updates/update-manager;1"].getService(Ci.nsIUpdateManager);
+        var prompter = Cc["@mozilla.org/updates/update-prompt;1"].createInstance(Ci.nsIUpdatePrompt);
 
-    // If there's an update ready to be applied, show the "Update Downloaded"
-    // UI instead and let the user know they have to restart the browser for
-    // the changes to be applied. 
-    if (um.activeUpdate && um.activeUpdate.state == "pending")
-      prompter.showUpdateDownloaded(um.activeUpdate);
-    else
-      prompter.checkForUpdates();
-	}
+        // If there's an update ready to be applied, show the "Update Downloaded"
+        // UI instead and let the user know they have to restart the browser for
+        // the changes to be applied. 
+        if (um.activeUpdate && um.activeUpdate.state == "pending") {
+            prompter.showUpdateDownloaded(um.activeUpdate);
+        } else {
+            prompter.checkForUpdates();
+        }
+    }
 };

@@ -64,8 +64,15 @@ try {
     $dbUsername = (isset($WEBCONFIG['databaseUsername']) ? $WEBCONFIG['databaseUsername'] : NULL);
     $dbPassword = (isset($WEBCONFIG['databasePassword']) ? $WEBCONFIG['databasePassword'] : NULL);
 
-    $dbSession = $dbSession = GetSessionFromSID($sid, $dbUsername, $dbPassword, $dbDSN, $dbHost, $dbName);
-    
+    for ($n = 0; $n < 20; $n++) {
+        $dbSession = $dbSession = GetSessionFromSID($sid, $dbUsername, $dbPassword, $dbDSN, $dbHost, $dbName);
+        if (empty($dbSession['ident'])) {
+            usleep(200);    
+        } else {
+            break;
+        }
+    }
+
     if( $dbSession['ident'] != $_GET['ident'] )
         throw new Exception( 'Not authorized');
 
