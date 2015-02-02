@@ -40,7 +40,7 @@ include_once( 'extendedprocess.php.inc' );
 */
 
 
-Class ApplicationReponseBase
+Class ApplicationResponseBase
 {
 	public $success = FALSE;
 	public $message = "";
@@ -81,11 +81,11 @@ Class ApplicationReponseBase
 
 }
 
-Class ApplicationAuthorizationReponse extends ApplicationReponseBase {
+Class ApplicationAuthorizationResponse extends ApplicationResponseBase {
 	protected $error_code = "invalid_login";
 }
 
-class ApplicationAvailabilityReponse extends ApplicationReponseBase {
+class ApplicationAvailabilityResponse extends ApplicationResponseBase {
 	protected $error_code = "app_not_available";
 }
 
@@ -591,8 +591,12 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 			$availableObject = getAvailability($args, $user, $pass);
 			if (is_object($availableObject)) {
 				if (!$availableObject->success) {
-					return $availableObject->getProperties();
-
+					if (version_compare(self::$ClientVersion, '3.0.2', '<')) {
+						return array('success' => 0, 'error' => 'invalid_login');
+					}
+					else {
+						return $availableObject->getProperties();
+					}
 				}
 			}
 			elseif (!$availableObject) {

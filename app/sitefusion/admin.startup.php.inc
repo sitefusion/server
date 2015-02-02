@@ -33,11 +33,11 @@
 
 function authorizeLogin( $args, $user, $pass ) {
 	include( 'sfadminPasswd.php.inc' );
-	return new ApplicationAuthorizationReponse($user == 'admin' && $pass == $password);
+	return new ApplicationAuthorizationResponse($user == 'admin' && $pass == $password);
 }
 
 function getAvailability($args, $user, $pass) {
-	return new ApplicationAvailabilityReponse(TRUE);
+	return new ApplicationAvailabilityResponse(TRUE);
 }
 
 function getApplication( $args ) {
