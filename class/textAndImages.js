@@ -14,13 +14,14 @@
 // The Original Code is sitefusion.sourceforge.net code.
 //
 // The Initial Developer of the Original Code is
-// FrontDoor Media Group.
+// theFrontDoor.
 // Portions created by the Initial Developer are Copyright (C) 2009
 // the Initial Developer. All Rights Reserved.
 //
 // Contributor(s):
 //   Nikki Auburger <nikki@thefrontdoor.nl> (original author)
 //   Tom Peeters <tom@thefrontdoor.nl>
+//   Pieter Janssen <pieter.janssen@thefrontdoor.nl>
 //   Francesco Danti <info@oracoltech.com>
 //
 // - - - - - - - - - - - - - - END LICENSE BLOCK - - - - - - - - - - - - -
