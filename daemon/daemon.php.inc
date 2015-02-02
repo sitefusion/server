@@ -887,11 +887,12 @@ class DaemonProcess extends SiteFusionProcess
 			
 			// Login checking
 			$loginCmd = self::ReadCommand( $client );
+
 			if( $loginCmd->command != 'LOGIN' ) {
 				socket_close( $client );
 				exit();
 			}
-			
+
 			include_once( 'app.php.inc' );
 			ApplicationProcess::StartServer( $client, $childCommandPipe, $childEventPipe, $loginCmd, $port, $clientid );
 		}

@@ -100,8 +100,16 @@ try {
 	
 	if( $loginResponse['success'] )
 		ReturnResult( $cmd->data );
-	else
-		ReturnError( $loginResponse['error'] );
+	else {
+		$errorArgs = array($loginResponse['error']);
+		if (isset($loginResponse['custom_error_text'])) {
+			$errorArgs[] = $loginResponse['custom_error_text'];
+		}
+		if (isset($loginResponse['custom_error_title'])) {
+			$errorArgs[] = $loginResponse['custom_error_title'];
+		}
+		call_user_func_array("ReturnError", $errorArgs);
+	}
 }
 catch ( Exception $ex ) {
 	// Give the daemon some time to collect error output

@@ -107,13 +107,14 @@ function ReadCommand( $socket ) {
 	return $ret;
 }
 
-function ReturnError( $type, $message = NULL ) {
+function ReturnError( $type, $message = NULL, $title = NULL ) {
 	header( 'Content-Type: sitefusion/error; charset=utf-8' );
 	echo json_encode( array(
 		'error' => true,
 		'type' => $type,
-		'message' => $message
-	) );
+		'message' => $message,
+		'title' => $title
+	));
 	exit;
 }
 
