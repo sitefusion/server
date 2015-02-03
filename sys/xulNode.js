@@ -522,7 +522,7 @@ SiteFusion.Classes.Node.prototype.DropObserver = function() {
 
     SiteFusion.Classes.Node.prototype.DropObserver.prototype.onDragOver = function( event ) {
         var types = event.dataTransfer.types;
-        types = this.flavorNames.filter(function (value) { types.contains(value); });
+        types = this.flavorNames.filter(function (value) { return types.contains(value); });
         if (types.length) {
             event.stopPropagation();
             event.preventDefault();
@@ -536,7 +536,7 @@ SiteFusion.Classes.Node.prototype.DropObserver = function() {
 
     SiteFusion.Classes.Node.prototype.DropObserver.prototype.onDrop = function( event ) {
         var types = event.dataTransfer.types;
-        types = this.flavorNames.filter(function (value) { types.contains(value); });
+        types = this.flavorNames.filter(function (value) { return types.contains(value); });
         if (types.length) {
             var d = event.dataTransfer.getData(types[0]);
             if (types[0].substr(0, 7) == 'sfnode/') {
