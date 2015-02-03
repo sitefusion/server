@@ -506,7 +506,7 @@ SiteFusion.Classes.Node.prototype.DropObserver = function() {
     this.initialize.apply(this, arguments);
 };
 
-    SiteFusion.Classes.Node.prototype.DropObserver.initialize = function( sfNode, flavors ) {
+    SiteFusion.Classes.Node.prototype.DropObserver.prototype.initialize = function( sfNode, flavors ) {
         this.sfNode = sfNode;
         
         var oThis = this;
@@ -520,7 +520,7 @@ SiteFusion.Classes.Node.prototype.DropObserver = function() {
         }
     };
 
-    SiteFusion.Classes.Node.prototype.DropObserver.onDragOver = function( event ) {
+    SiteFusion.Classes.Node.prototype.DropObserver.prototype.onDragOver = function( event ) {
         var types = event.dataTransfer.types;
         types = this.flavorNames.filter(function (value) { types.contains(value); });
         if (types.length) {
@@ -534,7 +534,7 @@ SiteFusion.Classes.Node.prototype.DropObserver = function() {
         }
     };
 
-    SiteFusion.Classes.Node.prototype.DropObserver.onDrop = function( event ) {
+    SiteFusion.Classes.Node.prototype.DropObserver.prototype.onDrop = function( event ) {
         var types = event.dataTransfer.types;
         types = this.flavorNames.filter(function (value) { types.contains(value); });
         if (types.length) {
@@ -550,7 +550,7 @@ SiteFusion.Classes.Node.prototype.DropObserver = function() {
         }
     };
 
-    SiteFusion.Classes.Node.prototype.DropObserver.onFileDragOver = function( event ) {
+    SiteFusion.Classes.Node.prototype.DropObserver.prototype.onFileDragOver = function( event ) {
         return false;
         var dragService = Cc["@mozilla.org/widget/dragservice;1"].getService(Ci.nsIDragService);
         var dragSession = dragService.getCurrentSession();
@@ -571,7 +571,7 @@ SiteFusion.Classes.Node.prototype.DropObserver = function() {
         return supported;
     };
 
-    SiteFusion.Classes.Node.prototype.DropObserver.onFileDrop = function( event ) {
+    SiteFusion.Classes.Node.prototype.DropObserver.prototype.onFileDrop = function( event ) {
         var dragService = Cc["@mozilla.org/widget/dragservice;1"].getService(Ci.nsIDragService);
         var dragSession = dragService.getCurrentSession();
         var _ios = Cc['@mozilla.org/network/io-service;1'].getService(Ci.nsIIOService);
