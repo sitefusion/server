@@ -35,7 +35,7 @@
 
 /**
  * Basic window functionality
- * 
+ *
  * Not to be constructed directly
  * @package API
  * @subpackage Windows
@@ -139,7 +139,7 @@ class XULBasicWindow extends BranchNode {
 
     public function addStyleSheetRule() {
         $rules = func_get_args();
-        
+
         for ($n = 0; $n < count($rules); $n++) {
             if (is_array($rules[$n])) {
                 array_splice( $rules, $n, 1, $rules[$n] );
@@ -158,7 +158,7 @@ class XULBasicWindow extends BranchNode {
     public function openLink($url) {
         $this->callMethod( 'openLink', array($url) );
     }
-    
+
     /**
      * Opens the specified URL in the current Window
      * @param  string $url     The URL to open
@@ -167,7 +167,7 @@ class XULBasicWindow extends BranchNode {
     public function openUrlWindow($url, $options = 'chrome') {
         $this->callMethod( 'openUrlWindow', array($url, $options) );
     }
-    
+
     /**
      * Opens the specified URL in a new dialog
      * @param  string $url     The URL to open
@@ -181,11 +181,11 @@ class XULBasicWindow extends BranchNode {
 
 /**
  * Window element
- * 
+ *
  * This is the root window class. It is constructed automatically once upon application launch,
- * and should not be constructed separately. Use XULC hildWindow or XULDialog for additional 
+ * and should not be constructed separately. Use XULC hildWindow or XULDialog for additional
  * application windows.
- * 
+ *
  * @see XULChildWindow
  * @see XULDialog
  * @link https://developer.mozilla.org/en/XUL/window
@@ -198,7 +198,7 @@ class XULWindow extends XULBasicWindow {
     public $application;
     public $operatingSystem     = '';
     public $workingDirectory    = '';
-    
+
     public function __construct() {
         $this->hostWindow = $this;
         parent::__construct();
@@ -214,7 +214,7 @@ class XULWindow extends XULBasicWindow {
 
     public function close() {
         $this->application->onWindowClose();
-        
+
         $this->callMethod( 'windowObject.close' );
     }
 
@@ -226,7 +226,7 @@ class XULWindow extends XULBasicWindow {
 
 /**
  * Child window element
- * 
+ *
  * @link https://developer.mozilla.org/en/XUL/window
  * @package API
  * @subpackage Windows
@@ -248,7 +248,7 @@ class XULChildWindow extends XULBasicWindow {
     public function __construct() {
         if (func_num_args()) {
             $args = func_get_args();
-            
+
             if (count($args) && is_string($args[0])) {
                 $this->title( array_shift($args) );
             }
@@ -261,7 +261,7 @@ class XULChildWindow extends XULBasicWindow {
             if (count($args) && is_bool($args[0])) {
                 $this->dependent = array_shift($args);
             }
-            
+
             if (count($args)) {
                 $this->initChildren = $args;
             }
@@ -285,9 +285,9 @@ class XULChildWindow extends XULBasicWindow {
         $this->setProperty( 'hostWindow', $this->hostWindow );
         $this->setProperty( 'parentHostWindow', $this->parent->hostWindow );
         $this->callMethod( 'open' );
-        
+
         $this->parent->callMethod( 'addChildSilent', array($this) );
-        
+
         $this->setEventHandler( 'initialized', $this, 'initWindow' );
     }
 
@@ -312,9 +312,9 @@ class XULChildWindow extends XULBasicWindow {
         if (isset($this->initChildren)) {
             $this->addChild( $this->initChildren );
         }
-        
+
         $this->sizeToContent();
-        
+
         if ($this->dependent && $this->centerscreen) {
             $this->callMethod( 'windowObject.moveToAlertPosition' );
         } elseif ($this->centerscreen) {
@@ -332,13 +332,13 @@ class XULChildWindow extends XULBasicWindow {
         if ($title === NULL) {
             return $this->title;
         }
-        
+
         $this->title = $title;
-        
+
         if ($this->isRegistered) {
             $this->callMethod( 'setTitle', array($title) );
         }
-        
+
         return $this;
     }
 }
@@ -346,7 +346,7 @@ class XULChildWindow extends XULBasicWindow {
 
 /**
  * Dialog element
- * 
+ *
  * @link https://developer.mozilla.org/en/XUL/dialog
  * @package API
  * @subpackage Windows
@@ -378,13 +378,13 @@ class XULDialog extends XULChildWindow
         if ($label === NULL) {
             return $this->buttonlabelaccept;
         }
-        
+
         $this->buttonlabelaccept = $label;
-        
+
         if ($this->isRegistered) {
             $this->setProperty( 'element.getButton("accept").label', $label );
         }
-        
+
         return $this;
     }
 
@@ -392,13 +392,13 @@ class XULDialog extends XULChildWindow
         if ($label === NULL) {
             return $this->buttonlabelcancel;
         }
-        
+
         $this->buttonlabelcancel = $label;
-        
+
         if ($this->isRegistered) {
             $this->setProperty( 'element.getButton("cancel").label', $label );
         }
-        
+
         return $this;
     }
 
@@ -406,13 +406,13 @@ class XULDialog extends XULChildWindow
         if ($label === NULL) {
             return $this->buttonlabelhelp;
         }
-        
+
         $this->buttonlabelhelp = $label;
-        
+
         if ($this->isRegistered) {
             $this->setProperty( 'element.getButton("help").label', $label );
         }
-        
+
         return $this;
     }
 
@@ -420,13 +420,13 @@ class XULDialog extends XULChildWindow
         if ($label === NULL) {
             return $this->buttonlabeldisclosure;
         }
-        
+
         $this->buttonlabeldisclosure = $label;
-        
+
         if ($this->isRegistered) {
             $this->setProperty( 'element.getButton("disclosure").label', $label );
         }
-        
+
         return $this;
     }
 
@@ -434,13 +434,13 @@ class XULDialog extends XULChildWindow
         if ($label === NULL) {
             return $this->buttonlabelextra1;
         }
-        
+
         $this->buttonlabelextra1 = $label;
-        
+
         if ($this->isRegistered) {
             $this->setProperty( 'element.getButton("extra1").label', $label );
         }
-        
+
         return $this;
     }
 
@@ -448,13 +448,13 @@ class XULDialog extends XULChildWindow
         if ($label === NULL) {
             return $this->buttonlabelextra2;
         }
-        
+
         $this->buttonlabelextra2 = $label;
-        
+
         if ($this->isRegistered) {
             $this->setProperty( 'element.getButton("extra2").label', $label );
         }
-        
+
         return $this;
     }
 
@@ -470,7 +470,7 @@ class XULDialog extends XULChildWindow
 
 /**
  * PrefWindow element
- * 
+ *
  * @link https://developer.mozilla.org/en/XUL/prefwindow
  * @package API
  * @subpackage Windows
@@ -479,7 +479,7 @@ class XULDialog extends XULChildWindow
 class XULPrefWindow extends XULDialog {
 
     public $remoteConstructor = 'PrefWindow';
-    
+
     /**
      * Makes the given pane active in the prefwindow
      *
@@ -489,7 +489,7 @@ class XULPrefWindow extends XULDialog {
         if (!$this->isRegistered) {
             throw new SFException( "Can't call showPane() on unregistered PrefWindow" );
         }
-        
+
         $this->callMethod( 'showPane', array($pane) );
     }
 }
@@ -497,7 +497,7 @@ class XULPrefWindow extends XULDialog {
 
 /**
  * PrefPane element
- * 
+ *
  * @link https://developer.mozilla.org/en/XUL/prefpane
  * @package API
  * @subpackage Windows
@@ -516,14 +516,14 @@ class XULPrefPane extends BranchNode {
     public function __construct() {
         if (func_num_args()) {
             $args = func_get_args();
-            
+
             if (count($args) && is_string($args[0])) {
                 $this->label( array_shift($args) );
             }
             if (count($args) && is_string($args[0])) {
                 $this->image( array_shift($args) );
             }
-            
+
             parent::__construct( $args );
         } else {
             parent::__construct();
@@ -538,13 +538,13 @@ class XULPrefPane extends BranchNode {
         if ($src === NULL) {
             return (isset($this->image) ? $this->image : NULL);
         }
-        
+
         $this->image = $src;
-        
+
         if ($this->isRegistered) {
             $this->callMethod( 'image', $this->image );
         }
-        
+
         return $this;
     }
 }
@@ -579,24 +579,24 @@ class PromptService extends Node {
     const BUTTON_POS_0_DEFAULT = 0;
     const BUTTON_POS_1_DEFAULT = 16777216;
     const BUTTON_POS_2_DEFAULT = 33554432;
-    
+
     const BUTTON_DELAY_ENABLE = 67108864;
     const STD_OK_CANCEL_BUTTONS = 513;
     const STD_YES_NO_BUTTONS = 1027;
-    
+
     public $remoteConstructor = 'PromptService';
-    
+
     public $promptInProgress = FALSE;
     private $handlerObj = NULL;
     private $handlerMethod = NULL;
     private $carryValue = NULL;
     private $closure = NULL;
-    
+
     public function attach() {
         parent::attach();
         $this->setEvent( 'yield', MSG_SEND, $this, 'yieldCollect' );
     }
-    
+
     /**
      * Shows a alert box with an OK button
      *
@@ -606,7 +606,7 @@ class PromptService extends Node {
     public function alert($title, $text) {
         $this->callMethod( 'alert', array($title,$text) );
     }
-    
+
     /**
      * Shows an alert box with an OK button and a checkbox
      *
@@ -629,7 +629,7 @@ class PromptService extends Node {
         $this->carryValue = $carryValue;
         $this->callMethod( 'alertCheck', array($title,$text,$checkMsg,$checkState) );
     }
-    
+
     /**
      * Shows a confirm box with OK and Cancel buttons
      *
@@ -650,7 +650,7 @@ class PromptService extends Node {
         $this->carryValue = $carryValue;
         $this->callMethod( 'confirm', array($title,$text) );
     }
-    
+
     /**
      * Shows a confirm box with OK and Cancel buttons
      *
@@ -690,7 +690,7 @@ class PromptService extends Node {
         $this->carryValue = $carryValue;
         $this->callMethod( 'confirmCheck', array($title,$text,$checkMsg,$checkState) );
     }
-    
+
     /**
      * Shows a custom confirm box with up to three buttons and a checkbox
      *
@@ -705,7 +705,7 @@ class PromptService extends Node {
      * @param object    $handlerObj     Object to call the handler method on
      * @param string    $handlerMethod  Method to call on the handler object
      * @param mixed     $carryValue     Arbitrary value to pass on to the handler function
-     * 
+     *
      * @link https://developer.mozilla.org/en/nsIPromptService#confirmEx example
      */
     public function confirmEx($title, $text, $buttonFlags, $button0Title, $button1Title, $button2Title, $checkMsg, $checkState, $handlerObj, $handlerMethod, $carryValue = NULL) {
@@ -732,7 +732,7 @@ class PromptService extends Node {
      * @param string    $checkMsg       Label text of the checkbox
      * @param bool      $checkState     Initial state of the checkbox
      * @param object    $closure        Closure
-     * 
+     *
      * @link https://developer.mozilla.org/en/nsIPromptService#confirmEx example
      */
     public function confirmExClosure($title, $text, $buttonFlags, $button0Title, $button1Title, $button2Title, $checkMsg, $checkState, $closure) {
@@ -744,7 +744,7 @@ class PromptService extends Node {
         $this->closure = $closure;
         $this->callMethod( 'confirmEx', array($title,$text,$buttonFlags,$button0Title,$button1Title,$button2Title,$checkMsg,$checkState) );
     }
-    
+
     /**
      * Shows a prompt box with a textinput and OK and Cancel buttons
      *
@@ -766,7 +766,7 @@ class PromptService extends Node {
         $this->carryValue = $carryValue;
         $this->callMethod( 'prompt', array($title,$text,$textValue,NULL,NULL) );
     }
-    
+
     /**
      * Shows a prompt box with a textinput, a checkbox and OK and Cancel buttons
      *
@@ -790,7 +790,7 @@ class PromptService extends Node {
         $this->carryValue = $carryValue;
         $this->callMethod( 'prompt', array($title,$text,$textValue,$checkMsg,$checkState) );
     }
-    
+
     /**
      * Shows a prompt box with username and password textinputs and OK and Cancel buttons
      *
@@ -813,7 +813,7 @@ class PromptService extends Node {
         $this->carryValue = $carryValue;
         $this->callMethod( 'promptUsernameAndPassword', array($title,$text,$username,$password,NULL,NULL) );
     }
-    
+
     /**
      * Shows a prompt box with username and password textinputs, a checkbox and OK and Cancel buttons
      *
@@ -838,7 +838,7 @@ class PromptService extends Node {
         $this->carryValue = $carryValue;
         $this->callMethod( 'promptUsernameAndPassword', array($title,$text,$username,$password,$checkMsg,$checkState) );
     }
-    
+
     /**
      * Shows a prompt box with a password textinput and OK and Cancel buttons
      *
@@ -860,7 +860,7 @@ class PromptService extends Node {
         $this->carryValue = $carryValue;
         $this->callMethod( 'promptPassword', array($title,$text,$password,NULL,NULL) );
     }
-    
+
     /**
      * Shows a prompt box with a password textinput, a checkbox and OK and Cancel buttons
      *
@@ -884,7 +884,7 @@ class PromptService extends Node {
         $this->carryValue = $carryValue;
         $this->callMethod( 'promptPassword', array($title,$text,$password,$checkMsg,$checkState) );
     }
-    
+
     /**
      * Shows a prompt box with a dropdown box and OK and Cancel buttons
      *
@@ -907,7 +907,7 @@ class PromptService extends Node {
         $this->carryValue = $carryValue;
         $this->callMethod( 'select', array($title, $text, $list, (int) $selectedIndex) );
     }
-    
+
     /**
      * [INTERNAL FUNCTION] Collects the results of a prompt
     */
@@ -917,7 +917,7 @@ class PromptService extends Node {
         $this->value = $value;
         $this->username = $username;
         $this->password = $password;
-        
+
         $this->promptInProgress = FALSE;
         if ($this->closure) {
             $this->closure->__invoke($this);
@@ -930,7 +930,7 @@ class PromptService extends Node {
             $this->handlerObj = NULL;
             $this->handlerMethod = NULL;
             $this->carryValue = NULL;
-            
+
             $ho->{$hm}( $this, $cv );
         }
     }
@@ -938,43 +938,95 @@ class PromptService extends Node {
 
 /**
  * OS-native alert notification node
- * 
- * This node displays taskbar style notification boxes in Windows and Growl notifications in MacOS X (when installed).
+ *
+ * This node displays a notification box on the client
  * Alert notifications can be made clickable, making them fire 'command' events when clicked. They also fire a 'finished'
- * event when disappearing. The notification appears as soon as it's registered (added to a registered parent node).
+ * event when disappearing and a 'focus' event when it is first shown.
+ * The notification appears as soon as it's registered (added to a registered parent node).
  * @package API
  * @subpackage Windows
  */
 class AlertNotification extends Node {
 
+    const ORIGIN_BOTTOMRIGHT_SLIDEVERTICAL   = 0;
+    const ORIGIN_BOTTOMRIGHT_SLIDEHORIZONTAL = 1;
+    const ORIGIN_BOTTOMLEFT_SLIDEVERTICAL    = 2;
+    const ORIGIN_BOTTOMLEFT_SLIDEHORIZONTA   = 3;
+    const ORIGIN_TOPRIGHT_SLIDEVERTICAL      = 4;
+    const ORIGIN_TOPRIGHT_SLIDEHORIZONTAL    = 5;
+    const ORIGIN_TOPLEFT_SLIDEVERTICAL       = 6;
+    const ORIGIN_TOPLEFT_SLIDEHORIZONTA      = 7;
+
     public $remoteConstructor = 'AlertNotification';
-    
+
     /**
-     * Constructor
-     *
-     * @param string    $image          Path to the image to display (empty string to display no image)
-     * @param string    $title          Title of the alert
-     * @param string    $text           Text of the alert
-     * @param string    $name           Name of the notification type (if supplied, this can be used by f.e. Growl to disable certain messages)
-     * @param bool      $textClickable  Boolean indicating whether the notification should be clickable. If TRUE, the notification fires a 'finished' event when clicked.
+     * If the notification should send an event when clicked
+     * @var boolean
      */
-    public function __construct($image, $title, $text, $name = NULL, $textClickable = FALSE) {
+    public $textClickable = FALSE;
+
+    /**
+     * The origin of the alert, this should be one of the AlertNotification::ORIGIN_ constants, defaults to AlertNotification::ORIGIN_TOPRIGHT_SLIDEHORIZONTAL
+     * @var integer
+     */
+    public $alertOrigin = NULL;
+
+    /**
+     * The url to the image that should be shown
+     * @var string
+     */
+    public $image;
+
+    /**
+     * The title to show at the top of the notification
+     * @var string
+     */
+    public $title;
+
+    /**
+     * The text to show in the notification
+     * @var string
+     */
+    public $text;
+
+    /**
+     * The name at which this notification is known, if NULL it defaults to SiteFusion
+     * @var string
+     */
+    public $name = NULL;
+
+    /**
+     * Contructs a new AlertNotification
+     * @param string  $image         Path to the image to display (empty string to display no image)
+     * @param string  $title         Title of the alert
+     * @param string  $text          Text of the alert
+     * @param string  $name          Name of the notification type
+     * @param bool    $textClickable Indicates whether the notification should be clickable. If TRUE, the notification fires 'command' event when clicked.
+     * @param integer $alertOrigin   The origin of the alert, defaults to AlertNotification::ORIGIN_TOPRIGHT_SLIDEHORIZONTAL
+     */
+    public function __construct($image, $title, $text, $name = NULL, $textClickable = FALSE, $alertOrigin = NULL) {
         $this->image = $image;
         $this->title = $title;
         $this->text = $text;
         $this->name = $name;
         $this->textClickable = $textClickable;
+        $this->alertOrigin = ($alertOrigin === NULL ? self::ORIGIN_TOPRIGHT_SLIDEHORIZONTAL : $alertOrigin);
     }
-    
+
+    /**
+     * The attach function
+     * @access private
+     */
     public function attach() {
         parent::attach();
         $this->setEvent( 'finished', MSG_SEND, $this, 'onFinished' );
-        
-        $this->callMethod( 'showAlertNotification', array( $this->image, $this->title, $this->text, $this->name, $this->textClickable ) );
+
+        $this->callMethod( 'showAlertNotification', array( $this->image, $this->title, $this->text, $this->name, $this->textClickable, $this->alertOrigin ) );
     }
-    
+
     /**
      * Internal handler for the 'finished' event, removes the node
+     * @access private
      */
     public function onFinished($e) {
         $this->removeNode();
