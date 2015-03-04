@@ -28,6 +28,7 @@
 SiteFusion.Classes.Node = function() {
     this.preventDeferredInsertion = false;
     this.observer = null;
+    this.isRemoved = false;
 };
 
     SiteFusion.Classes.Node.prototype.addObserver = function(topic) {
@@ -258,7 +259,8 @@ SiteFusion.Classes.Node = function() {
     SiteFusion.Classes.Node.prototype.removeChild = function( childSFNode ) {
         try {
             this.element.removeChild( childSFNode.element );
-            
+            this.removeChildRecursive( childSFNode );
+
             for( var n = 0; n < this.sfChildren.length; n++ ) {
                 if( this.sfChildren[n] == childSFNode ) {
                     this.sfChildren.splice( n, 1 );
@@ -271,6 +273,7 @@ SiteFusion.Classes.Node = function() {
 
     SiteFusion.Classes.Node.prototype.removeChildRecursive = function( childSFNode ) {
         childSFNode.isRemoved = true;
+
         for( var n = 0; n < childSFNode.sfChildren.length; n++ ) {
             childSFNode.removeChildRecursive( childSFNode.sfChildren[n] );
         }
