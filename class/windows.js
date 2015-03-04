@@ -635,7 +635,7 @@ SiteFusion.Classes.AlertNotification.prototype.constructor = SiteFusion.Classes.
         this.setEventHost( [ 'finished' ] );
     };
 
-    SiteFusion.Classes.AlertNotification.prototype.showAlertNotification = function( imageUrl, title, text, name, textClickable ) {
+    SiteFusion.Classes.AlertNotification.prototype.showAlertNotification = function( imageUrl, title, text, name, textClickable, alertOrigin ) {
 
         name = (name == null ? 'SiteFusion' : name);
         imageUrl = (imageUrl != '' ? this.parseImageURL(imageUrl) : '');
