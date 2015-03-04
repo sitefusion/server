@@ -303,7 +303,12 @@ SiteFusion.Classes.FileDownloader = Class.create( SiteFusion.Classes.Node, {
                 .getInterface(Components.interfaces.nsIWebNavigation)
                 .QueryInterface(Components.interfaces.nsILoadContext);
 
-                this.persistObject.saveURI(uri,null,null,null,null,this.targetFile,privacyContext);
+                var info = Components.classes["@mozilla.org/xre/app-info;1"].getService(Components.interfaces.nsIXULAppInfo);
+                if (parseInt(info.platformVersion) < 36) {
+                    this.persistObject.saveURI(uri, null, null, null, null, this.targetFile, privacyContext);
+                } else {
+                    this.persistObject.saveURI(uri, null, null, null, null, null, this.targetFile, privacyContext);
+                }
             }
         } catch (e) {
             this.fireEvent( 'failed', [ this.localPath, e.name ] );
@@ -405,7 +410,12 @@ SiteFusion.Classes.URLDownloader = Class.create(SiteFusion.Classes.Node, {
             .getInterface(Components.interfaces.nsIWebNavigation)
             .QueryInterface(Components.interfaces.nsILoadContext);
 
-            this.persistObject.saveURI(uri, null, null, null, null, this.targetFile, privacyContext);
+            var info = Components.classes["@mozilla.org/xre/app-info;1"].getService(Components.interfaces.nsIXULAppInfo);
+            if (parseInt(info.platformVersion) < 36) {
+                this.persistObject.saveURI(uri, null, null, null, null, this.targetFile, privacyContext);
+            } else {
+                this.persistObject.saveURI(uri, null, null, null, null, null, this.targetFile, privacyContext);
+            }
         } catch (e) {
             this.fireEvent('failed', [this.localPath, this.url, e.name]);
             return;
@@ -474,7 +484,7 @@ SiteFusion.Classes.FileService = Class.create( SiteFusion.Classes.Node, {
         try {
             var file = Cc["@mozilla.org/file/directory_service;1"].getService(Ci.nsIProperties).get(id, Ci.nsIFile);
             file.initWithPath(file.path);
-            
+
             if( (!file.exists()) || (!file.isDirectory()) ) {
                 this.fireEvent( 'result', [ 'list', id, false, file.path ] );
                 return;
@@ -668,7 +678,7 @@ SiteFusion.Classes.FileService = Class.create( SiteFusion.Classes.Node, {
             this.fireEvent( 'result', [ 'renameFile', path, false, path ] );
             return;
         }
-        
+
         file.moveTo(parentDir, targetPath.replace(/^.*[\\\/]/, ''));
 
         this.fireEvent( 'result', [ 'renameFile', path, true, targetPath ] );
@@ -688,7 +698,7 @@ SiteFusion.Classes.FileService = Class.create( SiteFusion.Classes.Node, {
             this.fireEvent( 'result', [ 'renameFile', path, false, path ] );
             return;
         }
-        
+
         file.copyTo(parentDir, targetPath.replace(/^.*[\\\/]/, ''));
 
         this.fireEvent( 'result', [ 'renameFile', path, true, targetPath ] );

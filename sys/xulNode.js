@@ -28,6 +28,7 @@
 SiteFusion.Classes.Node = Class.create( {
 	preventDeferredInsertion: false,
 	observer: null,
+    isRemoved: false,
 
 	addObserver: function(topic) {
 		if (!this.observer) {
@@ -256,6 +257,7 @@ SiteFusion.Classes.Node = Class.create( {
 	removeChild: function( childSFNode ) {
 		try {
 			this.element.removeChild( childSFNode.element );
+            this.removeChildRecursive( childSFNode );
 			
 			for( var n = 0; n < this.sfChildren.length; n++ ) {
 				if( this.sfChildren[n] == childSFNode ) {
