@@ -592,7 +592,7 @@ SiteFusion.Classes.AlertNotification = Class.create( SiteFusion.Classes.Node, {
 		this.setEventHost( [ 'finished' ] );
 	},
 
-	showAlertNotification: function( imageUrl, title, text, name, textClickable ) {
+	showAlertNotification: function( imageUrl, title, text, name, textClickable, alertOrigin ) {
 
         name = (name == null ? 'SiteFusion' : name);
         imageUrl = (imageUrl != '' ? this.parseImageURL(imageUrl) : '');
