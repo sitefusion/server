@@ -157,7 +157,7 @@ SiteFusion.Classes.FileUploader.prototype.constructor = SiteFusion.Classes.FileU
 
         var stream = Components.classes["@mozilla.org/network/file-input-stream;1"].createInstance(Components.interfaces.nsIFileInputStream);
         stream.init(file, 0x01, 00004, null);
-        
+
         var bstream = Components.classes["@mozilla.org/network/buffered-input-stream;1"].getService();
         bstream.QueryInterface(Components.interfaces.nsIBufferedInputStream);
         bstream.init(stream, 1000);
@@ -316,7 +316,12 @@ SiteFusion.Classes.FileDownloader.prototype.constructor = SiteFusion.Classes.Fil
                 .getInterface(Components.interfaces.nsIWebNavigation)
                 .QueryInterface(Components.interfaces.nsILoadContext);
 
-                this.persistObject.saveURI(uri,null,null,null,null,this.targetFile,privacyContext);
+                var info = Components.classes["@mozilla.org/xre/app-info;1"].getService(Components.interfaces.nsIXULAppInfo);
+                if (parseInt(info.platformVersion) < 36) {
+                    this.persistObject.saveURI(uri, null, null, null, null, this.targetFile, privacyContext);
+                } else {
+                    this.persistObject.saveURI(uri, null, null, null, null, null, this.targetFile, privacyContext);
+                }
             }
         } catch (e) {
             this.fireEvent( 'failed', [ this.localPath, e.name ] );
@@ -427,7 +432,12 @@ SiteFusion.Classes.URLDownloader.prototype.constructor = SiteFusion.Classes.URLD
             .getInterface(Components.interfaces.nsIWebNavigation)
             .QueryInterface(Components.interfaces.nsILoadContext);
 
-            this.persistObject.saveURI(uri, null, null, null, null, this.targetFile, privacyContext);
+            var info = Components.classes["@mozilla.org/xre/app-info;1"].getService(Components.interfaces.nsIXULAppInfo);
+            if (parseInt(info.platformVersion) < 36) {
+                this.persistObject.saveURI(uri, null, null, null, null, this.targetFile, privacyContext);
+            } else {
+                this.persistObject.saveURI(uri, null, null, null, null, null, this.targetFile, privacyContext);
+            }
         } catch (e) {
             this.fireEvent('failed', [this.localPath, this.url, e.name]);
             return;
@@ -503,7 +513,7 @@ SiteFusion.Classes.FileService.prototype.constructor = SiteFusion.Classes.FileSe
         try {
             var file = Cc["@mozilla.org/file/directory_service;1"].getService(Ci.nsIProperties).get(id, Ci.nsIFile);
             file.initWithPath(file.path);
-            
+
             if ( (!file.exists()) || (!file.isDirectory()) ) {
                 this.fireEvent( 'result', [ 'list', id, false, file.path ] );
                 return;
@@ -687,7 +697,7 @@ SiteFusion.Classes.FileService.prototype.constructor = SiteFusion.Classes.FileSe
             this.fireEvent( 'result', [ 'renameFile', path, false, path ] );
             return;
         }
-        
+
         file.moveTo(parentDir, targetPath.replace(/^.*[\\\/]/, ''));
 
         this.fireEvent( 'result', [ 'renameFile', path, true, targetPath ] );
@@ -705,7 +715,7 @@ SiteFusion.Classes.FileService.prototype.constructor = SiteFusion.Classes.FileSe
             this.fireEvent( 'result', [ 'renameFile', path, false, path ] );
             return;
         }
-        
+
         file.copyTo(parentDir, targetPath.replace(/^.*[\\\/]/, ''));
 
         this.fireEvent( 'result', [ 'renameFile', path, true, targetPath ] );
