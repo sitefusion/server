@@ -14,13 +14,14 @@
 // The Original Code is sitefusion.sourceforge.net code.
 //
 // The Initial Developer of the Original Code is
-// FrontDoor Media Group.
+// theFrontDoor.
 // Portions created by the Initial Developer are Copyright (C) 2009
 // the Initial Developer. All Rights Reserved.
 //
 // Contributor(s):
 //   Nikki Auburger <nikki@thefrontdoor.nl> (original author)
 //   Tom Peeters <tom@thefrontdoor.nl>
+//   Pieter Janssen <pieter.janssen@thefrontdoor.nl>
 //
 // - - - - - - - - - - - - - - END LICENSE BLOCK - - - - - - - - - - - - -
 
@@ -28,10 +29,17 @@ Components.utils.import("resource://gre/modules/FileUtils.jsm");
 
 const PR_UINT32_MAX = 0xffffffff;
 
-SiteFusion.Classes.FilePicker = Class.create( SiteFusion.Classes.Node, {
-    sfClassName: 'XULFilePicker',
+SiteFusion.Classes.FilePicker = function() {
+    SiteFusion.Classes.Node.apply(this, arguments);
 
-    initialize: function ( win, title, mode, defaultString, defaultExtension ) {
+    this.sfClassName = 'XULFilePicker';
+
+    this.initialize.apply(this, arguments);
+};
+SiteFusion.Classes.FilePicker.prototype = Object.create(SiteFusion.Classes.Node.prototype);
+SiteFusion.Classes.FilePicker.prototype.constructor = SiteFusion.Classes.FilePicker;
+
+    SiteFusion.Classes.FilePicker.prototype.initialize = function ( win, title, mode, defaultString, defaultExtension ) {
         this.element = win.createElement( 'label' );
         this.setEventHost( [ 'yield' ] );
         this.eventHost.yield.msgType = 0;
@@ -53,26 +61,24 @@ SiteFusion.Classes.FilePicker = Class.create( SiteFusion.Classes.Node, {
                 break;
         }
 
-        this.filters = new Array();
+        this.filters = [];
         this.title = title;
         this.defaultString = defaultString;
         this.defaultExtension = defaultExtension;
         this.win = win;
-    },
+    };
 
-    open: function() {
+    SiteFusion.Classes.FilePicker.prototype.open = function() {
         var nsIFilePicker = Ci.nsIFilePicker;
 
         var fp = Cc["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
         fp.defaultString = this.defaultString;
         fp.defaultExtension = this.defaultExtension;
 
-        for (var n=0; n < this.filters.length; n++)
-        {
+        for (var n=0; n < this.filters.length; n++) {
             if (this.filters[n].length == 2) {
                 fp.appendFilter(this.filters[n][0], this.filters[n][1]);
-            }
-            else {
+            } else {
                 fp.appendFilters(this.filters[n][0]);
             }
         }
@@ -80,7 +86,7 @@ SiteFusion.Classes.FilePicker = Class.create( SiteFusion.Classes.Node, {
         fp.init(this.win.windowObject, this.title, this.mode);
         var res = fp.show();
 
-        if( res == nsIFilePicker.returnCancel ) {
+        if ( res == nsIFilePicker.returnCancel ) {
             this.fireEvent( 'yield', [ 'cancel', null, null ] );
         }
         var selectedFilter = false;
@@ -88,8 +94,8 @@ SiteFusion.Classes.FilePicker = Class.create( SiteFusion.Classes.Node, {
             selectedFilter = this.filters[fp.filterIndex];
         }
 
-        if( res == nsIFilePicker.returnOK ) {
-            if( this.mode == nsIFilePicker.modeOpenMultiple ) {
+        if ( res == nsIFilePicker.returnOK ) {
+            if ( this.mode == nsIFilePicker.modeOpenMultiple ) {
                 var files = [];
                 var fEnum = fp.files;
 
@@ -99,31 +105,35 @@ SiteFusion.Classes.FilePicker = Class.create( SiteFusion.Classes.Node, {
                 }
 
                 this.fireEvent( 'yield', ['ok', files, selectedFilter] );
-            }
-            else {
+            } else {
                 this.fireEvent( 'yield', [ 'ok', fp.file.path, selectedFilter ] );
             }
         }
-        if( res == nsIFilePicker.returnReplace ) {
+        if ( res == nsIFilePicker.returnReplace ) {
             this.fireEvent( 'yield', [ 'replace', fp.file.path, selectedFilter ] );
         }
-    },
+    };
 
-    addFilter: function (description, value) {
-        this.filters.push([description,value]);
-    },
+    SiteFusion.Classes.FilePicker.prototype.addFilter = function (description, value) {
+        this.filters.push([ description, value ]);
+    };
 
-    addSystemFilter: function(filter) {
-        this.filters.push([eval(filter)]);
-    }
-
-} );
+    SiteFusion.Classes.FilePicker.prototype.addSystemFilter = function(filter) {
+        this.filters.push([ eval(filter) ]);
+    };
 
 
-SiteFusion.Classes.FileUploader = Class.create( SiteFusion.Classes.Node, {
-    sfClassName: 'FileUploader',
+SiteFusion.Classes.FileUploader = function() {
+    SiteFusion.Classes.Node.apply(this, arguments);
 
-    initialize: function(win) {
+    this.sfClassName = 'FileUploader';
+
+    this.initialize.apply(this, arguments);
+};
+SiteFusion.Classes.FileUploader.prototype = Object.create(SiteFusion.Classes.Node.prototype);
+SiteFusion.Classes.FileUploader.prototype.constructor = SiteFusion.Classes.FileUploader;
+
+    SiteFusion.Classes.FileUploader.prototype.initialize = function(win) {
         this.element = document.createElement( 'label' );
         this.win = win;
 
@@ -136,39 +146,39 @@ SiteFusion.Classes.FileUploader = Class.create( SiteFusion.Classes.Node, {
         this.eventHost.cycle.msgType = 0;
         this.eventHost.cancelled.msgType = 0;
         this.eventHost.finished.msgType = 0;
-    },
+    };
 
-    startUpload: function( path ) {
+    SiteFusion.Classes.FileUploader.prototype.startUpload = function( path ) {
         this.path = path;
 
         // open the local file
-        var file = Components.classes["@mozilla.org/file/local;1"]
-        .createInstance(Components.interfaces.nsILocalFile);
+        var file = Components.classes["@mozilla.org/file/local;1"].createInstance(Components.interfaces.nsILocalFile);
         file.initWithPath( this.path );
-        var stream = Components.classes["@mozilla.org/network/file-input-stream;1"]
-        .createInstance(Components.interfaces.nsIFileInputStream);
+
+        var stream = Components.classes["@mozilla.org/network/file-input-stream;1"].createInstance(Components.interfaces.nsIFileInputStream);
         stream.init(file, 0x01, 00004, null);
-        var bstream =  Components.classes["@mozilla.org/network/buffered-input-stream;1"]
-        .getService();
+
+        var bstream = Components.classes["@mozilla.org/network/buffered-input-stream;1"].getService();
         bstream.QueryInterface(Components.interfaces.nsIBufferedInputStream);
         bstream.init(stream, 1000);
         bstream.QueryInterface(Components.interfaces.nsIInputStream);
-        this.binary = Components.classes["@mozilla.org/binaryinputstream;1"]
-        .createInstance(Components.interfaces.nsIBinaryInputStream);
-        this.binary.setInputStream (stream);
+
+        this.binary = Components.classes["@mozilla.org/binaryinputstream;1"].createInstance(Components.interfaces.nsIBinaryInputStream);
+        this.binary.setInputStream(stream);
 
         this.fileSize = file.fileSize;
         this.progress = 0;
         this.cancelled = false;
 
-        if( this.fileSize < 100000 )
+        if ( this.fileSize < 100000 ) {
             this.chunkSize = 10240;
-        else if( this.fileSize < 500000 )
+        } else if( this.fileSize < 500000 ) {
             this.chunkSize = 51200;
-        else if( this.fileSize < 1000000 )
+        } else if( this.fileSize < 1000000 ) {
             this.chunkSize = 102400;
-        else
+        } else {
             this.chunkSize = 512000;
+        }
 
         this.cycle = 0;
 
@@ -179,14 +189,12 @@ SiteFusion.Classes.FileUploader = Class.create( SiteFusion.Classes.Node, {
          * BUGFIX 29-7-2013: Changed window.setTimeout() to this.win.windowObject.setTimeout().
          * Fixes the bug on modal dialogs not firing the event cycle for uploading
          */
-        this.timer = this.win.windowObject.setTimeout(
-            function() {
-                oThis._uploadCycle();
-            },
-            100 );
-    },
+        this.timer = this.win.windowObject.setTimeout(function() {
+            oThis._uploadCycle();
+        }, 100);
+    };
 
-    _uploadCycle: function() {
+    SiteFusion.Classes.FileUploader.prototype._uploadCycle = function() {
         if( this.cancelled ) {
             this.binary.close();
             return;
@@ -194,10 +202,11 @@ SiteFusion.Classes.FileUploader = Class.create( SiteFusion.Classes.Node, {
 
         var data, len;
 
-        if( (this.fileSize - this.progress) < this.chunkSize )
+        if( (this.fileSize - this.progress) < this.chunkSize ) {
             len = (this.fileSize - this.progress);
-        else
+        } else {
             len = this.chunkSize;
+        }
 
         data = btoa(this.binary.readBytes(len));
         this.progress += len;
@@ -205,40 +214,45 @@ SiteFusion.Classes.FileUploader = Class.create( SiteFusion.Classes.Node, {
 
         var transmission = this.fireEvent( 'cycle', [ this.fileSize, this.progress, this.cycle, data ] );
 
-        if( this.fileSize > this.progress ) {
+        if ( this.fileSize > this.progress ) {
             var oThis = this;
             transmission.onstatechange = function() {
                 if( this.state == this.STATE_FINISHED ) oThis._uploadCycle();
             };
-        }
-        else {
+        } else {
             this.binary.close();
             this.fireEvent( 'finished', [ this.path ] );
         }
-    },
+    };
 
-    cancelUpload: function() {
-        if( this.timer )
+    SiteFusion.Classes.FileUploader.prototype.cancelUpload = function() {
+        if( this.timer ) {
             window.clearTimeout( this.timer );
+        }
 
         this.cancelled = true;
         this.fireEvent( 'cancelled', [ this.path ] );
-    }
-} );
+    };
 
 
-SiteFusion.Classes.FileDownloader = Class.create( SiteFusion.Classes.Node, {
-    sfClassName: 'FileDownloader',
+SiteFusion.Classes.FileDownloader = function() {
+    SiteFusion.Classes.Node.apply(this, arguments);
 
-    initialize: function() {
+    this.sfClassName = 'FileDownloader';
+
+    this.initialize.apply(this, arguments);
+};
+SiteFusion.Classes.FileDownloader.prototype = Object.create(SiteFusion.Classes.Node.prototype);
+SiteFusion.Classes.FileDownloader.prototype.constructor = SiteFusion.Classes.FileDownloader;
+
+    SiteFusion.Classes.FileDownloader.prototype.initialize = function() {
         this.element = document.createElement( 'label' );
 
         this.setEventHost( [ 'started', 'failed', 'finished', 'cycle', 'cancelled' ] );
-    },
+    };
 
-    startDownload: function( localPath, localFileIsEmpty ) {
+    SiteFusion.Classes.FileDownloader.prototype.startDownload = function( localPath, localFileIsEmpty ) {
         this.localPath = localPath;
-
 
         var progressListener = {
             stateIsRequest: false,
@@ -259,10 +273,9 @@ SiteFusion.Classes.FileDownloader = Class.create( SiteFusion.Classes.Node, {
                     this.cycleCount++;
                     this.downloader.fireEvent( 'cycle', [ maxSelfProgress, curSelfProgress, this.cycleCount ] );
                     this.downloader.fireEvent( 'finished', [ this.downloader.localPath ] );
-                }
-                else {
+                } else {
                     var now = Date.now();
-                    if( now - this.lastCycle > 500 ) {
+                    if ( now - this.lastCycle > 500 ) {
                         this.cycleCount++;
                         this.downloader.fireEvent( 'cycle', [ maxSelfProgress, curSelfProgress, this.cycleCount ] );
                         this.lastCycle = now;
@@ -319,34 +332,43 @@ SiteFusion.Classes.FileDownloader = Class.create( SiteFusion.Classes.Node, {
         if (localFileIsEmpty) {
             this.fireEvent( 'finished', [ this.localPath ] );
         }
-    },
+    };
 
-    cancelDownload: function() {
-        if( ! this.persistObject )
+    SiteFusion.Classes.FileDownloader.prototype.cancelDownload = function() {
+        if( ! this.persistObject ) {
             return;
+        }
 
-        if( (!this.persistObject.progressListener) || this.persistObject.progressListener.done )
+        if( (!this.persistObject.progressListener) || this.persistObject.progressListener.done ) {
             return;
+        }
 
         this.persistObject.cancelSave();
         try {
             this.targetFile.remove(false);
+        } catch ( e ) {
         }
-        catch ( e ) {}
 
         this.fireEvent( 'cancelled', [ this.localPath ] );
-    }
-} );
+    };
 
-SiteFusion.Classes.URLDownloader = Class.create(SiteFusion.Classes.Node, {
-    sfClassName: 'URLDownloader',
 
-    initialize: function() {
+SiteFusion.Classes.URLDownloader = function() {
+    SiteFusion.Classes.Node.apply(this, arguments);
+
+    this.sfClassName = 'URLDownloader';
+
+    this.initialize.apply(this, arguments);
+};
+SiteFusion.Classes.URLDownloader.prototype = Object.create(SiteFusion.Classes.Node.prototype);
+SiteFusion.Classes.URLDownloader.prototype.constructor = SiteFusion.Classes.URLDownloader;
+
+    SiteFusion.Classes.URLDownloader.prototype.initialize = function() {
         this.element = document.createElement('label');
         this.setEventHost(['started', 'failed', 'cycle', 'finished', 'cancelled']);
-    },
+    };
 
-    startDownload: function(localPath, url) {
+    SiteFusion.Classes.URLDownloader.prototype.startDownload = function(localPath, url) {
         this.localPath = localPath;
         this.url = url;
 
@@ -389,7 +411,7 @@ SiteFusion.Classes.URLDownloader = Class.create(SiteFusion.Classes.Node, {
             this.targetFile = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile);
             this.targetFile.initWithPath(localPath);
 
-            if(this.targetFile.exists() && this.targetFile.isFile() && this.targetFile.isWritable()) {
+            if (this.targetFile.exists() && this.targetFile.isFile() && this.targetFile.isWritable()) {
                 this.targetFile.remove(false);
             }
 
@@ -422,9 +444,9 @@ SiteFusion.Classes.URLDownloader = Class.create(SiteFusion.Classes.Node, {
         }
 
         this.fireEvent('started', [this.localPath, this.url]);
-    },
+    };
 
-    cancelDownload: function() {
+    SiteFusion.Classes.URLDownloader.prototype.cancelDownload = function() {
         if (!this.persistObject) {
             return;
         }
@@ -439,13 +461,21 @@ SiteFusion.Classes.URLDownloader = Class.create(SiteFusion.Classes.Node, {
         } catch(e) {}
 
         this.fireEvent('cancelled', [this.localPath, this.url]);
-    }
-});
+    };
 
-SiteFusion.Classes.FileService = Class.create( SiteFusion.Classes.Node, {
-    sfClassName: 'FileService',
 
-    initialize: function ( win ) {
+
+SiteFusion.Classes.FileService = function() {
+    SiteFusion.Classes.Node.apply(this, arguments);
+
+    this.sfClassName = 'FileService';
+
+    this.initialize.apply(this, arguments);
+};
+SiteFusion.Classes.FileService.prototype = Object.create(SiteFusion.Classes.Node.prototype);
+SiteFusion.Classes.FileService.prototype.constructor = SiteFusion.Classes.FileService;
+
+    SiteFusion.Classes.FileService.prototype.initialize = function ( win ) {
         this.element = win.createElement( 'label' );
         this.setEventHost( [ 'result' ] );
         this.eventHost.yield.msgType = 0;
@@ -453,12 +483,12 @@ SiteFusion.Classes.FileService = Class.create( SiteFusion.Classes.Node, {
         this.hostWindow = win;
 
         this.monitors = [];
-    },
+    };
 
-    getDirectory: function( path, retrieveContents ) {
+    SiteFusion.Classes.FileService.prototype.getDirectory = function( path, retrieveContents ) {
         var file = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile);
         file.initWithPath(path);
-        if( (!file.exists()) || (!file.isDirectory()) ) {
+        if ( (!file.exists()) || (!file.isDirectory()) ) {
             this.fireEvent( 'result', [ 'list', path, false, file.path ] );
             return;
         }
@@ -474,18 +504,17 @@ SiteFusion.Classes.FileService = Class.create( SiteFusion.Classes.Node, {
             }
 
             this.fireEvent( 'result', [ 'list', path, true, file.path, base, array ] );
-        }
-        else {
+        } else {
             this.fireEvent( 'result', [ 'list', path, true, file.path, base ] );
         }
-    },
+    };
 
-    getSpecialDirectory: function( id, retrieveContents ) {
+    SiteFusion.Classes.FileService.prototype.getSpecialDirectory = function( id, retrieveContents ) {
         try {
             var file = Cc["@mozilla.org/file/directory_service;1"].getService(Ci.nsIProperties).get(id, Ci.nsIFile);
             file.initWithPath(file.path);
 
-            if( (!file.exists()) || (!file.isDirectory()) ) {
+            if ( (!file.exists()) || (!file.isDirectory()) ) {
                 this.fireEvent( 'result', [ 'list', id, false, file.path ] );
                 return;
             }
@@ -501,30 +530,27 @@ SiteFusion.Classes.FileService = Class.create( SiteFusion.Classes.Node, {
                 }
 
                 this.fireEvent( 'result', [ 'list', id, true, file.path, base, array ] );
-            }
-            else {
+            } else {
                 this.fireEvent( 'result', [ 'list', id, true, file.path, base ] );
             }
-        }
-        catch ( e ) {
+        } catch (e) {
             this.fireEvent( 'result', [ 'list', id, false, null ] );
         }
-    },
+    };
 
-    createDirectory: function( path ) {
+    SiteFusion.Classes.FileService.prototype.createDirectory = function( path ) {
         try {
             var file = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile);
             file.initWithPath(path);
             file.create( Ci.nsIFile.DIRECTORY_TYPE, 0755 );
             var base = this.resultFromFile( file );
             this.fireEvent( 'result', [ 'createDirectory', path, true, path, base ] );
-        }
-        catch ( e ) {
+        } catch (ex) {
             this.fireEvent( 'result', [ 'createDirectory', path, false, path, null ] );
         }
-    },
+    };
 
-    removeDirectory: function( path, recursive ) {
+    SiteFusion.Classes.FileService.prototype.removeDirectory = function( path, recursive ) {
         try {
             var file = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile);
             file.initWithPath(path);
@@ -533,13 +559,13 @@ SiteFusion.Classes.FileService = Class.create( SiteFusion.Classes.Node, {
                 this.fireEvent( 'result', [ 'removeDirectory', path, true, path ] );
                 return;
             }
+        } catch (ex) {
         }
-        catch ( e ) {}
 
         this.fireEvent( 'result', [ 'removeDirectory', path, false, path ] );
-    },
+    };
 
-    removeFile: function( path ) {
+    SiteFusion.Classes.FileService.prototype.removeFile = function( path ) {
         try {
             var file = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile);
             file.initWithPath(path);
@@ -552,37 +578,37 @@ SiteFusion.Classes.FileService = Class.create( SiteFusion.Classes.Node, {
         catch ( e ) {}
 
         this.fireEvent( 'result', [ 'removeFile', path, false, path ] );
-    },
+    };
 
-    monitorFile: function( path ) {
+    SiteFusion.Classes.FileService.prototype.monitorFile = function( path ) {
         var oThis = this;
         this.monitors.push( new SiteFusion.Classes.FileService.FileMonitor( this, path ) );
-    },
+    };
 
-    cancelMonitorFile: function( path ) {
+    SiteFusion.Classes.FileService.prototype.cancelMonitorFile = function( path ) {
         for( var n = 0; n < this.monitors.length; n++ ) {
             if (this.monitors[n].path == path) {
                 this.monitors[n].cancel();
             }
         }
-    },
+    };
 
-    cancelAllMonitors: function() {
+    SiteFusion.Classes.FileService.prototype.cancelAllMonitors = function() {
         for( var n = 0; n < this.monitors.length; n++ ) {
             this.monitors[n].cancel();
         }
-    },
+    };
 
-    executeFile: function( path, args, async ) {
+    SiteFusion.Classes.FileService.prototype.executeFile = function( path, args, async ) {
         var file = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile);
         file.initWithPath(path);
 
-        args = (args == null ? [] : args);
+        args = (args === null ? [] : args);
 
         if( file.exists() ) {
             var process = Cc["@mozilla.org/process/util;1"].createInstance(Ci.nsIProcess);
             process.init( file );
-            if( async ) {
+            if ( async ) {
                 var oThis = this;
                 var observer = {
                     observe: function( subject, topic, data ) {
@@ -590,17 +616,16 @@ SiteFusion.Classes.FileService = Class.create( SiteFusion.Classes.Node, {
                     }
                 };
                 process.runAsync( args, args.length, observer );
-            }
-            else {
+            } else {
                 process.run( true, args, args.length );
                 this.fireEvent( 'result', [ 'executeFile', path, true, path ] );
             }
             return;
         }
         this.fireEvent( 'result', [ 'executeFile', path, false, path ] );
-    },
+    };
 
-    openFileWithNativeProtocolHandler: function (path) {
+    SiteFusion.Classes.FileService.prototype.openFileWithNativeProtocolHandler = function (path) {
         var file = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile);
         var ioService = Cc["@mozilla.org/network/io-service;1"].getService(Ci.nsIIOService);
         file.initWithPath(path);
@@ -608,37 +633,33 @@ SiteFusion.Classes.FileService = Class.create( SiteFusion.Classes.Node, {
         var uri = ioService.newFileURI(file);
         var protocolSvc = Cc["@mozilla.org/uriloader/external-protocol-service;1"].getService(Ci.nsIExternalProtocolService);
         protocolSvc.loadURI(uri);
+    };
 
-    },
-
-    openURIWithNativeProtocolHandler: function (strUri) {
+    SiteFusion.Classes.FileService.prototype.openURIWithNativeProtocolHandler = function (strUri) {
 
         var ioService = Cc["@mozilla.org/network/io-service;1"].getService(Ci.nsIIOService);
         var uri = ioService.newURI(strUri, null, null);
 
         var protocolSvc = Cc["@mozilla.org/uriloader/external-protocol-service;1"].getService(Ci.nsIExternalProtocolService);
         protocolSvc.loadUrl(uri);
+    };
 
-    },
-
-    getFileInfo: function (path) {
+    SiteFusion.Classes.FileService.prototype.getFileInfo = function (path) {
 
         var file = new FileUtils.File(path);
         if (!file.exists()) {
             this.fireEvent( 'result', [ 'getFileInfo', path, null, path ] );
             return;
         }
-        if(file.isDirectory()) {
+        if (file.isDirectory()) {
             this.fireEvent( 'result', [ 'getFileInfo', path, false, path ] );
             return;
         }
 
         this.fireEvent( 'result', [ 'getFileInfo', path, true, this.resultFromFile( file ) ] );
+    };
 
-    },
-
-    getCryptoHash: function (path, hashType) {
-
+    SiteFusion.Classes.FileService.prototype.getCryptoHash = function (path, hashType) {
         var file = new FileUtils.File(path);
         if( !file.exists() || file.isDirectory()) {
             this.fireEvent( 'result', [ 'getCryptoHash', path, false, '' ] );
@@ -662,11 +683,9 @@ SiteFusion.Classes.FileService = Class.create( SiteFusion.Classes.Node, {
 
         istream.close();
         this.fireEvent( 'result', [ 'getCryptoHash', path, true, output ] );
+    };
 
-    },
-
-    renameFile: function (path, targetPath) {
-
+    SiteFusion.Classes.FileService.prototype.renameFile = function (path, targetPath) {
         var file = new FileUtils.File(path);
         if( !file.exists() || file.isDirectory()) {
             this.fireEvent( 'result', [ 'renameFile', path, false, path ] );
@@ -682,11 +701,9 @@ SiteFusion.Classes.FileService = Class.create( SiteFusion.Classes.Node, {
         file.moveTo(parentDir, targetPath.replace(/^.*[\\\/]/, ''));
 
         this.fireEvent( 'result', [ 'renameFile', path, true, targetPath ] );
+    };
 
-    },
-
-    copyFile: function (path, targetPath) {
-
+    SiteFusion.Classes.FileService.prototype.copyFile = function (path, targetPath) {
         var file = new FileUtils.File(path);
         if( !file.exists() || file.isDirectory()) {
             this.fireEvent( 'result', [ 'renameFile', path, false, path ] );
@@ -702,32 +719,34 @@ SiteFusion.Classes.FileService = Class.create( SiteFusion.Classes.Node, {
         file.copyTo(parentDir, targetPath.replace(/^.*[\\\/]/, ''));
 
         this.fireEvent( 'result', [ 'renameFile', path, true, targetPath ] );
+    };
 
-    },
-
-    resultFromFile: function( file ) {
-        return [
-        file.leafName,
-        file.isDirectory(),
-        file.isReadable(),
-        file.isWritable(),
-        file.isExecutable(),
-        file.isHidden(),
-        (file.isDirectory() ? null : file.fileSize),
-        Math.round(file.lastModifiedTime/1000)
+    SiteFusion.Classes.FileService.prototype.resultFromFile = function( file ) {
+            return [
+            file.leafName,
+            file.isDirectory(),
+            file.isReadable(),
+            file.isWritable(),
+            file.isExecutable(),
+            file.isHidden(),
+            (file.isDirectory() ? null : file.fileSize),
+            Math.round(file.lastModifiedTime / 1000)
         ];
-    }
-} );
+    };
 
 
-SiteFusion.Classes.FileService.FileMonitor = Class.create( {
-    exists: null,
-    modificationTime: null,
-    size: null,
-    timer: null,
-    fileService: null,
 
-    initialize: function( fileService, path ) {
+SiteFusion.Classes.FileService.FileMonitor = function() {
+    this.exists = null;
+    this.modificationTime = null;
+    this.size = null;
+    this.timer = null;
+    this.fileService = null;
+
+    this.initialize.apply(this, arguments);
+};
+
+    SiteFusion.Classes.FileService.FileMonitor.prototype.initialize = function( fileService, path ) {
         this.path = path;
         this.fileService = fileService;
 
@@ -741,9 +760,9 @@ SiteFusion.Classes.FileService.FileMonitor = Class.create( {
         this.timer = setTimeout( function() {
             oThis.check();
         }, 500 );
-    },
+    };
 
-    check: function() {
+    SiteFusion.Classes.FileService.FileMonitor.prototype.check = function() {
         var file = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile);
         file.initWithPath(this.path);
 
@@ -763,11 +782,8 @@ SiteFusion.Classes.FileService.FileMonitor = Class.create( {
         this.timer = setTimeout( function() {
             oThis.check();
         }, 500 );
-    },
+    };
 
-    cancel: function() {
+    SiteFusion.Classes.FileService.FileMonitor.prototype.cancel = function() {
         clearTimeout( this.timer );
-    }
-} );
-
-
+    };
