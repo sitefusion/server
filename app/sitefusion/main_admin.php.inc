@@ -219,15 +219,6 @@ class SitefusionAdmin extends Application
 			$mAddonsDI->setEvent( 'command', MSG_SEND, 'DOMInspector', 'Open' );
 		}
 		
-		//check for the Venkman Component
-		if (isset(ApplicationProcess::$ExtensionInfo['{f13b157f-b174-47e7-a34d-4815ddfdfeb8}']) && ApplicationProcess::$ExtensionInfo['{f13b157f-b174-47e7-a34d-4815ddfdfeb8}']['enabled'] == true)
-		{
-			$mPopupAddons->addChild(
-				$mAddonsVenkman = new XULMenuItem( "Venkman" )
-			);
-			$mAddonsVenkman->setEvent( 'command', MSG_SEND, 'Venkman', 'Open' );
-		}
-		
 		if (!count($mPopupAddons->children))
 		{
 			$mToolsAddonsSub->disabled(TRUE);

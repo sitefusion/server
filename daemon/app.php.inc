@@ -39,6 +39,56 @@ include_once( 'extendedprocess.php.inc' );
  * @subpackage Application
 */
 
+
+Class ApplicationResponseBase
+{
+	public $success = FALSE;
+	public $message = "";
+	public $title = "";
+	protected $error_code = "invalid_login";
+
+	function __construct($success, $message = "", $title = "") {
+		$this->success = $success;
+		$this->message = $message;
+		$this->title = $title;
+	}
+
+	public function getMessage() {
+		return $this->message;
+	}
+
+	public function getTitle() {
+		return $this->title;
+	}
+
+	public function getProperties() {
+
+		$ret = array(
+			"success" => (int)$this->success,
+			"error" => $this->error_code,
+		);
+
+		if ($this->message) {
+			$ret["custom_error_text"] = $this->message;
+
+			if ($this->title) {
+				$ret["custom_error_title"] = $this->title;
+			}
+		}
+
+		return $ret;
+	}
+
+}
+
+Class ApplicationAuthorizationResponse extends ApplicationResponseBase {
+	protected $error_code = "invalid_login";
+}
+
+class ApplicationAvailabilityResponse extends ApplicationResponseBase {
+	protected $error_code = "app_not_available";
+}
+
 class ApplicationProcess extends ExtendedSiteFusionProcess
 {
 	static public $Started;
@@ -99,7 +149,7 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 			exit(1);
 		}
 		
-		if( (! $param['success']) || count($param['extensionPolicy']) ) {
+		if( (! $param['success']) || (isset($param['extensionPolicy'])  && count($param['extensionPolicy'])) ) {
 			self::WriteCommand( $client, 'LOGIN', NULL, json_encode($param) );
 			socket_close( $client );
 			self::StopApplicationServer();
@@ -510,49 +560,81 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 		self::$IncludePath = self::$Options['sitefusionPath'] . '/';
 		$_SERVER['HTTP_HOST'] = 'localhost';
 		
-		if( (!preg_match( '/^[a-zA-Z0-9_\-\/]+$/', $app )) || (! file_exists(self::$Options['sitefusionPath'].'/app/' . $app . '.startup.php.inc')) )
-			return array( 'success' => 0, 'error' => 'invalid_app' );
+		if ((!preg_match('/^[a-zA-Z0-9_\-\/]+$/', $app )) || (!file_exists(self::$Options['sitefusionPath'] . '/app/' . $app . '.startup.php.inc'))) {
+			return array('success' => 0, 'error' => 'invalid_app');
+		}
 
-		include_once( 'sys/application.php.inc' );
-		include_once( 'app/' . $app . '.startup.php.inc' );
+		include_once('sys/application.php.inc');
+		include_once('app/' . $app . '.startup.php.inc');
 
-		if( function_exists( 'authorizeLogin' ) )
-			$granted = authorizeLogin( $args, $user, $pass );
-		else
-			return array( 'success' => 0, 'error' => 'no_auth_func' );
+		if (function_exists('authorizeLogin')) {
+			$authObject = authorizeLogin($args, $user, $pass);
+			if (is_object($authObject)) {
+				if (!$authObject->success) {
+					//check for  incompatible client
+					if (version_compare(self::$ClientVersion, '3.0.2', '<')) {
+						return array('success' => 0, 'error' => 'invalid_login');
+					}
 
-		if( ! $granted )
-			return array( 'success' => 0, 'error' => 'invalid_login' );
+					return $authObject->getProperties();
+				}
+			}
+			elseif (!$authObject) {
+				return array('success' => 0, 'error' => 'invalid_login');
+			}
+		} else {
+			return array('success' => 0, 'error' => 'no_auth_func');
+		}
 
-		$ident = md5( $ip . $user . md5($pass) . mt_rand() . time() );
+		//check application availability (if implemented in app)
+		if (function_exists('getAvailability')) {
+			$availableObject = getAvailability($args, $user, $pass);
+			if (is_object($availableObject)) {
+				if (!$availableObject->success) {
+					if (version_compare(self::$ClientVersion, '3.0.2', '<')) {
+						return array('success' => 0, 'error' => 'invalid_login');
+					}
+					else {
+						return $availableObject->getProperties();
+					}
+				}
+			}
+			elseif (!$availableObject) {
+				if (version_compare(self::$ClientVersion, '3.0.2', '<')) {
+						return array('success' => 0, 'error' => 'invalid_login');
+				}
+				else {
+					return array('success' => 0, 'error' => 'app_not_available');
+				}
+			}
+		}
 
-		$class = getApplication( $args );
-		
-		self::$Application = new $class ( $user, $ip, $ident, $app, $args );
+		$ident = md5($ip . $user . md5($pass) . mt_rand() . time());
+
+		$class = getApplication($args);
+		self::$Application = new $class($user, $ip, $ident, $app, $args);
 		
 		ob_end_clean();
 		
-		
 		$extensionPolicy = array();
 		
-		if( version_compare( self::$ClientVersion, '1.2.1' ) >= 0 ) {
-			foreach ( self::$ExtensionPolicy['require'] as $requireExtension ) {
-				if( (!isset(self::$ExtensionInfo[$requireExtension['id']]))
-				 	or ($requireExtension['minVersion'] !== NULL && version_compare(self::$ExtensionInfo[$requireExtension['id']]['version'],$requireExtension['minVersion']) == -1)
-					or ($requireExtension['maxVersion'] !== NULL && version_compare(self::$ExtensionInfo[$requireExtension['id']]['version'],$requireExtension['maxVersion']) == 1) )
-				{
-					$extensionPolicy[] = array( $requireExtension['id'], 'get', $requireExtension['fileName'] );
-				}
-				elseif( !self::$ExtensionInfo[$requireExtension['id']]['enabled'] ) {
-					$extensionPolicy[] = array( $requireExtension['id'], 'enable' );
-				}
+		foreach ( self::$ExtensionPolicy['require'] as $requireExtension ) {
+			if( (!isset(self::$ExtensionInfo[$requireExtension['id']]))
+			 	or ($requireExtension['minVersion'] !== NULL && version_compare(self::$ExtensionInfo[$requireExtension['id']]['version'],$requireExtension['minVersion']) == -1)
+				or ($requireExtension['maxVersion'] !== NULL && version_compare(self::$ExtensionInfo[$requireExtension['id']]['version'],$requireExtension['maxVersion']) == 1) )
+			{
+				$extensionPolicy[] = array( $requireExtension['id'], 'get', $requireExtension['fileName'] );
 			}
-
-			foreach ( self::$ExtensionPolicy['disable'] as $disableExtension ) {
-				if( isset(self::$ExtensionInfo[$disableExtension['id']]) && self::$ExtensionInfo[$disableExtension['id']]['enabled'] )
-					$extensionPolicy[] = array( $disableExtension['id'], 'disable' );
+			elseif( !self::$ExtensionInfo[$requireExtension['id']]['enabled'] ) {
+				$extensionPolicy[] = array( $requireExtension['id'], 'enable' );
 			}
 		}
+
+		foreach ( self::$ExtensionPolicy['disable'] as $disableExtension ) {
+			if( isset(self::$ExtensionInfo[$disableExtension['id']]) && self::$ExtensionInfo[$disableExtension['id']]['enabled'] )
+				$extensionPolicy[] = array( $disableExtension['id'], 'disable' );
+		}
+		
 		
 		$loginParam = array(
 			'success' => 1,
