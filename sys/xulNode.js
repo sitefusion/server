@@ -440,7 +440,11 @@ SiteFusion.Classes.Node = function() {
     };
 
     SiteFusion.Classes.Node.prototype.toJSON = function() {
-        return JSON.stringify({ '__sfNode': this.cid });
+        if (typeof Array.prototype.toJSON === 'function') {
+            return JSON.stringify({ '__sfNode': this.cid });
+        } else {
+            return { '__sfNode': this.cid };
+        }
     };
 
 SiteFusion.Classes.Node.prototype.Observer = function() {

@@ -64,11 +64,6 @@ SiteFusion.Comm = {
             args = args.toJSON();
         } else {
             args = JSON.stringify(args);
-            args = args.replace(/\\\"/g, '"');
-            args = args.replace(/\"\{/g, '\{');
-            args = args.replace(/\}\"/g, '\}');
-            args = args.replace(/\"\[/g, '\[');
-            args = args.replace(/\]\"/g, '\]');
         }
 
         this.Queue.push( args );
