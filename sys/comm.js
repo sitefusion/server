@@ -62,6 +62,13 @@ SiteFusion.Comm = {
 
         if (args.toJSON) {
             args = args.toJSON();
+        } else {
+            args = JSON.stringify(args);
+            args = args.replace(/\\\"/g, '"');
+            args = args.replace(/\"\{/g, '\{');
+            args = args.replace(/\}\"/g, '\}');
+            args = args.replace(/\"\[/g, '\[');
+            args = args.replace(/\]\"/g, '\]');
         }
 
         this.Queue.push( args );
@@ -75,11 +82,7 @@ SiteFusion.Comm = {
         var queue = this.Queue;
         this.Queue = [];
 
-        if (queue.toJSON) {
-            queue = '[' + queue.join(',') + ']';
-        } else {
-            queue = JSON.stringify(queue);
-        }
+        queue = '[' + queue.join(',') + ']';
         
         var tr = new SiteFusion.Comm.Transmission( blocking ? true : false, queue );
         return tr;
