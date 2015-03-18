@@ -35,7 +35,7 @@
 
 /**
  * Tabbox element
- * 
+ *
  * @link https://developer.mozilla.org/en/XUL/tabbox
  * @package API
  * @subpackage TabsAndGrouping
@@ -49,40 +49,40 @@ class XULTabBox extends BranchNode
 	public $selectedIndex = NULL;
 	protected $selectedTab = NULL;
 	protected $selectedPanel = NULL;
-	
-	
+
+
 	/**
 	 * Dynamic Constructor
 	 *
 	 * @param int		$flex
 	 * @param mixed		$childNodes
 	*/
-	
+
 	public function __construct() {
 		if( func_num_args() ) {
 			$args = func_get_args();
-			
+
 			if( count($args) && is_int($args[0]) )
 				$this->flex( array_shift($args) );
-			
+
 			parent::__construct( $args );
 		}
 		else parent::__construct();
 	}
-	
+
 	public function attach() {
 		parent::attach();
 		$this->setEventHandler( 'yield', $this, 'yieldCollect' );
 	}
-	
+
 	public function selectedTab( $tab = NULL ) {
 		if( $tab === NULL )
 			return $this->selectedTab;
 		if( ! $tab instanceof XULTab and ! $tab instanceof XULTabPanel )
 			throw new SFException( 'Object is not a XULTab or XULTabPanel', ERR_REPORT_APP );
-		
+
 		$this->selectedTab = $tab;
-		
+
 		if( $this->isRegistered )
 			$this->callMethod( 'selectedTab', array($tab) );
 	}
@@ -92,13 +92,13 @@ class XULTabBox extends BranchNode
 			return $this->selectedPanel;
 		if( ! $tab instanceof XULTabPanel )
 			throw new SFException( 'Object is not a XULTabPanel', ERR_REPORT_APP );
-		
+
 		$this->selectedPanel = $tab;
-		
+
 		if( $this->isRegistered )
 			$this->callMethod( 'selectedPanel', array($tab) );
 	}
-	
+
 	public function yieldCollect( $e, $selectedIndex = NULL, $selectedTab = NULL, $selectedPanel = NULL) {
 		$this->selectedIndex = $selectedIndex;
 		$this->selectedTab = $selectedTab;
@@ -109,7 +109,7 @@ class XULTabBox extends BranchNode
 
 /**
  * Tabs element
- * 
+ *
  * @link https://developer.mozilla.org/en/XUL/tabs
  * @package API
  * @subpackage TabsAndGrouping
@@ -121,49 +121,49 @@ class XULTabs extends BranchNode
 	protected $selectedItem = NULL;
 	public $orient = 'horizontal';
 	public $selectedIndex = 0;
-		
-	
+
+
 	public function selectedItem( $tab = NULL ) {
 		if( $tab === NULL )
 			return $this->selectedItem;
 		if( ! $tab instanceof XULTab )
 			throw new SFException( 'Object is not a XULTab', ERR_REPORT_APP );
-		
+
 		$this->selectedItem = $tab;
-		
+
 		if( $this->isRegistered )
 			$this->callMethod( 'selectedItem', array($tab) );
-	}	
-	
+	}
+
 	public function advanceSelectedTab($dir = 1, $wrap = FALSE)
 	{
 		if( $this->isRegistered )
 			$this->callMethod( 'advanceSelectedTab', array($dir, $wrap) );
 	}
-	
+
 	public function attach() {
 		parent::attach();
 		$this->setEventHandler( 'yield', $this, 'yieldCollect' );
 		$this->setEvent("select", MSG_SEND, $this, "onSwitchTab", array($this));
 	}
-	
+
 	public function onSwitchTab()	{
 		if(! ($tb = $this->findAncestor('XULTabBox')) )
 			return;
-		
+
 		if(! count($tps = $tb->getDescendants('XULTabPanels')) )
 			return;
-		
+
 		$tps = $tps[0];
 		$panels = $tps->getDescendants( 'XULTabPanel' );
-		
+
 		for( $n = 0; $n < count($panels); $n++ ) {
 			foreach ( $panels[$n]->getDescendants('XULKeySet') as $keyset ) {
 				$keyset->disabled( $n != $this->selectedIndex );
 			}
 		}
 	}
-	
+
 	public function yieldCollect( $e, $selectedItem = NULL, $selectedIndex = NULL) {
 		$this->selectedItem = $selectedItem;
 		$this->selectedIndex = $selectedIndex;
@@ -173,7 +173,7 @@ class XULTabs extends BranchNode
 
 /**
  * Tab element
- * 
+ *
  * @link https://developer.mozilla.org/en/XUL/tab
  * @package API
  * @subpackage TabsAndGrouping
@@ -183,8 +183,8 @@ class XULTab extends BranchNode
 {
 	public $remoteConstructor = 'Tab';
 	public $initAttributes = array( 'image' );
-	
-	
+
+
 	/**
 	 * Dynamic Constructor
 	 *
@@ -192,37 +192,37 @@ class XULTab extends BranchNode
 	 * @param string	$image
 	 * @param mixed		$childNodes
 	*/
-	
+
 	public function __construct() {
 		if( func_num_args() ) {
 			$args = func_get_args();
-			
+
 			if( count($args) && is_string($args[0]) )
 				$this->label( array_shift($args) );
 			if( count($args) && is_string($args[0]) )
 				$this->image( array_shift($args) );
-						
+
 			parent::__construct( $args );
 		}
 		else parent::__construct();
 	}
-	
+
 	public function attach() {
 		parent::attach();
 
 		if( $this->findAncestor("XULTabBox")->selectedTab() === NULL )
 			$this->findAncestor("XULTabBox")->selectedTab( $this );
 	}
-	
+
 	public function image( $src = NULL ) {
 		if( $src === NULL )
 			return (isset($this->image) ? $this->image : NULL);
-		
+
 		$this->image = $src;
-		
+
 		if( $this->isRegistered )
 			$this->callMethod( 'image', $this->image );
-		
+
 		return $this;
 	}
 }
@@ -230,7 +230,7 @@ class XULTab extends BranchNode
 
 /**
  * Tabpanels element
- * 
+ *
  * @link https://developer.mozilla.org/en/XUL/tabpanels
  * @package API
  * @subpackage TabsAndGrouping
@@ -245,7 +245,7 @@ class XULTabPanels extends BranchNode
 
 /**
  * Tabpanel element
- * 
+ *
  * @link https://developer.mozilla.org/en/XUL/tabpanel
  * @package API
  * @subpackage TabsAndGrouping
@@ -254,13 +254,14 @@ class XULTabPanels extends BranchNode
 class XULTabPanel extends BranchNode
 {
 	public $remoteConstructor = 'TabPanel';
+	public $orient = 'horizontal';
 	public $flex = 1;
 }
 
 
 /**
  * Groupbox element
- * 
+ *
  * @link https://developer.mozilla.org/en/XUL/groupbox
  * @package API
  * @subpackage TabsAndGrouping
@@ -269,8 +270,8 @@ class XULTabPanel extends BranchNode
 class XULGroupBox extends BranchNode
 {
 	public $remoteConstructor = 'GroupBox';
+	public $orient = 'vertical';
 
-	
 	/**
 	 * Dynamic Constructor
 	 *
@@ -279,18 +280,18 @@ class XULGroupBox extends BranchNode
 	 * @param string	$pack
 	 * @param mixed		$childNodes
 	*/
-	
+
 	public function __construct() {
 		if( func_num_args() ) {
 			$args = func_get_args();
-			
+
 			if( count($args) && is_int($args[0]) )
 				$this->flex( array_shift($args) );
 			if( count($args) && is_string($args[0]) )
 				$this->align( array_shift($args) );
 			if( count($args) && is_string($args[0]) )
 				$this->pack( array_shift($args) );
-			
+
 			parent::__construct( $args );
 		}
 		else parent::__construct();
@@ -300,7 +301,7 @@ class XULGroupBox extends BranchNode
 
 /**
  * Caption element
- * 
+ *
  * @link https://developer.mozilla.org/en/XUL/caption
  * @package API
  * @subpackage TabsAndGrouping
@@ -311,7 +312,7 @@ class XULCaption extends BranchNode
 	public $remoteConstructor = 'Caption';
 	public $initAttributes = array( 'image' );
 
-	
+
 	/**
 	 * Dynamic Constructor
 	 *
@@ -320,33 +321,33 @@ class XULCaption extends BranchNode
 	 * @param string	$image
 	 * @param mixed		$childNodes
 	*/
-	
+
 	public function __construct() {
 		if( func_num_args() ) {
 			$args = func_get_args();
-			
+
 			if( count($args) && is_string($args[0]) )
 				$this->label( array_shift($args) );
 			if( count($args) && is_string($args[0]) )
 				$this->textStyle( array_shift($args) );
 			if( count($args) && is_string($args[0]) )
 				$this->image( array_shift($args) );
-			
+
 			parent::__construct( $args );
-			
+
 		}
 		else parent::__construct();
 	}
-	
+
 	public function image( $src = NULL ) {
 		if( $src === NULL )
 			return (isset($this->image) ? $this->image : NULL);
-		
+
 		$this->image = $src;
-		
+
 		if( $this->isRegistered )
 			$this->callMethod( 'image', $this->image );
-		
+
 		return $this;
 	}
 }
@@ -354,7 +355,7 @@ class XULCaption extends BranchNode
 
 /**
  * Separator element
- * 
+ *
  * @link https://developer.mozilla.org/en/XUL/separator
  * @package API
  * @subpackage TabsAndGrouping
@@ -363,21 +364,21 @@ class XULCaption extends BranchNode
 class XULSeparator extends Node
 {
 	public $remoteConstructor = 'Separator';
-	
-	
+
+
 	/**
 	 * Constructor
 	 *
 	 * @param string	$orient
 	 * @param string	$className
 	*/
-	
+
 	public function __construct( $orient = NULL, $className = NULL ) {
 		if( $orient !== NULL )
 			$this->orient( $orient );
 		if( $className != NULL )
 			$this->className( $className );
-		
+
 		parent::__construct();
 	}
 }
@@ -385,7 +386,7 @@ class XULSeparator extends Node
 
 /**
  * Spacer element
- * 
+ *
  * @link https://developer.mozilla.org/en/XUL/spacer
  * @package API
  * @subpackage TabsAndGrouping
@@ -394,8 +395,8 @@ class XULSeparator extends Node
 class XULSpacer extends Node
 {
 	public $remoteConstructor = 'Spacer';
-	
-	
+
+
 	/**
 	 * Dynamic Constructor
 	 *
@@ -403,11 +404,11 @@ class XULSpacer extends Node
 	 * @param int		$width
 	 * @param int		$height
 	*/
-	
+
 	public function __construct() {
 		if( func_num_args() ) {
 			$args = func_get_args();
-			
+
 			if( count($args) && is_int($args[0]) )
 				$this->flex( array_shift($args) );
 			if( count($args) && is_int($args[0]) )
@@ -415,7 +416,7 @@ class XULSpacer extends Node
 			if( count($args) && is_int($args[0]) )
 				$this->height( array_shift($args) );
 		}
-		
+
 		parent::__construct();
 	}
 }
