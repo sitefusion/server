@@ -303,6 +303,7 @@ class XULChildWindow extends XULBasicWindow {
 
     public function initWindow($event) {
         $this->title( $this->title );
+        $this->orient('vertical');
         $this->setEventHandler( 'hasClosed', $this, 'closeWindow' );
         $this->focus();
         $this->init();
@@ -369,6 +370,7 @@ class XULDialog extends XULChildWindow
 
     public function initWindow($event) {
         $this->title( $this->title );
+        $this->orient('vertical');
         $this->setProperty( 'element.buttons', $this->buttons );
         $this->setEventHandler( 'hasClosed', $this, 'closeWindow' );
         $this->init();
