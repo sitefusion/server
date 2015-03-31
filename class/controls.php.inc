@@ -592,7 +592,7 @@ class XULDatePicker extends Node
         if ($this->isRegistered) {
             $this->callMethod( 'value', array($this->value) );
         }
-            
+
         return $this;
     }
 }
@@ -660,8 +660,8 @@ class XULCheckBox extends BranchNode
  */
 class XULRadioGroup extends BranchNode
 {
-
     public $remoteConstructor = 'RadioGroup';
+    public $orient = 'vertical';
     public $value = NULL;
     public $selectedItem = NULL;
     public $selectAfterAttach = NULL;
