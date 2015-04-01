@@ -34,7 +34,7 @@
 
 /**
  * Box element
- * 
+ *
  * @link https://developer.mozilla.org/en/XUL/box
  * @package API
  * @subpackage Layout
@@ -43,8 +43,8 @@
 class XULBox extends BranchNode
 {
 	public $remoteConstructor = 'Box';
-	
-	
+
+
 	/**
 	 * Dynamic Constructor
 	 *
@@ -53,18 +53,18 @@ class XULBox extends BranchNode
 	 * @param string	$pack
 	 * @param mixed		$childNodes
 	*/
-	
+
 	public function __construct() {
 		if( func_num_args() ) {
 			$args = func_get_args();
-			
+
 			if( count($args) && is_int($args[0]) )
 				$this->flex( array_shift($args) );
 			if( count($args) && is_string($args[0]) )
 				$this->align( array_shift($args) );
 			if( count($args) && is_string($args[0]) )
 				$this->pack( array_shift($args) );
-			
+
 			parent::__construct( $args );
 		}
 		else parent::__construct();
@@ -74,31 +74,33 @@ class XULBox extends BranchNode
 
 /**
  * HBox element
- * 
+ *
  * @link https://developer.mozilla.org/en/XUL/hbox
 */
 
 class XULHBox extends XULBox
 {
 	public $remoteConstructor = 'HBox';
+	public $orient = 'horizontal';
 }
 
 
 /**
  * VBox element
- * 
+ *
  * @link https://developer.mozilla.org/en/XUL/vbox
 */
 
 class XULVBox extends XULBox
 {
 	public $remoteConstructor = 'VBox';
+	public $orient = 'vertical';
 }
 
 
 /**
  * BBox element
- * 
+ *
  * @link https://developer.mozilla.org/en/XUL/bbox
 */
 
@@ -110,20 +112,20 @@ class XULBBox extends XULBox
 
 /**
  * Scrollbox element
- * 
+ *
  * @link https://developer.mozilla.org/en/XUL/scrollbox
 */
 
 class XULScrollBox extends XULBox
 {
 	public $remoteConstructor = 'ScrollBox';
-	
+
 	public function scrollTo( $x, $y ) {
 		if( ! $this->isRegistered )
 			throw new SFException( 'Call to scrollTo() on an unregistered XULScrollBox', ERR_REPORT_APP );
 		$this->callMethod( 'scrollTo', array( $x, $y ) );
 	}
-	
+
 	public function ensureElementIsVisible( $node ) {
 		if( ! $this->isRegistered )
 			throw new SFException( 'Call to ensureElementIsVisible() on an unregistered XULScrollBox', ERR_REPORT_APP );
@@ -134,7 +136,7 @@ class XULScrollBox extends XULBox
 
 /**
  * HTML viewing box, custom element
- * 
+ *
  * Use the content() method to fill this box with a HTML page
  * @package API
  * @subpackage Layout
@@ -144,11 +146,11 @@ class XULHTMLBox extends Node
 {
 	public $remoteConstructor = 'HTMLBox';
 	public $initAttributes = array( 'content' );
-	
+
 	public function __construct() {
 		if( func_num_args() ) {
 			$args = func_get_args();
-			
+
 			if( count($args) && is_string($args[0]) )
 				$this->content( array_shift($args) );
 			if( count($args) && is_int($args[0]) )
@@ -157,18 +159,18 @@ class XULHTMLBox extends Node
 				$this->align( array_shift($args) );
 			if( count($args) && is_string($args[0]) )
 				$this->pack( array_shift($args) );
-			
+
 			parent::__construct( $args );
 		}
 		else parent::__construct();
 	}
-	
+
 	public function content( $html = NULL ) {
 		if( $html === NULL )
 			return $this->content;
-		
+
 		$this->content = $html;
-		
+
 		if( $this->isRegistered )
 			$this->callMethod( 'setContent', array($html) );
 	}
@@ -177,7 +179,7 @@ class XULHTMLBox extends Node
 
 /**
  * Stack element
- * 
+ *
  * @link https://developer.mozilla.org/en/XUL/stack
  * @package API
  * @subpackage Layout
@@ -186,8 +188,8 @@ class XULHTMLBox extends Node
 class XULStack extends BranchNode
 {
 	public $remoteConstructor = 'Stack';
-	
-	
+
+
 	/**
 	 * Dynamic Constructor
 	 *
@@ -196,18 +198,18 @@ class XULStack extends BranchNode
 	 * @param string	$pack
 	 * @param mixed		$childNodes
 	*/
-	
+
 	public function __construct() {
 		if( func_num_args() ) {
 			$args = func_get_args();
-			
+
 			if( count($args) && is_int($args[0]) )
 				$this->flex( array_shift($args) );
 			if( count($args) && is_string($args[0]) )
 				$this->align( array_shift($args) );
 			if( count($args) && is_string($args[0]) )
 				$this->pack( array_shift($args) );
-			
+
 			parent::__construct( $args );
 		}
 		else parent::__construct();
@@ -217,7 +219,7 @@ class XULStack extends BranchNode
 
 /**
  * Deck element
- * 
+ *
  * @link https://developer.mozilla.org/en/XUL/deck
  * @package API
  * @subpackage Layout
@@ -227,8 +229,8 @@ class XULDeck extends BranchNode
 {
 	public $remoteConstructor = 'Deck';
 	private $selectedPanel = NULL;
-	
-	
+
+
 	/**
 	 * Dynamic Constructor
 	 *
@@ -236,28 +238,28 @@ class XULDeck extends BranchNode
 	 * @param string	$align
 	 * @param mixed		$childNodes
 	*/
-	
+
 	public function __construct() {
 		if( func_num_args() ) {
 			$args = func_get_args();
-			
+
 			if( count($args) && is_int($args[0]) )
 				$this->flex( array_shift($args) );
 			if( count($args) && is_string($args[0]) )
 				$this->align( array_shift($args) );
-			
+
 			parent::__construct( $args );
 		}
 		else parent::__construct();
 	}
-	
+
 	public function selectedPanel( $panel = NULL ) {
 		if( $panel === NULL )
 			return $this->selectedPanel;
-		
+
 		if( $this->isRegistered )
 			$this->callMethod( 'selectedPanel', array($panel) );
-		
+
 		$this->selectedPanel = $panel;
 	}
 }
@@ -266,7 +268,7 @@ class XULDeck extends BranchNode
 
 /**
  * Grid element
- * 
+ *
  * @link https://developer.mozilla.org/en/XUL/grid
  * @package API
  * @subpackage Layout
@@ -283,14 +285,14 @@ class XULGrid extends BranchNode
 	 * @param int		$flex
 	 * @param mixed		$childNodes
 	*/
-	
+
 	public function __construct() {
 		if( func_num_args() ) {
 			$args = func_get_args();
-			
+
 			if( count($args) && is_int($args[0]) )
 				$this->flex( array_shift($args) );
-			
+
 			parent::__construct( $args );
 		}
 		else parent::__construct();
@@ -300,7 +302,7 @@ class XULGrid extends BranchNode
 
 /**
  * Columns element
- * 
+ *
  * @link https://developer.mozilla.org/en/XUL/columns
  * @package API
  * @subpackage Layout
@@ -314,7 +316,7 @@ class XULColumns extends BranchNode
 
 /**
  * Rows element
- * 
+ *
  * @link https://developer.mozilla.org/en/XUL/rows
  * @package API
  * @subpackage Layout
@@ -328,7 +330,7 @@ class XULRows extends BranchNode
 
 /**
  * Column element
- * 
+ *
  * @link https://developer.mozilla.org/en/XUL/column
  * @package API
  * @subpackage Layout
@@ -338,7 +340,7 @@ class XULColumn extends BranchNode
 {
 	public $remoteConstructor = 'Column';
 
-	
+
 	/**
 	 * Dynamic Constructor
 	 *
@@ -347,18 +349,18 @@ class XULColumn extends BranchNode
 	 * @param string	$pack
 	 * @param mixed		$childNodes
 	*/
-	
+
 	public function __construct() {
 		if( func_num_args() ) {
 			$args = func_get_args();
-			
+
 			if( count($args) && is_int($args[0]) )
 				$this->flex( array_shift($args) );
 			if( count($args) && is_string($args[0]) )
 				$this->align( array_shift($args) );
 			if( count($args) && is_string($args[0]) )
 				$this->pack( array_shift($args) );
-			
+
 			parent::__construct( $args );
 		}
 		else parent::__construct();
@@ -368,7 +370,7 @@ class XULColumn extends BranchNode
 
 /**
  * Row element
- * 
+ *
  * @link https://developer.mozilla.org/en/XUL/row
  * @package API
  * @subpackage Layout
@@ -378,7 +380,7 @@ class XULRow extends BranchNode
 {
 	public $remoteConstructor = 'Row';
 
-	
+
 	/**
 	 * Dynamic Constructor
 	 *
@@ -387,18 +389,18 @@ class XULRow extends BranchNode
 	 * @param string	$pack
 	 * @param mixed		$childNodes
 	*/
-	
+
 	public function __construct() {
 		if( func_num_args() ) {
 			$args = func_get_args();
-			
+
 			if( count($args) && is_int($args[0]) )
 				$this->flex( array_shift($args) );
 			if( count($args) && is_string($args[0]) )
 				$this->align( array_shift($args) );
 			if( count($args) && is_string($args[0]) )
 				$this->pack( array_shift($args) );
-			
+
 			parent::__construct( $args );
 		}
 		else parent::__construct();
