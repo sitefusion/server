@@ -265,7 +265,7 @@ SiteFusion.Classes.JScriptService.prototype.constructor = SiteFusion.Classes.JSc
                             }
 
                             var data = NetUtil.readInputStreamToString(inputStream, inputStream.available());
-                            var returnValue = data.evalJSON();
+                            var returnValue = JSON.parse(data);
                             oThis.fireEvent('scriptFinished', [id, returnValue]);
 
                             window.setTimeout(function(){
