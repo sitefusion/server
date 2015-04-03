@@ -660,4 +660,3 @@ SiteFusion.Classes.AlertNotification.prototype.constructor = SiteFusion.Classes.
         win.arguments = [imageUrl, title, text, textClickable, this, alertOrigin, null, null, null, observer];
 
     };
-
