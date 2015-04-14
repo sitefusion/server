@@ -325,6 +325,7 @@ class XULColumns extends BranchNode
 class XULRows extends BranchNode
 {
 	public $remoteConstructor = 'Rows';
+	public $orient = 'vertical';
 }
 
 
