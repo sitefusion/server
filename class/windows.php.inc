@@ -326,7 +326,9 @@ class XULChildWindow extends XULBasicWindow {
     public function closeWindow() {
         $this->hasClosed = TRUE;
         $this->preventClose = FALSE;
+        $this->parent->hostWindow->focus();
         $this->parent->removeChild( $this );
+
     }
 
     public function title($title = NULL) {
