@@ -712,7 +712,7 @@ class DaemonProcess extends SiteFusionProcess
 				foreach ($results as $row) {
 					if ($child->app != 'sitefusion/admin') {
 						$args = array_map('trim', explode(',', $row['args']));
-						if ($row['owner'] == $owner || in_array('public', $args)) {
+						if ($row['owner'] == $owner || in_array('PublicService', $args)) {
 							$ret[] = $row;
 						}
 					} else {
