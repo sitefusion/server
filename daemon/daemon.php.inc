@@ -999,7 +999,7 @@ class DaemonProcess extends SiteFusionProcess
 			ini_set( 'include_path', ini_get('include_path').':'.self::$Options['sitefusionPath'].':' );
 
 			include_once( 'service.php.inc' );
-			ServiceProcess::StartServer( $childCommandPipe, $childEventPipe, $srv['owner'], $srv['service'], $srv['args'], $sessionId );
+			ServiceProcess::StartServer( $childCommandPipe, $childEventPipe, $srv['id'], $srv['owner'], $srv['service'], $srv['args'], $sessionId );
 		}
 	}
 
