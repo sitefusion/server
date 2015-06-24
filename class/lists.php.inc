@@ -82,12 +82,20 @@ class XULListBox extends BranchNode
 	}
 	
 	public function selectItem( $items ) {
-                $this->selectedItems = (is_array($items) ? $items:array($items));
-		if( !$this->isRegistered ) {
+		if (is_array($items)) {
+			foreach ($items as &$item) {
+				$item = (string) $item;
+			}
+		} else {
+			$items = array((string) $items);
+		}
+
+        $this->selectedItems = $items;
+		if (!$this->isRegistered) {
 			return;
 		}
-		$items = (is_array($items) ? $items:array($items));
-		$this->callMethod( 'selectItem', array( $items ) );
+
+		$this->callMethod( 'selectItem', array($items));
 	}
 
 	public function clearSelection() {
