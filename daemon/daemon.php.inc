@@ -386,7 +386,7 @@ class DaemonProcess extends SiteFusionProcess
 					case 'GROUP':		self::HandleGroupCmd( $child, $cmd ); break;
 				}
 			}
-			catch ( SFException $ex ) {}
+			catch ( SFException $ex ) { }
 		}
 	}
 
@@ -1335,7 +1335,53 @@ class SiteFusionProcess
 		}
 	}
 
+	static private function _BlockingWrite($socket, $message, $chunkSize = SF_SOCKET_CHUNKSIZE) {
+		$writeTotalLength = strlen($message);
+		$totalWritten = 0;
+		$writeSuccess = FALSE;
+
+		do {
+			$writeSockets = array($socket);
+			$readSockets = $exceptSockets = array();
+
+			$canWrite = socket_select($readSockets, $writeSockets, $exceptSockets, 1);
+			if($canWrite === FALSE) {
+				if (socket_last_error() === SF_SOCKET_ERROR_INTERRUPTEDSYSTEMCALL) {
+					// Signal happened during reading - Interrupted system call.
+					continue;
+				} else {
+					// Other error occurred during select - this is bad.
+					throw new SFException( 'WriteCommand: socket_select() failed: '. socket_strerror(SF_SOCKET_ERROR_INTERRUPTEDSYSTEMCALL) );
+				}
+			} else if ($canWrite === 0) {
+				// Socket is unavailable for writing right now
+				continue;
+			}
+
+			$writeSize = min($chunkSize, $writeTotalLength - $totalWritten);
+			$writePart = substr($message, $totalWritten, $writeSize);
+
+			$commandWritten = socket_write($socket, $writePart, $writeSize);
+
+			if($commandWritten === FALSE) {
+				throw new SFException( 'WriteCommand: socket_write() failed: '. socket_strerror(socket_last_error($socket)) );
+			} else if ($commandWritten === 0) {
+				continue;
+			} else {
+				$totalWritten += $commandWritten;
+			}
+
+			if ($totalWritten === $writeTotalLength) {
+				$writeSuccess = TRUE;
+			}
+
+		} while($writeSuccess !== TRUE);
+
+		return $writeSuccess;
+	}
+
 	static protected function WriteCommand( $socket, $cmd, $param = NULL, $data = NULL ) {
+
 		if(! is_array($param) )
 			$param = array();
 
@@ -1351,16 +1397,26 @@ class SiteFusionProcess
 
 		$msg .= "\n";
 
-		if( socket_write( $socket, $msg, strlen($msg) ) === FALSE )
-			throw new SFException( 'WriteCommand: socket_write() failed: '.socket_strerror(socket_last_error($socket)) );
-		if( $data !== NULL ) {
-			if( socket_write( $socket, $data, strlen($data) ) === FALSE )
-				throw new SFException( 'WriteCommand: socket_write() failed: '.socket_strerror(socket_last_error($socket)) );
+		if(strlen($msg) > SF_SOCKET_CHUNKSIZE) {
+			throw new \SFException("Message too big.");
+		}
+
+		if(!self::_BlockingWrite($socket, $msg)) {
+			throw new \SFException("_BlockingWrite() failed. (Command)");
+		}
+
+
+		// Write $data if applicable
+		if( $data !== NULL && strlen($data) > 0 ) {
+			if(!self::_BlockingWrite($socket, $data)) {
+				throw new \SFException("_BlockingWrite() failed. (Data)");
+			}
 		}
 	}
 
 	static protected function ReadCommand( $socket ) {
-		$cmddata = socket_read( $socket, 4096, PHP_NORMAL_READ );
+
+		$cmddata = socket_read( $socket, SF_SOCKET_CHUNKSIZE, PHP_NORMAL_READ );
 
 		if( $cmddata === FALSE )
 			throw new SFException( 'ReadCommand: socket_read() failed: '.socket_strerror(socket_last_error($socket)) );
@@ -1381,20 +1437,46 @@ class SiteFusionProcess
 
 			$data = '';
 			while( strlen($data) < $dl ) {
-				$sbuf = socket_read( $socket, min($dl-strlen($data),2048), PHP_BINARY_READ );
-				if( $sbuf === FALSE ) {
-					if( socket_last_error($socket) != 35 )
-						throw new SFException( 'ReadCommand: socket_read() failed: '.socket_strerror(socket_last_error($socket)) );
+
+				$readSockets = array($socket);
+				$writeSockets = $exceptSockets = array();
+
+				$canRead = socket_select($readSockets, $writeSockets, $exceptSockets, 1);
+				if($canRead === FALSE) {
+					if (socket_last_error() === SF_SOCKET_ERROR_INTERRUPTEDSYSTEMCALL) {
+						// Signal happened during reading - Interrupted system call.
+						continue;
+					} else {
+						// Other error occurred during select - this is bad.
+						throw new SFException( 'ReadCommand: socket_select() failed: '. socket_strerror(SF_SOCKET_ERROR_INTERRUPTEDSYSTEMCALL) );
+					}
+				} else if ($canRead === 0) {
+					// Socket is unavailable for writing right now
+					continue;
 				}
-				$data .= $sbuf;
+
+				$sbuf = socket_read( $socket, min($dl-strlen($data), SF_SOCKET_CHUNKSIZE), PHP_BINARY_READ );
+				if( $sbuf === FALSE ) {
+					if( socket_last_error($socket) !== SF_SOCKET_ERROR_RESOURCETEMPORARILYUNAVAILABLE ) { // Resource temporarily unavailable
+						throw new SFException( 'ReadCommand: socket_read() failed: '.socket_strerror(socket_last_error($socket)) );
+					}
+				} else if ($sbuf === '') {
+				} else {
+					$data .= $sbuf;
+				}
 			}
 		}
 
 		$ret->data = $data;
-
 		return $ret;
 	}
+
+
 }
+
+define('SF_SOCKET_ERROR_INTERRUPTEDSYSTEMCALL', 4);
+define('SF_SOCKET_ERROR_RESOURCETEMPORARILYUNAVAILABLE', 35);
+define('SF_SOCKET_CHUNKSIZE', 4096);
 
 
 /**
