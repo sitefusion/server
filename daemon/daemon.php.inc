@@ -865,6 +865,10 @@ class DaemonProcess extends SiteFusionProcess
 		if( $pid ) {	// Parent
 			socket_close( $childCommandPipe );
 			socket_close( $childEventPipe );
+
+			self::_SetSocketOptions($parentCommandPipe);
+			self::_SetSocketOptions($parentEventPipe);
+
 			$childObj = new DaemonChild;
 			$childObj->type = 'app';
 			$childObj->pid = $pid;
@@ -883,8 +887,13 @@ class DaemonProcess extends SiteFusionProcess
 		else {		// Child
 			self::$ProcessType = NULL;
 			self::$Shutdown = FALSE;
+
 			socket_close( $parentCommandPipe );
 			socket_close( $parentEventPipe );
+
+			self::_SetSocketOptions($childCommandPipe);
+			self::_SetSocketOptions($childEventPipe);
+
 			socket_close( self::$Socket );
 			self::ResetDatabase();
 
@@ -901,6 +910,17 @@ class DaemonProcess extends SiteFusionProcess
 			include_once( 'app.php.inc' );
 			ApplicationProcess::StartServer( $client, $childCommandPipe, $childEventPipe, $loginCmd, $port, $clientid );
 		}
+	}
+
+	static private function _SetSocketOptions($socket) {
+
+		socket_set_nonblock($socket);
+
+		socket_set_option($socket, SOL_SOCKET, SO_SNDBUF, 0);
+		socket_set_option($socket, SOL_SOCKET, SO_RCVBUF, 0);
+
+		// socket_set_option($socket, SOL_SOCKET, SO_RCVLOWAT, 0);
+		// socket_set_option($socket, SOL_SOCKET, SO_SNDLOWAT, 0);
 	}
 
 	static private function StartJob( $job, $args, $mailTo = NULL ) {
@@ -1335,52 +1355,142 @@ class SiteFusionProcess
 		}
 	}
 
-	static private function _BlockingWrite($socket, $message, $chunkSize = SF_SOCKET_CHUNKSIZE) {
+	static private function _BlockingWrite($socket, $message, $chunkSize = SF_SOCKET_CHUNKSIZE, $debug = FALSE) {
+
+		if ($debug) {
+			self::_dbgLog(1, __METHOD__ . " start");
+		}
+
 		$writeTotalLength = strlen($message);
 		$totalWritten = 0;
 		$writeSuccess = FALSE;
 
+		if($debug) {
+			self::_dbgLog(1, __METHOD__ . ' with message size: ' . $writeTotalLength);
+		}
+
 		do {
+
+			if($debug) {
+				self::_dbgLog(1, "\t - start of do {");
+			}
+
 			$writeSockets = array($socket);
 			$readSockets = $exceptSockets = array();
 
+			if($debug) {
+				self::_dbgLog(1, "\t - Before socket_select()");
+			}
+
 			$canWrite = socket_select($readSockets, $writeSockets, $exceptSockets, 1);
-			if($canWrite === FALSE) {
-				if (socket_last_error() === SF_SOCKET_ERROR_INTERRUPTEDSYSTEMCALL) {
-					// Signal happened during reading - Interrupted system call.
-					continue;
-				} else {
-					// Other error occurred during select - this is bad.
-					throw new SFException( 'WriteCommand: socket_select() failed: '. socket_strerror(SF_SOCKET_ERROR_INTERRUPTEDSYSTEMCALL) );
-				}
-			} else if ($canWrite === 0) {
-				// Socket is unavailable for writing right now
-				continue;
+
+			if($debug) {
+				self::_dbgLog(1, "\t socket_select result: " . print_r($canWrite, TRUE));
 			}
 
 			$writeSize = min($chunkSize, $writeTotalLength - $totalWritten);
 			$writePart = substr($message, $totalWritten, $writeSize);
 
+			if($canWrite === FALSE) {
+				$lastError = socket_last_error();
+				if ($lastError === SF_SOCKET_ERROR_INTERRUPTEDSYSTEMCALL) {
+					// Signal happened during reading - Interrupted system call.
+					if($debug) {
+						self::_dbgLog(1, "\t Continue; - system call happened");
+					}
+					continue;
+				} else {
+					// Other error occurred during select - this is bad.
+					if($debug) {
+						self::_dbgLog(1, "\t Exception: " . socket_strerror($lastError));
+					}
+					throw new SFException( 'WriteCommand: socket_select() failed: '. socket_strerror($lastError) );
+				}
+			} else if ($canWrite === 0) {
+				// Socket is unavailable for writing right now
+				if ($debug) {
+
+					self::_dbgLog(1, "\t Continue; - Nothing to write on... (Trying to write $writePart)");
+				}
+				continue;
+			}
+
+
+
+			if ($debug) {
+				self::_dbgLog(1, "\t Can write - Going to attempt to $writeSize bytes");
+			}
+
 			$commandWritten = socket_write($socket, $writePart, $writeSize);
+
+			if ($debug) {
+				self::_dbgLog(1, "\t Result of socket_write(): " . print_r($commandWritten, TRUE));
+			}
 
 			if($commandWritten === FALSE) {
 				throw new SFException( 'WriteCommand: socket_write() failed: '. socket_strerror(socket_last_error($socket)) );
 			} else if ($commandWritten === 0) {
+				if ($debug) {
+					self::_dbgLog(1, "\t Written absolute 0 bytes - continuing in hope we can continue next iteration?");
+				}
 				continue;
 			} else {
 				$totalWritten += $commandWritten;
+				if ($debug) {
+					self::_dbgLog(1, "\t TotalWritten incremented to $totalWritten - data written:\n------------------------\n" . substr($message, $totalWritten - $commandWritten, $commandWritten) . "\n----------------------\n");
+				}
 			}
 
 			if ($totalWritten === $writeTotalLength) {
+				if ($debug) {
+					self::_dbgLog(1, "\tTotalWritten === $writeTotalLength, writeSuccess = TRUE");
+				}
 				$writeSuccess = TRUE;
+			}
+
+			if($debug) {
+				self::_dbgLog(1, "\t - END of do {");
 			}
 
 		} while($writeSuccess !== TRUE);
 
+		if ($debug) {
+			self::_dbgLog(1, __METHOD__ . " end");
+		}
+
 		return $writeSuccess;
 	}
 
+	static private function _dbgLog($f, $in = NULL) {
+		return;
+		if ($in === NULL && is_string($f)) {
+			$in = $f;
+			$f = NULL;
+		}
+
+		$prx = (self::$ProcessType === NULL ? 'ChildProcess' : self::$ProcessType);
+		$time = date("H:i:s");
+
+		$prefix = $time . " - " . $prx;
+		$prefix = str_pad($prefix, "25", " ");
+
+		// if ($in[strlen($in)-1] != "\n") {
+		// 	$in .= "\n";
+		// }
+
+		$in .= "\n";
+
+		echo $prefix . $in;
+
+		if ($f !== NULL) {
+			$file = "/tmp/" . ($f === 0 ? "sfread.log" : "sfwrite.log");
+			file_put_contents($file, $prefix.$in, FILE_APPEND);
+		}
+	}
+
 	static protected function WriteCommand( $socket, $cmd, $param = NULL, $data = NULL ) {
+
+		self::_dbgLog(__METHOD__ . " begin");
 
 		if(! is_array($param) )
 			$param = array();
@@ -1401,27 +1511,55 @@ class SiteFusionProcess
 			throw new \SFException("Message too big.");
 		}
 
-		if(!self::_BlockingWrite($socket, $msg)) {
+		self::_dbgLog("\tBlockingwrite \$msg");
+		if(!self::_BlockingWrite($socket, $msg, SF_SOCKET_CHUNKSIZE, TRUE)) {
 			throw new \SFException("_BlockingWrite() failed. (Command)");
 		}
 
 
 		// Write $data if applicable
 		if( $data !== NULL && strlen($data) > 0 ) {
-			if(!self::_BlockingWrite($socket, $data)) {
+			self::_dbgLog("\tBlockingwrite \$data");
+			if(!self::_BlockingWrite($socket, $data, SF_SOCKET_CHUNKSIZE, TRUE)) {
 				throw new \SFException("_BlockingWrite() failed. (Data)");
 			}
+		} else {
+			self::_dbgLog("\tNo data to BlockingWrite");
 		}
+
+		self::_dbgLog(__METHOD__ . " end");
 	}
 
 	static protected function ReadCommand( $socket ) {
 
-		$cmddata = socket_read( $socket, SF_SOCKET_CHUNKSIZE, PHP_NORMAL_READ );
+		$bt = debug_backtrace();
+		$btL = $bt[1];
+
+		self::_dbgLog(0, __METHOD__ . " begin called from " . $btL['class'] . $btL['type'] . $btL['function'] . ' @ ' . $btL['line']);
+
+		$cmddata = FALSE;
+		try {
+			self::_dbgLog(0, "socket_read()");
+		 	$cmddata = socket_read( $socket, SF_SOCKET_CHUNKSIZE, PHP_NORMAL_READ );
+		 } catch (Exception $e) {
+		 	self::_dbgLog(0, "socket_read() exceptioned - " . $e->getMessage());
+		 }
 
 		if( $cmddata === FALSE )
 			throw new SFException( 'ReadCommand: socket_read() failed: '.socket_strerror(socket_last_error($socket)) );
+		else
+			self::_dbgLog(0, "socket_read() successful: (L=".strlen($cmddata).") $cmddata");
 
-		$data = NULL;
+		// $pos = strpos($cmddata, "\n");
+		// if($pos !== FALSE) {
+		// 	$cmddata = substr($cmddata, 0, $pos);
+		// 	$data = substr($cmddata, $pos);
+		// } else {
+			$data = NULL;
+		// }
+
+		self::_dbgLog(0, "\tRead command data:\n------------------------\n$cmddata\n----------------------\n");
+
 		$cmd = explode( ' ', rtrim($cmddata) );
 
 		$ret = new StdClass;
@@ -1435,8 +1573,14 @@ class SiteFusionProcess
 		if( isset($ret->DATALENGTH) ) {
 			$dl = (int) $ret->DATALENGTH;
 
-			$data = '';
+			if($data === NULL) {
+				$data = '';
+			}
+
+			self::_dbgLog(0, "while() {");
 			while( strlen($data) < $dl ) {
+
+				self::_dbgLog(0, "\tStart while()");
 
 				$readSockets = array($socket);
 				$writeSockets = $exceptSockets = array();
@@ -1451,7 +1595,8 @@ class SiteFusionProcess
 						throw new SFException( 'ReadCommand: socket_select() failed: '. socket_strerror(SF_SOCKET_ERROR_INTERRUPTEDSYSTEMCALL) );
 					}
 				} else if ($canRead === 0) {
-					// Socket is unavailable for writing right now
+					// Socket is unavailable for reading right now
+					self::_dbgLog(0, "\tNothing to read from sockets");
 					continue;
 				}
 
@@ -1464,8 +1609,16 @@ class SiteFusionProcess
 				} else {
 					$data .= $sbuf;
 				}
+				self::_dbgLog(0, "\tRead data:\n------------------------\n$sbuf\n----------------------\n");
+
+				self::_dbgLog(0, "\tEnd while()");
 			}
+			self::_dbgLog(0, "} // while");
+
+
 		}
+
+		self::_dbgLog(0, __METHOD__ . " end");
 
 		$ret->data = $data;
 		return $ret;
