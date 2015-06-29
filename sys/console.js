@@ -1,14 +1,15 @@
+
 SiteFusion.objectDump = function(arr,level) {
     var dumped_text = "";
     if(!level) level = 0;
-    
+
     var level_padding = "";
     for(var j=0;j<level+1;j++) level_padding += "    ";
-    
+
     if(typeof(arr) == 'object') {
         for(var item in arr) {
             var value = arr[item];
-            
+
             if(typeof(value) == 'object') {
                 dumped_text += level_padding + "'" + item + "' ...\n";
                 dumped_text += SiteFusion.objectDump(value,level+1);
@@ -23,13 +24,15 @@ SiteFusion.objectDump = function(arr,level) {
 }
 
 SiteFusion.consoleMessage = function(msg) {
-    Components.classes['@mozilla.org/consoleservice;1']
-                        .getService(Components.interfaces.nsIConsoleService)
-                        .logStringMessage(msg);
+    if (!msg || msg.length === 0) {
+        msg = ' '; // Fixes the clearing of the console on empty messages
+    }
+
+    Components.classes['@mozilla.org/consoleservice;1'].getService(Components.interfaces.nsIConsoleService).logStringMessage(msg);
 }
 
 SiteFusion.nativeConsoleMessage = function(msg) {
-    dump (msg);
+    dump(msg);
 }
 
 SiteFusion.consoleError = function(msg) {
