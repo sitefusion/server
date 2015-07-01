@@ -34,7 +34,7 @@
 
 /**
  * Browser element
- * 
+ *
  * @link https://developer.mozilla.org/en/XUL/browser
  * @package API
  * @subpackage WindowStructure
@@ -68,7 +68,7 @@ class XULBrowser extends Node
 		if( $this->isRegistered )
 			$this->callMethod( 'setSrc', array($src) );
 	}
-	
+
 	public function reload() {
 		if( $this->isRegistered )
 			$this->callMethod( 'reload' );
@@ -78,7 +78,7 @@ class XULBrowser extends Node
 
 /**
  * Printbox element
- * 
+ *
  * Call the content($html) method to fill the printbox with HTML content, and call
  * the printContent() method to open the printer dialog. Optionally set the $silent
  * parameter to TRUE to print directly without opening the print dialog first.
@@ -90,17 +90,17 @@ class XULPrintBox extends XULHTMLBox
 {
 	public $remoteConstructor = 'PrintBox';
 	public $busy = FALSE;
-	
+
 	public function attach() {
 		parent::attach();
 		$this->setEvent( 'ready', MSG_SEND, $this, 'setReady' );
 	}
-	
+
 	public function printContent( $silent = FALSE ) {
 		$this->busy = TRUE;
 		$this->callMethod( 'print', array( (bool) $silent ) );
 	}
-	
+
 	public function setReady( $e ) {
 		$this->busy = FALSE;
 	}
@@ -109,7 +109,7 @@ class XULPrintBox extends XULHTMLBox
 
 /**
  * Statusbar element
- * 
+ *
  * @link https://developer.mozilla.org/en/XUL/statusbar
  * @package API
  * @subpackage WindowStructure
@@ -118,12 +118,13 @@ class XULPrintBox extends XULHTMLBox
 class XULStatusbar extends BranchNode
 {
 	public $remoteConstructor = 'Statusbar';
+	public $orient = 'horizontal';
 }
 
 
 /**
  * StatusbarPanel element
- * 
+ *
  * @link https://developer.mozilla.org/en/XUL/statusbarpanel
  * @package API
  * @subpackage WindowStructure
@@ -133,8 +134,8 @@ class XULStatusbarPanel extends BranchNode
 {
 	public $remoteConstructor = 'StatusbarPanel';
 	public $initAttributes = array( 'image' );
-	
-	
+
+
 	/**
 	 * Dynamic Constructor
 	 *
@@ -142,48 +143,48 @@ class XULStatusbarPanel extends BranchNode
 	 * @param string	$image
 	 * @param mixed		$childNodes
 	*/
-	
+
 	public function __construct() {
 		if( func_num_args() ) {
 			$args = func_get_args();
-			
+
 			if( count($args) && is_string($args[0]) )
 				$this->label( array_shift($args) );
 			if( count($args) && is_string($args[0]) )
 				$this->image( array_shift($args) );
-			
+
 			parent::__construct( $args );
 		}
 		else parent::__construct();
 	}
-	
+
 	public function label( $text = NULL ) {
 		$ret = parent::label( $text );
 		$this->setClass();
 		return $ret;
 	}
-	
+
 	private function setClass() {
 		if( (isset($this->className) && $this->className == 'statusbarpanel-menu-iconic') || !isset($this->image) )
 			return;
-		
+
 		if( isset($this->label) && $this->label != '' )
 			$this->className( 'statusbarpanel-iconic-text' );
 		else
 			$this->className( 'statusbarpanel-iconic' );
 	}
-	
+
 	public function image( $src = NULL ) {
 		if( $src === NULL )
 			return (isset($this->image) ? $this->image : NULL);
-		
+
 		$this->image = $src;
-		
+
 		if( $this->isRegistered ) {
 			$this->callMethod( 'image', $this->image );
 			$this->setClass();
 		}
-		
+
 		return $this;
 	}
 }
@@ -191,7 +192,7 @@ class XULStatusbarPanel extends BranchNode
 
 /**
  * Dialog header element
- * 
+ *
  * @link https://developer.mozilla.org/en/XUL/dialogheader
  * @package API
  * @subpackage WindowStructure
@@ -201,8 +202,8 @@ class XULDialogHeader extends BranchNode
 {
 	public $remoteConstructor = 'DialogHeader';
 	public $initAttributes = array( 'title', 'description' );
-	
-	
+
+
 	/**
 	 * Dynamic Constructor
 	 *
@@ -210,25 +211,25 @@ class XULDialogHeader extends BranchNode
 	 * @param string	$description
 	 * @param mixed		$childNodes
 	*/
-	
+
 	public function __construct() {
 		if( func_num_args() ) {
 			$args = func_get_args();
-			
+
 			if( count($args) && is_string($args[0]) )
 				$this->title( array_shift($args) );
 			if( count($args) && is_string($args[0]) )
 				$this->description( array_shift($args) );
-			
+
 			parent::__construct( $args );
 		}
 		else parent::__construct();
 	}
-	
+
 	public function title( $title = NULL ) {
 		return $this->attributeMethod( 'title', $title );
 	}
-	
+
 	public function description( $descr = NULL ) {
 		return $this->attributeMethod( 'description', $descr );
 	}
