@@ -48,8 +48,8 @@ class XULListBox extends BranchNode
     public $selectedItems = array();
     public $selectedItem = NULL;
     public $selectedValue = NULL;
-    
-    
+
+
     /**
      * Dynamic Constructor
      *
@@ -57,45 +57,37 @@ class XULListBox extends BranchNode
      * @param string    $seltype    String indicating selection style 'single' or 'multiple'
      * @param mixed     $childNodes
     */
-    
+
     public function __construct() {
         if( func_num_args() ) {
             $args = func_get_args();
-            
+
             if( count($args) && is_int($args[0]) )
                 $this->flex( array_shift($args) );
             if( count($args) && is_string($args[0]) )
                 $this->seltype( array_shift($args) );
-            
+
             parent::__construct( $args );
         }
         else parent::__construct();
-        
+
         $this->setEventHandler( 'yield', $this, 'yieldCollect' );
     }
-    
+
     public function attach() {
         parent::attach();
-        
+
         if( count($this->selectedItems) )
             $this->selectItem( $this->selectedItems );
     }
-    
-    public function selectItem( $items ) {
-        if (is_array($items)) {
-            foreach ($items as &$item) {
-                $item = (string) $item;
-            }
-        } else {
-            $items = array((string) $items);
-        }
 
+    public function selectItem($items) {
+        $items = (is_array($items) ? $items : array($items));
         $this->selectedItems = $items;
-        if (!$this->isRegistered) {
-            return;
-        }
 
-        $this->callMethod( 'selectItem', array($items));
+        if ($this->isRegistered) {
+            $this->callMethod('selectItem', array($items));
+        }
     }
 
     public function clearSelection() {
@@ -104,7 +96,7 @@ class XULListBox extends BranchNode
         $this->selectedValue = NULL;
         $this->callMethod('clearSelection');
     }
-    
+
     public function removeItems()
     {
         for ($i=0; $i < count($this->children); $i++)
@@ -117,11 +109,11 @@ class XULListBox extends BranchNode
 
         }
     }
-    
+
     public function yieldCollect() {
         $args = func_get_args();
         $e = array_shift( $args );
-        
+
         $this->selectedItem = array_shift( $args );
         $this->selectedValue = (isset($this->selectedItem->value) ? $this->selectedItem->value : NULL);
         $this->selectedItems = $args;
@@ -130,7 +122,7 @@ class XULListBox extends BranchNode
     public function seltype( $type = NULL ) {
         return $this->attributeMethod( 'seltype', ($type === NULL ? NULL : ($type == 'single' ? 'single':'multiple')) );
     }
-    
+
     public function rows( $amount = NULL ) {
         return $this->attributeMethod( 'rows', $amount );
     }
@@ -149,8 +141,8 @@ class XULListItem extends BranchNode
 {
     public $remoteConstructor = 'ListItem';
     public $initAttributes = array( 'image' );
-    
-    
+
+
     /**
      * Dynamic Constructor
      *
@@ -159,11 +151,11 @@ class XULListItem extends BranchNode
      * @param string    $image
      * @param mixed     $childNodes
     */
-    
+
     public function __construct() {
         if( func_num_args() ) {
             $args = func_get_args();
-            
+
             if( count($args) && is_string($args[0]) )
                 $this->label( array_shift($args) );
             if( count($args) && is_string($args[0]) )
@@ -179,14 +171,14 @@ class XULListItem extends BranchNode
     public function image( $src = NULL ) {
         if( $src === NULL )
             return (isset($this->image) ? $this->image : NULL);
-        
+
         $this->image = $src;
-        
+
         if( $this->isRegistered ) {
             $this->callMethod( 'image', $this->image );
             $this->setAttribute( 'class', 'listitem-iconic' );
         }
-        
+
         return $this;
     }
 }
@@ -218,21 +210,21 @@ class XULListCol extends BranchNode
 {
     public $remoteConstructor = 'ListCol';
 
-    
+
     /**
      * Dynamic Constructor
      *
      * @param int       $flex
      * @param mixed     $childNodes
     */
-    
+
     public function __construct() {
         if( func_num_args() ) {
             $args = func_get_args();
-            
+
             if( count($args) && is_integer($args[0]) )
                 $this->flex( array_shift($args) );
-            
+
             parent::__construct( $args );
         }
         else parent::__construct();
@@ -264,21 +256,21 @@ class XULListHeader extends BranchNode
 {
     public $remoteConstructor = 'ListHeader';
 
-    
+
     /**
      * Dynamic Constructor
      *
      * @param string    $label
      * @param mixed     $childNodes
     */
-    
+
     public function __construct() {
         if( func_num_args() ) {
             $args = func_get_args();
-            
+
             if( count($args) && is_string($args[0]) )
                 $this->label( array_shift($args) );
-            
+
             parent::__construct( $args );
         }
         else parent::__construct();
@@ -296,21 +288,21 @@ class XULListCell extends BranchNode
 {
     public $remoteConstructor = 'ListCell';
 
-    
+
     /**
      * Dynamic Constructor
      *
      * @param string    $label
      * @param mixed     $childNodes
     */
-    
+
     public function __construct() {
         if( func_num_args() ) {
             $args = func_get_args();
-            
+
             if( count($args) && is_string($args[0]) )
                 $this->label( array_shift($args) );
-            
+
             parent::__construct( $args );
         }
         else parent::__construct();
@@ -340,21 +332,21 @@ class XULRichListItem extends XULListItem
 {
     public $remoteConstructor = 'RichListItem';
 
-    
+
     /**
      * Dynamic Constructor
      *
      * @param string    $value
      * @param mixed     $childNodes
     */
-    
+
     public function __construct() {
         if( func_num_args() ) {
             $args = func_get_args();
-            
+
             if( count($args) && is_string($args[0]) )
                 $this->value( array_shift($args) );
-            
+
             Node::__construct( $args );
         }
         else Node::__construct();
