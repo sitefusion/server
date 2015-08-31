@@ -735,7 +735,7 @@ SiteFusion.Classes.FileService.prototype.constructor = SiteFusion.Classes.FileSe
 
             var targetDir = new FileUtils.File(targetPath);
             if (!targetDir.exists()) {
-                targetDir.create(Ci.nsIFile.DIRECTORY_TYPE, 0755);
+                targetDir.create(Ci.nsIFile.DIRECTORY_TYPE, FileUtils.PERMS_DIRECTORY);
             }
 
             var zipReader = Cc["@mozilla.org/libjar/zip-reader;1"].createInstance(Ci.nsIZipReader);
