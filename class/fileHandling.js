@@ -485,6 +485,10 @@ SiteFusion.Classes.FileService.prototype.constructor = SiteFusion.Classes.FileSe
         this.monitors = [];
     };
 
+    SiteFusion.Classes.FileService.prototype.getDirSeparator = function() {
+        return navigator.platform.match(/win/i) ? '\\' : '/';
+    }
+
     SiteFusion.Classes.FileService.prototype.getDirectory = function( path, retrieveContents ) {
         var file = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile);
         file.initWithPath(path);
@@ -719,6 +723,45 @@ SiteFusion.Classes.FileService.prototype.constructor = SiteFusion.Classes.FileSe
         file.copyTo(parentDir, targetPath.replace(/^.*[\\\/]/, ''));
 
         this.fireEvent( 'result', [ 'renameFile', path, true, targetPath ] );
+    };
+
+    SiteFusion.Classes.FileService.prototype.extractZip = function(clientPath, targetPath) {
+        try {
+            var clientFile = new FileUtils.File(clientPath);
+            if (!clientFile.exists() || clientFile.isDirectory()) {
+                this.fireEvent('result', ['extractZip', clientPath, false, targetPath, []]);
+                return;
+            }
+
+            var targetDir = new FileUtils.File(targetPath);
+            if (!targetDir.exists()) {
+                targetDir.create(Ci.nsIFile.DIRECTORY_TYPE, FileUtils.PERMS_DIRECTORY);
+            }
+
+            var zipReader = Cc["@mozilla.org/libjar/zip-reader;1"].createInstance(Ci.nsIZipReader);
+            zipReader.open(clientFile);
+
+            var files = [];
+            var entries = zipReader.findEntries('*');
+            while (entries.hasMore()) {
+                var filename = entries.getNext();
+
+                var filePath = targetPath + this.getDirSeparator() + filename;
+                var extractFile = new FileUtils.File(filePath);
+                if (!extractFile.exists()) {
+                    extractFile.create(Ci.nsIFile.NORMAL_FILE_TYPE, FileUtils.PERMS_FILE);
+                }
+
+                files.push(filename);
+                zipReader.extract(filename, extractFile);
+            }
+
+            zipReader.close();
+
+            this.fireEvent('result', ['extractZip', clientPath, true, targetPath, files]);
+        } catch (ex) {
+            this.fireEvent('result', ['extractZip', clientPath, false, targetPath, []]);
+        }
     };
 
     SiteFusion.Classes.FileService.prototype.resultFromFile = function( file ) {
