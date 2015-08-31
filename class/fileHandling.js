@@ -748,7 +748,7 @@ SiteFusion.Classes.FileService.prototype.constructor = SiteFusion.Classes.FileSe
 
                 var filePath = targetPath + this.getDirSeparator() + filename;
                 var extractFile = new FileUtils.File(filePath);
-                if (!targetDir.exists()) {
+                if (!extractFile.exists()) {
                     extractFile.create(Ci.nsIFile.NORMAL_FILE_TYPE, FileUtils.PERMS_FILE);
                 }
 
