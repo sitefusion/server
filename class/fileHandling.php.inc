@@ -1063,6 +1063,7 @@ class ClientFileService extends Node {
     private $_handlersRemoveFile = array();
     private $_handlersRenameFile = array();
     private $_handlersCopyFile = array();
+    private $_handlersExtractZip = array();
 
     public function attach() {
         $this->createRemoteObject( array( $this->hostWindow ) );
@@ -1512,7 +1513,6 @@ class ClientFileService extends Node {
         $this->callMethod( 'renameFile', array($clientPath, $targetPath));
     }
 
-
     /**
      * Copies a file to the target directory
      *
@@ -1531,6 +1531,18 @@ class ClientFileService extends Node {
         $this->callMethod( 'copyFile', array($clientPath, $targetPath));
     }
 
+    /**
+     * Extract a zip file
+     *
+     * @param string        $clientPath    The source path on the client side
+     * @param string        $targetPath    The target path on the client side
+     * @param object|string $handlerObj    The object or classname to call the handler on when the operation finishes
+     * @param string        $handlerMethod The method to call on the handler object
+    */
+    public function extractZip($clientPath, $targetPath, $handlerObj = NULL, $handlerMethod = NULL) {
+        $this->_handlersExtractZip[$clientPath] = ($handlerObj && $handlerMethod) ? array($handlerObj, $handlerMethod) : NULL;
+        $this->callMethod('extractZip', array($clientPath, $targetPath));
+    }
 
     /**
      * [INTERNAL FUNCTION] Event handler
@@ -1562,7 +1574,6 @@ class ClientFileService extends Node {
                     call_user_func_array( $this->_handlersList[$id], array($this,$status,$dirFile) );
                 }
             break;
-            
             case 'createDirectory':
                 $status = array_shift( $args );
                 $path = array_shift( $args );
@@ -1578,7 +1589,6 @@ class ClientFileService extends Node {
                     call_user_func_array( $this->_handlersCreateDirectory[$id], array($this,$status,$dirFile) );
                 }
             break;
-            
             case 'removeDirectory':
                 $status = array_shift( $args );
                 $path = array_shift( $args );
@@ -1597,13 +1607,11 @@ class ClientFileService extends Node {
                     call_user_func_array( $this->_handlersRemoveFile[$id], array($this,$status,$path));
                 }
             break;
-            
             case 'fileChanged':
                 $path = $id;
                 list($exists,$modificationTime,$size) = $args;
                 call_user_func_array( $this->_handlersMonitorFile[$path], array($this,$path,$exists,$modificationTime,$size) );
             break;
-            
             case 'executeFile':
                 list($status) = $args;
 
@@ -1612,16 +1620,13 @@ class ClientFileService extends Node {
                     call_user_func_array( $this->_handlersExecuteFile[$id], array($this,$status));
                 }
             break;
-
             case 'getFileInfo':
                 $status = array_shift( $args );
                 $fileInfo = array_shift( $args );
-                
                 if (isset($this->_handlersGetFileInfo[$id]) && is_array($this->_handlersGetFileInfo[$id])) {
                     call_user_func_array( $this->_handlersGetFileInfo[$id], array($this, $status, ($status ? $this->fileFromResult($id, $fileInfo) : $fileInfo)));
                 }
             break;
-
             case 'getCryptoHash':
                 $status = array_shift( $args );
                 $hash = array_shift( $args );
@@ -1630,7 +1635,6 @@ class ClientFileService extends Node {
                     call_user_func_array( $this->_handlersGetCryptoHash[$id], array($this, $id, $status, $hash));
                 }
             break;
-
             case 'renameFile':
                 $status = array_shift( $args );
                 $newFile = array_shift( $args );
@@ -1639,18 +1643,22 @@ class ClientFileService extends Node {
                     call_user_func_array( $this->_handlersRenameFile[$id], array($this, $status, $newFile));
                 }
             break;
-
             case 'copyFile':
                 $status = array_shift( $args );
                 $newFile = array_shift( $args );
                 
                 if (isset($this->_handlersCopyFile[$id]) && is_array($this->_handlersCopyFile[$id])) {
-                    call_user_func_array( $this->handler_handlersCopyFilesRenameFile[$id], array($this, $status, $newFile));
+                    call_user_func_array( $this->_handlersCopyFile[$id], array($this, $status, $newFile));
+                }
+            break;
+            case 'extractZip':
+                if (!empty($this->_handlersExtractZip[$id])) {
+                    list($status, $targetPath, $files) = $args;
+                    call_user_func_array($this->_handlersExtractZip[$id], array($this, $status, $targetPath, $files));
                 }
             break;
         }
     }
-
 
     public function fileFromResult($path, $file) {
         $cf = ($file[1] ? new ClientDirectory() : new ClientFile());
