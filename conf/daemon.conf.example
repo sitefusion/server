@@ -44,6 +44,7 @@ $SFCONFIG['sitefusionPath'] = '/usr/local/sitefusion';
 //the DSN path for file based databases should be relative to the sitefusiond path
 $SFCONFIG['databaseDSN'] = "sqlite:".$SFCONFIG['sitefusionPath']."/db/sfdb.sq3";
 //$SFCONFIG['databaseDSN'] = "mysql:host=127.0.0.1;dbname=sitefusion";
+//$SFCONFIG['databaseDSN'] = "pgsql:host=127.0.0.1;port=5432;dbname=sitefusion";
 
 // Username and password for the database server
 // This login is only used by the daemon, not by the child processes
