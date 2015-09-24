@@ -772,6 +772,24 @@ class PromptService extends Node {
     }
 
     /**
+     * Shows a prompt box with a textinput and OK and Cancel buttons
+     *
+     * @param string    $title          Title of the dialog box
+     * @param string    $text           Body text
+     * @param string    $textValue      Initial value of the textinput
+     * @param object    $closure        Closure
+     */
+    public function promptClosure($title, $text, $textValue, $closure) {
+        if ($this->promptInProgress) {
+            throw new SFException( 'PromptService: a prompt is already in progress', ERR_REPORT_APP );
+        }
+
+        $this->promptInProgress = TRUE;
+        $this->closure = $closure;
+        $this->callMethod( 'prompt', array($title,$text,$textValue,NULL,NULL) );
+    }
+
+    /**
      * Shows a prompt box with a textinput, a checkbox and OK and Cancel buttons
      *
      * @param string    $title          Title of the dialog box
