@@ -409,7 +409,7 @@ class DaemonProcess extends SiteFusionProcess
 	}
 
 	static private function ChildStarted( $child, $param ) {
-
+		global $SFCONFIG;
 		$param->ip = ($param->ip ? $param->ip : "0.0.0.0");
 
 		$child->loggedIn = TRUE;
@@ -420,17 +420,23 @@ class DaemonProcess extends SiteFusionProcess
 		$child->args = $param->args;
 		$child->ip = $param->ip;
 
-		if( $child->type == 'app' )
+		if( $child->type == 'app' ){
 			$child->extendedInfo = unserialize($param->data);
+		}
 
 		try {
-			self::DatabaseQuery( "INSERT INTO ".self::$Database->tblProcesses." (id, type, ident, \"user\", app, args, client_ip, port, pid) VALUES (?,?,?,?,?,?,?,?,?)", array($param->sid,$param->type,$param->ident,$param->user,$param->app,$param->args,$param->ip,$child->port,$child->pid));
+			$quoteChar = self::GetDatabaseColumnEscapeCharacter();
+			$columns = array("id", "type", "ident", "user", "app", "args", "client_ip", "port", "pid");
+			$columnString = $quoteChar.implode($quoteChar.",".$quoteChar, $columns).$quoteChar;
+
+			self::DatabaseQuery( "INSERT INTO ".self::$Database->tblProcesses." (".$columnString.")	VALUES (?,?,?,?,?,?,?,?,?)", array($param->sid,$param->type,$param->ident,$param->user,$param->app,$param->args,$param->ip,$child->port,$child->pid));
 		}
 		catch ( Exception $ex ) {
-				self::$Database = NULL;
-				self::Log('ChildStarted: Database Error (code: '.$ex->getCode().'): ' . $ex->getMessage());
-				throw new SFException( 'ChildStarted: Database Error (code: '.$ex->getCode().'): ' . $ex->getMessage() );
+			self::$Database = NULL;
+			self::Log('ChildStarted: Database Error (code: '.$ex->getCode().'): ' . $ex->getMessage());
+			throw new SFException( 'ChildStarted: Database Error (code: '.$ex->getCode().'): ' . $ex->getMessage() );
 		}
+
 		switch ( $child->type ) {
 			case 'app':
 				self::Log( "Application started ($child->sessionId) at port $child->port with [pid: $child->pid], [application: $child->app], [args: $child->args], [user: $child->user], [ip: $child->ip]" );
@@ -1393,6 +1399,16 @@ class SiteFusionProcess
 		$ret->data = $data;
 
 		return $ret;
+	}
+
+	/**
+	 * Easy access method to get the escape character for columns in DB queries.
+	 * Needed with the new PostGreSQL update, for now just checks for pgsql
+	 * @return string Either a double-qoute or tick depending on the database engine
+	 */
+	static protected function GetDatabaseColumnEscapeCharacter(){
+		global $SFCONFIG;
+		return (strpos($SFCONFIG['databaseDSN'], 'pgsql') === 0 ? "\"" : "`");
 	}
 }
 
