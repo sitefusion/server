@@ -119,11 +119,14 @@ SiteFusion.Classes.ScrollBox.prototype.constructor = SiteFusion.Classes.ScrollBo
 
         SiteFusion.Interface.DeferredCallbacks.push(function() {
             try {
+                /* The old way for retrieving the scroll object */
                 var xpcomInterface = oThis.element.boxObject.QueryInterface(Ci.nsIScrollBoxObject);
-                xpcomInterface.scrollTo(x, y);
             } catch(e) {
-
+                /* The new way for retrieving the scroll object */
+                var xpcomInterface = oThis.element.boxObject;
             }
+
+            xpcomInterface.scrollTo(x, y);
         });
     };
 
@@ -131,11 +134,14 @@ SiteFusion.Classes.ScrollBox.prototype.constructor = SiteFusion.Classes.ScrollBo
         var oThis = this;
         SiteFusion.Interface.DeferredCallbacks.push(function() {
             try {
+                /* The old way for retrieving the scroll object */
                 var xpcomInterface = oThis.element.boxObject.QueryInterface(Ci.nsIScrollBoxObject);
-                xpcomInterface.ensureElementIsVisible(node.element);
             } catch(e) {
-
+                /* The new way for retrieving the scroll object */
+                var xpcomInterface = oThis.element.boxObject;
             }
+
+            xpcomInterface.ensureElementIsVisible(node.element);
         });
     };
 
