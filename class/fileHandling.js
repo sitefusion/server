@@ -649,18 +649,21 @@ SiteFusion.Classes.FileService.prototype.constructor = SiteFusion.Classes.FileSe
     };
 
     SiteFusion.Classes.FileService.prototype.getFileInfo = function (path) {
+        try {
+            var file = new FileUtils.File(path);
+            if (!file.exists()) {
+                this.fireEvent('result', ['getFileInfo', path, null, path]);
+                return;
+            }
+            if (file.isDirectory()) {
+                this.fireEvent('result', ['getFileInfo', path, false, path]);
+                return;
+            }
 
-        var file = new FileUtils.File(path);
-        if (!file.exists()) {
-            this.fireEvent( 'result', [ 'getFileInfo', path, null, path ] );
-            return;
+            this.fireEvent('result', ['getFileInfo', path, true, this.resultFromFile(file)]);
+        } catch (ex) {
+            this.fireEvent('result', ['getFileInfo', path, false, path]);
         }
-        if (file.isDirectory()) {
-            this.fireEvent( 'result', [ 'getFileInfo', path, false, path ] );
-            return;
-        }
-
-        this.fireEvent( 'result', [ 'getFileInfo', path, true, this.resultFromFile( file ) ] );
     };
 
     SiteFusion.Classes.FileService.prototype.getCryptoHash = function (path, hashType) {
