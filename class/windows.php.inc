@@ -82,8 +82,17 @@ class XULBasicWindow extends BranchNode {
      */
     public function size($width = NULL, $height = NULL) {
         if ($width && $height) {
-            $this->callMethod( 'windowObject.resizeTo', array($width,$height) );
+            $this->callMethod( 'windowObject.resizeTo', array($width, $height) );
         }
+    }
+
+    /**
+     * Moves the window to the specified point
+     * @param integer $x
+     * @param integer $y
+     */
+    public function position($x, $y) {
+        $this->callMethod( 'windowObject.moveTo', array((int) $x, (int) $y) );
     }
 
     /**
