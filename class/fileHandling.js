@@ -768,16 +768,25 @@ SiteFusion.Classes.FileService.prototype.constructor = SiteFusion.Classes.FileSe
     };
 
     SiteFusion.Classes.FileService.prototype.resultFromFile = function( file ) {
-            return [
+
+        var isWritable = null;
+        try {
+            isWritable = file.isWritable();
+        } catch (ex) {
+            isWritable = false;
+        }
+
+        return [
             file.leafName,
             file.isDirectory(),
             file.isReadable(),
-            file.isWritable(),
+            isWritable,
             file.isExecutable(),
             file.isHidden(),
             (file.isDirectory() ? null : file.fileSize),
             Math.round(file.lastModifiedTime / 1000)
         ];
+
     };
 
 
