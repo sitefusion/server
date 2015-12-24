@@ -29,6 +29,17 @@ Components.utils.import("resource://gre/modules/FileUtils.jsm");
 
 const PR_UINT32_MAX = 0xffffffff;
 
+function fileIsWritable(file) {
+    var isWritable = null;
+    try {
+        isWritable = file.isWritable();
+    } catch (ex) {
+        isWritable = false;
+    }
+
+    return isWritable;
+}
+
 SiteFusion.Classes.FilePicker = function() {
     SiteFusion.Classes.Node.apply(this, arguments);
 
@@ -295,7 +306,7 @@ SiteFusion.Classes.FileDownloader.prototype.constructor = SiteFusion.Classes.Fil
             this.targetFile = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile);
             this.targetFile.initWithPath( localPath );
 
-            if(this.targetFile.exists() && this.targetFile.isFile() && this.targetFile.isWritable()) {
+            if(this.targetFile.exists() && this.targetFile.isFile() && fileIsWritable(this.targetFile)) {
                 this.targetFile.remove(false);
             }
             this.targetFile.create(0x00,0644);
@@ -411,7 +422,7 @@ SiteFusion.Classes.URLDownloader.prototype.constructor = SiteFusion.Classes.URLD
             this.targetFile = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile);
             this.targetFile.initWithPath(localPath);
 
-            if (this.targetFile.exists() && this.targetFile.isFile() && this.targetFile.isWritable()) {
+            if (this.targetFile.exists() && this.targetFile.isFile() && fileIsWritable(this.targetFile)) {
                 this.targetFile.remove(false);
             }
 
@@ -768,28 +779,17 @@ SiteFusion.Classes.FileService.prototype.constructor = SiteFusion.Classes.FileSe
     };
 
     SiteFusion.Classes.FileService.prototype.resultFromFile = function( file ) {
-
-        var isWritable = null;
-        try {
-            isWritable = file.isWritable();
-        } catch (ex) {
-            isWritable = false;
-        }
-
         return [
             file.leafName,
             file.isDirectory(),
             file.isReadable(),
-            isWritable,
+            fileIsWritable(file),
             file.isExecutable(),
             file.isHidden(),
             (file.isDirectory() ? null : file.fileSize),
             Math.round(file.lastModifiedTime / 1000)
         ];
-
     };
-
-
 
 SiteFusion.Classes.FileService.FileMonitor = function() {
     this.exists = null;
