@@ -363,6 +363,124 @@ SiteFusion.Classes.FileDownloader.prototype.constructor = SiteFusion.Classes.Fil
         this.fireEvent( 'cancelled', [ this.localPath ] );
     };
 
+SiteFusion.Classes.URLUploader = function() {
+    /* Call parent constructor */
+    SiteFusion.Classes.Node.apply(this, arguments);
+
+    /* Set the class name */
+    this.sfClassName = 'URLUploader';
+
+    /* Call the initialize method */
+    this.initialize.apply(this, arguments);
+};
+SiteFusion.Classes.URLUploader.prototype = Object.create(SiteFusion.Classes.Node.prototype);
+SiteFusion.Classes.URLUploader.prototype.constructor = SiteFusion.Classes.URLUploader;
+
+    SiteFusion.Classes.URLUploader.prototype.initialize = function() {
+        this.element = document.createElement('label');
+        this.setEventHost(['started', 'failed', 'cycle', 'finished', 'cancelled']);
+    };
+
+    SiteFusion.Classes.URLUploader.prototype.startUpload = function(localPath, serverPath, cycleStart) {
+        /* Set the vaules */
+        this.localPath = localPath;
+        this.serverPath = serverPath;
+        this.cycleStart = cycleStart;
+        this.lastCycle = 0;
+        this.cycleCount = 1;
+        this.request = null;
+
+        /* Get the HTTP location */
+        var now = new Date();
+        var HTTPlocation = SiteFusion.Address + '/uploader.php?app=' + SiteFusion.Application + '&args=' + SiteFusion.Arguments;
+        HTTPlocation += '&sid=' + SiteFusion.SID + '&ident=' + SiteFusion.Ident + '&cid=' + this.cid + '&cycle=' + now.getTime();
+
+        try {
+            /* Get the file object */
+            var file = Components.classes["@mozilla.org/file/local;1"].createInstance(Components.interfaces.nsILocalFile);
+            file.initWithPath(localPath);
+
+            /* Set the object */
+            var oThis = this;
+
+            /* Check the file */
+            if (file.exists() && file.isFile()) {
+                /* Create stream object from the input file */
+                var stream = Components.classes["@mozilla.org/network/file-input-stream;1"].createInstance(Components.interfaces.nsIFileInputStream);
+                stream.init(file, 0x04 | 0x08, 0644, 0x04);
+
+                /* Get the mime type */
+                var mimeType = null;
+                try {
+                    var mimeService = Components.classes["@mozilla.org/mime;1"].getService(Components.interfaces.nsIMIMEService);
+                    mimeType = mimeService.getTypeFromFile(file);
+                } catch (oEvent) {
+                    mimeType = 'text/plain';
+                }
+
+                /* Create XML HTTP Request object */
+                this.request = Components.classes["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance(Components.interfaces.nsIXMLHttpRequest);
+
+                /* Set progress event listener */
+                this.request.upload.addEventListener('progress', function(e) {
+                    if (e.lengthComputable) {
+                        var now = Date.now();
+                        if (now - oThis.lastCycle > oThis.cycleStart) {
+                            /* Fire the cycle event */
+                            var percentage = Math.round((e.loaded * 100) / e.total);
+                            oThis.fireEvent('cycle', [e.loaded, e.total, oThis.cycleCount, percentage]);
+
+                            /* Set some settings */
+                            oThis.cycleCount++;
+                            oThis.lastCycle = now;
+                        }
+                    }
+                }, false);
+
+                /* Set load event listener */
+                this.request.upload.addEventListener('load', function(e) {
+                    /* Reset the value */
+                    this.request = null;
+
+                    /* Fire the events */
+                    oThis.fireEvent('cycle', [e.loaded, e.total, oThis.cycleCount, 100]);
+                    oThis.fireEvent('finished', [oThis.localPath, oThis.serverPath]);
+                }, false);
+
+                /* Set error event listener */
+                this.request.upload.addEventListener('error', function(e) {
+                    /* Reset the value */
+                    this.request = null;
+
+                    /* Fire the failed event */
+                    oThis.fireEvent('failed', [oThis.localPath, oThis.serverPath]);
+                }, false);
+
+                /* Send the request */
+                this.request.open('PUT', HTTPlocation, true);
+                this.request.setRequestHeader('Content-Type', mimeType);
+                this.request.send(stream);
+            } else {
+                this.fireEvent('failed', [localPath, serverPath]);
+            }
+        } catch(e) {
+            this.fireEvent('failed', [localPath, serverPath]);
+        }
+    };
+
+    SiteFusion.Classes.URLUploader.prototype.cancelUpload = function() {
+        /* Check of the request exists */
+        if (!this.request) {
+            return false;
+        }
+
+        /* Cancel the request */
+        this.request.abort();
+        this.request = null;
+
+        /* Fire the cancelled event */
+        this.fireEvent('cancelled', [this.localPath, this.serverPath]);
+    }
 
 SiteFusion.Classes.URLDownloader = function() {
     SiteFusion.Classes.Node.apply(this, arguments);
@@ -473,7 +591,6 @@ SiteFusion.Classes.URLDownloader.prototype.constructor = SiteFusion.Classes.URLD
 
         this.fireEvent('cancelled', [this.localPath, this.url]);
     };
-
 
 
 SiteFusion.Classes.FileService = function() {
