@@ -177,7 +177,7 @@ SiteFusion.Classes.PrefService.prototype.constructor = SiteFusion.Classes.PrefSe
             return false;
         }
     };
-    
+
     SiteFusion.Classes.PrefService.prototype.setBoolPref = function(pref, value) {
         this.prefService.setBoolPref(pref, value);
     };
@@ -255,7 +255,7 @@ SiteFusion.Classes.JScriptService.prototype.constructor = SiteFusion.Classes.JSc
                                 window.setTimeout(function(){
                                     codeFile.remove(false);
                                 }, 1000);
-                                
+
                                 if(hasReturnValue) {
                                     window.setTimeout(function(){
                                         exportFile.remove(false);
@@ -296,7 +296,7 @@ SiteFusion.Classes.TerminalCommandService = function() {
 };
 SiteFusion.Classes.TerminalCommandService.prototype = Object.create(SiteFusion.Classes.Node.prototype);
 SiteFusion.Classes.TerminalCommandService.prototype.constructor = SiteFusion.Classes.TerminalCommandService;
-    
+
     SiteFusion.Classes.TerminalCommandService.prototype.initialize = function() {
         Components.utils.import('resource://gre/modules/NetUtil.jsm');
         Components.utils.import('resource://gre/modules/FileUtils.jsm');
@@ -308,7 +308,7 @@ SiteFusion.Classes.TerminalCommandService.prototype.constructor = SiteFusion.Cla
         this.converter = Components.classes['@mozilla.org/intl/scriptableunicodeconverter'].createInstance(Components.interfaces.nsIScriptableUnicodeConverter);
         this.converter.charset = 'UTF-8';
     };
-    
+
     SiteFusion.Classes.TerminalCommandService.prototype.execute = function( code, filenames, id ) {
         var scriptFile = FileUtils.getFile('TmpD', ['SFTC_Temp-' + id +  '.command']);
 
@@ -324,7 +324,7 @@ SiteFusion.Classes.TerminalCommandService.prototype.constructor = SiteFusion.Cla
             }
 
             scriptFile.permissions = 0777;
-            
+
             var args = [scriptFile.path];
 
             var process = Components.classes['@mozilla.org/process/util;1'].createInstance(Components.interfaces.nsIProcess);
@@ -338,9 +338,18 @@ SiteFusion.Classes.TerminalCommandService.prototype.constructor = SiteFusion.Cla
                 var success = (aTopic == 'process-finished');
 
                 for (var i = filenames.length - 1; i >= 0; i--) {
-                    var file = new FileUtils.File(filenames[i]);
-                    if (!file.exists()) {
-                        SiteFusion.consoleMessage('Output file "' + filenames[i] + '" not found!');
+
+                    var filename = filenames[i];
+
+                    var file;
+                    try {
+                        file = new FileUtils.File(filename);
+                    } catch (e) {
+                        file = null;
+                    }
+
+                    if (file == null || !file.exists()) {
+                        SiteFusion.consoleError('Output file "' + filename + '" not found!');
                         outputFiles[i] = false;
                         success = false;
                         continue;
@@ -349,7 +358,7 @@ SiteFusion.Classes.TerminalCommandService.prototype.constructor = SiteFusion.Cla
                     var fstream = Cc['@mozilla.org/network/file-input-stream;1'].createInstance(Ci.nsIFileInputStream);
                     var sstream = Cc['@mozilla.org/scriptableinputstream;1'].createInstance(Ci.nsIScriptableInputStream);
                     fstream.init(file, -1, 0, 0);
-                    sstream.init(fstream); 
+                    sstream.init(fstream);
 
                     var response = '';
                     var str = sstream.read(4096);
@@ -364,10 +373,14 @@ SiteFusion.Classes.TerminalCommandService.prototype.constructor = SiteFusion.Cla
                     outputFiles[i] = response;
 
                     file.remove(false);
+
                 }
 
                 scriptFile.remove(false);
                 oThis.fireEvent('scriptFinished', [id, success, outputFiles]);
+
             });
+
         });
+
     };
