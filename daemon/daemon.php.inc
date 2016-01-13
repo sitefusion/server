@@ -286,6 +286,7 @@ class DaemonProcess extends SiteFusionProcess
 		while(1) {
 			while( pcntl_wait($status, WNOHANG OR WUNTRACED) > 0 ) {
 				usleep( self::$Options['daemonCycleInterval'] );
+				pcntl_signal_dispatch();
 			}
 
 			$appCount = 0;
