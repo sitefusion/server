@@ -180,7 +180,7 @@ class PrefService extends Node {
             $this->prefValues[$key] = $value;
         }
     }
-    
+
     public function setBoolPref($pref, $value) {
         $this->prefTypes[$pref] = "bool";
         $this->prefValues[$pref] = $value;
@@ -217,7 +217,7 @@ class PrefService extends Node {
 
     public function getCharPref($pref) {
         if (isset($this->prefValues[$pref]) && $this->prefTypes[$pref] == "string") {
-            
+
             return $this->prefValues[$pref];
         }
         else
@@ -317,7 +317,7 @@ class TerminalCommandService extends Node
     public function detach() {
         $this->unRegister();
     }
-    
+
     /**
      * Runs a terminal command on the client
      * @param  string $command The bash command to be executed
