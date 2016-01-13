@@ -288,6 +288,7 @@ class DaemonProcess extends SiteFusionProcess
 				usleep( self::$Options['daemonCycleInterval'] );
 				pcntl_signal_dispatch();
 			}
+			pcntl_signal_dispatch();
 
 			$appCount = 0;
 
