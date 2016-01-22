@@ -159,7 +159,7 @@ class DaemonProcess extends SiteFusionProcess
 					self::RemoveChild( $pid );
 			}
 
-			pcntl_wait( $status, WNOHANG OR WUNTRACED );
+			pcntl_wait( $status, WNOHANG | WUNTRACED );
 			usleep( self::$Options['daemonCycleInterval'] );
 		}
 
@@ -284,7 +284,7 @@ class DaemonProcess extends SiteFusionProcess
 
 	static private function MainLoop() {
 		while(1) {
-			while( pcntl_wait($status, WNOHANG OR WUNTRACED) > 0 ) {
+			while( pcntl_wait($status, WNOHANG | WUNTRACED) > 0 ) {
 				usleep( self::$Options['daemonCycleInterval'] );
 				pcntl_signal_dispatch();
 			}
@@ -1102,7 +1102,7 @@ class DaemonProcess extends SiteFusionProcess
 				break;
 
 			case SIGCHLD:
-				$pid = pcntl_waitpid(-1, $status);
+				$pid = pcntl_waitpid(-1, $status, WNOHANG | WUNTRACED);
 
 				if( $pid > 0 && pcntl_wifexited($status) && pcntl_wexitstatus($status) ) {
 					$read = array(STDIN);
