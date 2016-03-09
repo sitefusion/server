@@ -36,7 +36,10 @@ include( '../conf/webfrontend.conf' );
 include( 'functions.php' );
 
 $extension = $_GET['extension'];
-if( strpos($extension,'/') || strpos($extension,"\\") or !file_exists($path = $WEBCONFIG['sitefusionPath'].'/extensions/'.$extension) ) {
+$allowedRoot = realpath($WEBCONFIG['sitefusionPath'].'/extensions');
+$path = realpath($allowedRoot.'/'.$extension);
+
+if (!(substr($path, 0, strlen($allowedRoot)) == $allowedRoot && file_exists($path))) {
 	echo "Invalid extension: $extension";
 	exit(1);
 }
