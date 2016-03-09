@@ -36,9 +36,12 @@ include( '../conf/webfrontend.conf' );
 include( 'functions.php' );
 
 $extension = $_GET['extension'];
-if( strpos($extension,'/') || strpos($extension,"\\") or !file_exists($path = $WEBCONFIG['sitefusionPath'].'/extensions/'.$extension) ) {
-	echo "Invalid extension: $extension";
-	exit(1);
+$allowedRoot = realpath($WEBCONFIG['sitefusionPath'].'/extensions');
+$path = realpath($allowedRoot.'/'.$extension);
+
+if ($path !== FALSE && !(substr($path, 0, strlen($allowedRoot)) == $allowedRoot)) {
+    echo 'Invalid extension: $extension';
+    exit(1);
 }
 
 header( 'Content-type: application/octet-stream' );
