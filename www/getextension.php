@@ -39,9 +39,9 @@ $extension = $_GET['extension'];
 $allowedRoot = realpath($WEBCONFIG['sitefusionPath'].'/extensions');
 $path = realpath($allowedRoot.'/'.$extension);
 
-if (!(substr($path, 0, strlen($allowedRoot)) == $allowedRoot && file_exists($path))) {
-	echo "Invalid extension: $extension";
-	exit(1);
+if ($path !== FALSE && !(substr($path, 0, strlen($allowedRoot)) == $allowedRoot)) {
+    echo 'Invalid extension: $extension';
+    exit(1);
 }
 
 header( 'Content-type: application/octet-stream' );
