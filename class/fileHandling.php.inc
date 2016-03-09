@@ -34,7 +34,7 @@
 
 /**
  * OS-native filepicker dialog
- * 
+ *
  * Opening modes can be one of 'open', 'save', 'getfolder' or 'openmultiple'. This node needs to be
  * added to a window as a child first. Then the open() method can be called, after which the dialog
  * opens. You can set an event handler for the local event 'closed', at which time the property
@@ -53,11 +53,11 @@ class XULFilePicker extends Node {
     public $files = NULL;
     public $returnCode = 'cancel';
     public $selectedFilter = FALSE;
-    
+
 
     /**
      * Constructor
-     * 
+     *
      * @param string    $title          Title for the file picker dialog
      * @param string    $mode           Type of file picker ('open' = open single file, 'save' = save a file, 'getfolder' = select a folder, 'openmultiple' = open multiple files
      * @param string    $defaultString  Default value (file/folder path)
@@ -67,27 +67,27 @@ class XULFilePicker extends Node {
         $this->title = $title;
         $this->defaultString = (string) $defaultString;
         $this->defaultExtension = $defaultExtension;
-        
+
         if ($mode == 'open' || $mode == 'save' || $mode == 'getfolder' || $mode == 'openmultiple') {
             $this->mode = $mode;
         } else {
             throw new SFException( 'Invalid mode', ERR_REPORT_APP );
         }
-        
+
         $this->setEventHandler( 'yield', $this, 'yieldCollect' );
-        
+
         parent::__construct();
     }
-    
+
     public function attach() {
         $this->createRemoteObject( array( $this->hostWindow, $this->title, $this->mode, $this->defaultString, $this->defaultExtension ) );
     }
-    
+
     public function detach() {
         $this->unRegister();
     }
-    
-    
+
+
     /**
      * Opens the file picker
     */
@@ -95,10 +95,10 @@ class XULFilePicker extends Node {
         $this->callMethod( 'open' );
     }
 
-    
+
     /**
      * Adds a file type filter
-     * 
+     *
      * Example: $filePicker->addFilter("Images", "*.jpg; *.gif; *.png; *.");
      *
      * @param string    $description    Description of the filter
@@ -107,10 +107,10 @@ class XULFilePicker extends Node {
     public function addFilter($description, $value) {
         $this->callMethod( 'addFilter', array($description, $value) );
     }
-    
+
     /**
      * Adds a file type systemfilter
-     * 
+     *
      * Example: $filePicker->addSystemFilter("Components.interfaces.nsIFilePicker.filterAll");
      *
      * See: https://developer.mozilla.org/en-US/docs/XPCOM_Interface_Reference/nsIFilePicker#Filter_constants
@@ -119,7 +119,7 @@ class XULFilePicker extends Node {
     public function addSystemFilter($filter) {
         $this->callMethod( 'addSystemFilter', array($filter) );
     }
-    
+
     /**
      * Event handler for the yield event
     */
@@ -130,7 +130,7 @@ class XULFilePicker extends Node {
             $this->selectedFilter['filterName'] = $selectedFilter[0];
             $this->selectedFilter['filterContents'] = explode(';', $selectedFilter[1]);
         }
-            
+
         if ($this->mode == 'openmultiple') {
             $this->files = $path;
             $this->file = NULL;
@@ -140,7 +140,7 @@ class XULFilePicker extends Node {
             $this->files = NULL;
             $this->fireLocalEvent( 'closed', array( $this->returnCode, $this->file ) );
         }
-        
+
         $this->removeNode();
     }
 }
@@ -148,15 +148,15 @@ class XULFilePicker extends Node {
 
 /**
  * Background file uploader
- * 
+ *
  * This class creates an object that uploads a file from the client to the server.
- * Construct it with a source (client) path and destination path. Then call the 
+ * Construct it with a source (client) path and destination path. Then call the
  * method startUpload(). This control fires the
- * event 'finished' when the upload was successful, 'failed' when it went wrong or 
+ * event 'finished' when the upload was successful, 'failed' when it went wrong or
  * 'cancelled' when the upload was cancelled through the cancelUpload() method. It
  * also fires the event 'cycle' for every chunk received, allowing you to keep track
  * of progress.
- * 
+ *
  * @see XULFilePicker
  * @package API
  * @subpackage FileHandling
@@ -170,8 +170,8 @@ class FileUploader extends Node {
     public $clientPath;
     public $uploadedPath = NULL;
     public $remoteConstructor = 'FileUploader';
-    
-    
+
+
     /**
      * Constructor
      *
@@ -185,24 +185,24 @@ class FileUploader extends Node {
         if ($destPath) {
             $this->destPath = $destPath;
         }
-        
+
         parent::__construct();
     }
-    
+
     public function attach() {
         $this->createRemoteObject( array( $this->hostWindow ) );
-        
+
         $this->setEvent( 'cycle', MSG_SEND, $this, 'handleFileChunk' );
         $this->setEvent( 'cancelled', MSG_SEND, $this, 'handleError' );
         $this->setEvent( 'failed', MSG_SEND, $this, 'handleError' );
         $this->setEventType( 'finished', MSG_SEND );
     }
-    
+
     public function detach() {
         $this->unRegister();
     }
-    
-    
+
+
     /**
      * Set the source and destination paths
      *
@@ -213,60 +213,60 @@ class FileUploader extends Node {
         $this->clientPath = $clientPath;
         $this->destPath = $destPath;
     }
-    
-    
+
+
     /**
      * Start the upload
-     * 
+     *
      * Starts the uploader which fires the 'started' event beforehand
     */
     public function startUpload() {
         if (!isset($this->destPath) || !isset($this->clientPath)) {
             throw new SFException( 'No source or destination file path given. Use setPaths()', ERR_REPORT_APP );
         }
-        
+
         $this->callMethod( 'startUpload', array( $this->clientPath ) );
     }
-    
-    
+
+
     /**
      * Cancel a running upload
-     * 
+     *
      * Cancels the uploader which fires the 'cancelled' event
     */
     public function cancelUpload() {
         $this->callMethod( 'cancelUpload' );
     }
-    
-    
+
+
     /**
      * Event handler for the 'failed' and 'cancelled' events
     */
     public function handleError($e, $remotePath) {
         $path = $this->destPath;
-        
+
         if (file_exists($path)) {
             @unlink( $path );
         }
     }
-    
-    
+
+
     /**
      * Event handler for the 'cycle' event
     */
     public function handleFileChunk($e, $filesize, $progress, $cycle, $data) {
         $path = $this->destPath;
-        
+
         if (file_exists($path) && $cycle == 1) {
             @unlink( $path );
         }
-        
+
         $file = fopen( $path, 'a' );
         fwrite( $file, base64_decode($data) );
         fclose( $file );
-        
+
         $this->uploadedPath = $path;
-        
+
         $this->filePath = dirname($path);
         $this->fileName = basename($path);
         clearstatcache();
@@ -278,14 +278,14 @@ class FileUploader extends Node {
 
 /**
  * Background file-to-memory uploader
- * 
+ *
  * This class creates an object that uploads a file from the client to the server memory.
  * Construct it with a source (client) path. Then call the method startUpload(). This control fires the
- * event 'finished' when the upload was successful, 'failed' when it went wrong or 
+ * event 'finished' when the upload was successful, 'failed' when it went wrong or
  * 'cancelled' when the upload was cancelled through the cancelUpload() method. It
  * also fires the event 'cycle' for every chunk received, allowing you to keep track
  * of progress. The resulting file contents are placed in the FileToStringUploader::$data property.
- * 
+ *
  * @see XULFilePicker
  * @package API
  * @subpackage FileHandling
@@ -297,8 +297,8 @@ class FileToStringUploader extends Node {
     public $fileSize = NULL;
     public $clientPath;
     public $remoteConstructor = 'FileUploader';
-    
-    
+
+
     /**
      * Constructor
      *
@@ -308,13 +308,13 @@ class FileToStringUploader extends Node {
         if ($clientPath) {
             $this->clientPath = $clientPath;
         }
-        
+
         parent::__construct();
     }
-    
+
     public function attach() {
         $this->createRemoteObject( array( $this->hostWindow ) );
-        
+
         $this->setEvent( 'cycle', MSG_SEND, $this, 'handleFileChunk' );
         $this->setEvent( 'cancelled', MSG_SEND, $this, 'handleError' );
         $this->setEvent( 'failed', MSG_SEND, $this, 'handleError' );
@@ -324,8 +324,8 @@ class FileToStringUploader extends Node {
     public function detach() {
         $this->unRegister();
     }
-    
-    
+
+
     /**
      * Set the source path
      *
@@ -334,32 +334,32 @@ class FileToStringUploader extends Node {
     public function setSourcePath($clientPath) {
         $this->clientPath = $clientPath;
     }
-    
-    
+
+
     /**
      * Start the upload
-     * 
+     *
      * Starts the uploader which fires the 'started' event beforehand
     */
     public function startUpload() {
         if (!isset($this->clientPath)) {
             throw new SFException( 'No source path given. Use setSourcePath()', ERR_REPORT_APP );
         }
-        
+
         $this->callMethod( 'startUpload', array( $this->clientPath ) );
     }
-    
-    
+
+
     /**
      * Cancel a running upload
-     * 
+     *
      * Cancels the uploader which fires the 'cancelled' event
     */
     public function cancelUpload() {
         $this->callMethod( 'cancelUpload' );
     }
-    
-    
+
+
     /**
      * Event handler for the 'failed' and 'cancelled' events
     */
@@ -368,8 +368,8 @@ class FileToStringUploader extends Node {
         $this->bufferSize = NULL;
         $this->fileSize = NULL;
     }
-    
-    
+
+
     /**
      * Event handler for the 'cycle' event
     */
@@ -377,7 +377,7 @@ class FileToStringUploader extends Node {
         if ($this->data === NULL) {
             $this->data = '';
         }
-        
+
         $this->data .= base64_decode($data);
         $this->bufferSize = strlen( $this->data );
         $this->fileSize = $filesize;
@@ -388,10 +388,10 @@ class FileToStringUploader extends Node {
 
 /**
  * Background file-to-stream uploader
- * 
+ *
  * This class creates an object that uploads a file from the client to a stream on the server.
  * Construct it with a source (client) path and a stream resource. Then call the method startUpload(). This control fires the
- * event 'finished' when the upload was successful, 'failed' when it went wrong or 
+ * event 'finished' when the upload was successful, 'failed' when it went wrong or
  * 'cancelled' when the upload was cancelled through the cancelUpload() method. It
  * also fires the event 'cycle' for every chunk received, allowing you to keep track
  * of progress.
@@ -406,8 +406,8 @@ class FileToStreamUploader extends Node {
     public $fileSize = NULL;
     public $clientPath;
     public $remoteConstructor = 'FileUploader';
-    
-    
+
+
     /**
      * Constructor
      *
@@ -421,13 +421,13 @@ class FileToStreamUploader extends Node {
         if ($stream) {
             $this->setStream( $stream );
         }
-        
+
         parent::__construct();
     }
-    
+
     public function attach() {
         $this->createRemoteObject( array( $this->hostWindow ) );
-        
+
         $this->setEvent( 'cycle', MSG_SEND, $this, 'handleFileChunk' );
         $this->setEvent( 'cancelled', MSG_SEND, $this, 'handleError' );
         $this->setEvent( 'failed', MSG_SEND, $this, 'handleError' );
@@ -437,8 +437,8 @@ class FileToStreamUploader extends Node {
     public function detach() {
         $this->unRegister();
     }
-    
-    
+
+
     /**
      * Set the source path
      *
@@ -447,8 +447,8 @@ class FileToStreamUploader extends Node {
     public function setSourcePath($clientPath) {
         $this->clientPath = $clientPath;
     }
-    
-    
+
+
     /**
      * Set the stream to write to
      *
@@ -458,43 +458,43 @@ class FileToStreamUploader extends Node {
         if (!is_resource($stream)) {
             throw new SFException( 'setStream(): not a stream resource', ERR_REPORT_APP );
         }
-        
+
         $this->stream = $stream;
     }
-    
-    
+
+
     /**
      * Start the upload
-     * 
+     *
      * Starts the uploader which fires the 'started' event beforehand
     */
     public function startUpload() {
         if (!isset($this->clientPath) || !is_resource($this->stream)) {
             throw new SFException( 'No source path given or no stream set. Use setSourcePath() and setStream()', ERR_REPORT_APP );
         }
-        
+
         $this->callMethod( 'startUpload', array( $this->clientPath ) );
     }
-    
-    
+
+
     /**
      * Cancel a running upload
-     * 
+     *
      * Cancels the uploader which fires the 'cancelled' event
     */
     public function cancelUpload() {
         $this->callMethod( 'cancelUpload' );
     }
-    
-    
+
+
     /**
      * Event handler for the 'failed' and 'cancelled' events
     */
     public function handleError($e, $remotePath) {
         $this->fileSize = NULL;
     }
-    
-    
+
+
     /**
      * Event handler for the 'cycle' event
     */
@@ -507,14 +507,14 @@ class FileToStreamUploader extends Node {
 
 /**
  * Background file downloader
- * 
- * This class constructs a node that downloads a file from the server to the client in 
+ *
+ * This class constructs a node that downloads a file from the server to the client in
  * the background. Construct it with the local (server) path as the first argument and
  * the remote (client) path as the second argument, and call startDownload(). This control
  * fires a 'started' event when the download starts, a 'cycle' event periodically with progress
  * information, a 'finished' event when the download is finished and a 'cancelled' event when
  * the download is cancelled.
- * 
+ *
  * @see XULFilePicker
  * @package API
  * @subpackage FileHandling
@@ -526,12 +526,12 @@ class FileDownloader extends Node {
     public $remoteConstructor = 'FileDownloader';
     public $removeAfterTransfer = FALSE;
     public $destPathRelativeToTmp = FALSE;
-    
+
     private $_transferStarted = FALSE;
     private $_transferSize = NULL;
     private $_transferFile = NULL;
-    
-    
+
+
     /**
      * Constructor
      *
@@ -550,19 +550,19 @@ class FileDownloader extends Node {
         $this->destPathRelativeToTmp = $destPathRelativeToTmp;
         parent::__construct();
     }
-    
+
     public function attach() {
         $this->createRemoteObject( array( $this->hostWindow ) );
         $this->setEventType( 'finished', MSG_SEND );
         $this->setEventType( 'cancelled', MSG_SEND );
         $this->setEventType( 'failed', MSG_SEND );
     }
-    
+
     public function detach() {
         $this->unRegister();
     }
-    
-    
+
+
     /**
      * Set the source and destination paths
      *
@@ -573,49 +573,49 @@ class FileDownloader extends Node {
         $this->filePath = $filePath;
         $this->destPath = $destPath;
     }
-    
-    
+
+
     /**
      * Cancel a running download
-     * 
+     *
      * Cancels the downloader which fires the 'cancelled' event
     */
     public function cancelDownload() {
         $this->callMethod( 'cancelDownload' );
     }
-    
-    
+
+
     /**
      * Start the download
-     * 
+     *
      * Starts the downloader which fires the 'started' event beforehand
     */
     public function startDownload() {
         if (!isset($this->destPath) || !isset($this->filePath)) {
             throw new SFException( 'No file path or name given. Use setPaths()', ERR_REPORT_APP );
         }
-        
+
         $this->callMethod( 'startDownload', array( $this->destPath, $this->destPathRelativeToTmp ) );
     }
-    
-    
+
+
     /**
      * [INTERNAL FUNCTION]
      * This function is called by the daemon to start a transfer. It returns an array
      * of two elements, first is a string with the MIME content-type of the data, and
      * second is a integer number containing the size in bytes of the transfer.
-     * 
+     *
      * @return array    Transfer descriptives
     */
     public function transferStart() {
         $this->_transferStarted = TRUE;
         $this->_transferSize = filesize($this->filePath);
         $this->_transferFile = fopen( $this->filePath, 'r' );
-        
+
         return array( 'application/octet-stream', $this->_transferSize );
     }
-    
-    
+
+
     /**
      * [INTERNAL FUNCTION]
      * This function is called by the daemon to get (a piece of) data of a transfer.
@@ -626,11 +626,11 @@ class FileDownloader extends Node {
         if (!$this->_transferStarted) {
             throw new SFException( 'File transfer not started!' );
         }
-        
+
         echo fread( $this->_transferFile, 8192 );
     }
-    
-    
+
+
     /**
      * [INTERNAL FUNCTION]
      * This function is called by the daemon when all data has been transferred.
@@ -641,7 +641,7 @@ class FileDownloader extends Node {
         $this->_transferStarted = FALSE;
         $this->_transferSize = NULL;
         $this->_transferFile = NULL;
-        
+
         if ($this->removeAfterTransfer) {
             unlink( $this->filePath );
         }
@@ -651,14 +651,14 @@ class FileDownloader extends Node {
 
 /**
  * Background file-from-memory downloader
- * 
- * This class constructs a node that downloads from server memory to a file on the client in 
+ *
+ * This class constructs a node that downloads from server memory to a file on the client in
  * the background. Construct it with the remote (client) destination path as the first argument and
  * the data string as the second, then call startDownload(). This control
  * fires a 'started' event when the download starts, a 'cycle' event periodically with progress
  * information, a 'finished' event when the download is finished and a 'cancelled' event when
  * the download is cancelled.
- * 
+ *
  * @see XULFilePicker
  * @package API
  * @subpackage FileHandling
@@ -669,10 +669,10 @@ class FileFromStringDownloader extends Node {
     public $data = NULL;
     public $dataPos = NULL;
     public $remoteConstructor = 'FileDownloader';
-    
+
     private $_transferStarted = FALSE;
     private $_transferSize = NULL;
-    
+
     /**
      * Constructor
      *
@@ -686,22 +686,22 @@ class FileFromStringDownloader extends Node {
         if ($data !== NULL) {
             $this->data = (string) $data;
         }
-        
+
         parent::__construct();
     }
-    
+
     public function attach() {
         $this->createRemoteObject( array( $this->hostWindow ) );
         $this->setEventType( 'finished', MSG_SEND );
         $this->setEventType( 'cancelled', MSG_SEND );
         $this->setEventType( 'failed', MSG_SEND );
     }
-    
+
     public function detach() {
         $this->unRegister();
     }
-    
-    
+
+
     /**
      * Set the destination path
      *
@@ -710,8 +710,8 @@ class FileFromStringDownloader extends Node {
     public function setDestinationPath($destPath) {
         $this->destPath = $destPath;
     }
-    
-    
+
+
     /**
      * Set the data to store in the file
      *
@@ -720,49 +720,49 @@ class FileFromStringDownloader extends Node {
     public function setData($data) {
         $this->data = (string) $data;
     }
-    
-    
+
+
     /**
      * Cancel a running download
-     * 
+     *
      * Cancels the downloader which fires the 'cancelled' event
     */
     public function cancelDownload() {
         $this->callMethod( 'cancelDownload' );
     }
-    
-    
+
+
     /**
      * Start the download
-     * 
+     *
      * Starts the downloader which fires the 'started' event beforehand
     */
     public function startDownload() {
         if (!isset($this->destPath)) {
             throw new SFException( 'No destination path. Use setDestinationPath()', ERR_REPORT_APP );
         }
-        
+
         $this->callMethod( 'startDownload', array( $this->destPath, ($this->data == NULL)) );
     }
-    
-    
+
+
     /**
      * [INTERNAL FUNCTION]
      * This function is called by the daemon to start a transfer. It returns an array
      * of two elements, first is a string with the MIME content-type of the data, and
      * second is a integer number containing the size in bytes of the transfer.
-     * 
+     *
      * @return array    Transfer descriptives
     */
     public function transferStart() {
         $this->_transferStarted = TRUE;
         $this->_transferSize = strlen($this->data);
         $this->dataPos = 0;
-        
+
         return array( 'application/octet-stream', $this->_transferSize );
     }
-    
-    
+
+
     /**
      * [INTERNAL FUNCTION]
      * This function is called by the daemon to get (a piece of) data of a transfer.
@@ -773,12 +773,12 @@ class FileFromStringDownloader extends Node {
         if (!$this->_transferStarted) {
             throw new SFException( 'File transfer not started!' );
         }
-        
+
         echo substr( $this->data, $this->dataPos, ($len = min(8192,$this->_transferSize-$this->dataPos)) );
         $this->dataPos += $len;
     }
-    
-    
+
+
     /**
      * [INTERNAL FUNCTION]
      * This function is called by the daemon when all data has been transferred.
@@ -796,14 +796,14 @@ class FileFromStringDownloader extends Node {
 
 /**
  * Background file-from-stream downloader
- * 
- * This class constructs a node that downloads from a stream resource on the server to a file on the client in 
+ *
+ * This class constructs a node that downloads from a stream resource on the server to a file on the client in
  * the background. Construct it with the remote (client) destination path as the first argument,
  * the data stream as the second and the amount of bytes to read as the third, then call startDownload(). This control
  * fires a 'started' event when the download starts, a 'cycle' event periodically with progress
  * information, a 'finished' event when the download is finished and a 'cancelled' event when
  * the download is cancelled.
- * 
+ *
  * @see XULFilePicker
  * @package API
  * @subpackage FileHandling
@@ -815,11 +815,11 @@ class FileFromStreamDownloader extends Node {
     public $length = NULL;
     public $dataPos = NULL;
     public $remoteConstructor = 'FileDownloader';
-    
+
     private $_transferStarted = FALSE;
     private $_transferSize = NULL;
-    
-    
+
+
     /**
      * Constructor
      *
@@ -834,22 +834,22 @@ class FileFromStreamDownloader extends Node {
         if ($stream !== NULL) {
             $this->setStream( $stream, (int) $length );
         }
-        
+
         parent::__construct();
     }
-    
+
     public function attach() {
         $this->createRemoteObject( array( $this->hostWindow ) );
         $this->setEventType( 'finished', MSG_SEND );
         $this->setEventType( 'cancelled', MSG_SEND );
         $this->setEventType( 'failed', MSG_SEND );
     }
-    
+
     public function detach() {
         $this->unRegister();
     }
-    
-    
+
+
     /**
      * Set the destination path
      *
@@ -858,8 +858,8 @@ class FileFromStreamDownloader extends Node {
     public function setDestinationPath($destPath) {
         $this->destPath = $destPath;
     }
-    
-    
+
+
     /**
      * Set the stream to read from
      *
@@ -870,53 +870,53 @@ class FileFromStreamDownloader extends Node {
         if (!is_resource($stream)) {
             throw new SFException( 'setStream(): not a stream resource', ERR_REPORT_APP );
         }
-        
+
         $this->stream = $stream;
         $this->length = (int) $length;
     }
-    
-    
+
+
     /**
      * Cancel a running download
-     * 
+     *
      * Cancels the downloader which fires the 'cancelled' event
     */
     public function cancelDownload() {
         $this->callMethod( 'cancelDownload' );
     }
-    
-    
+
+
     /**
      * Start the download
-     * 
+     *
      * Starts the downloader which fires the 'started' event beforehand
     */
     public function startDownload() {
         if ((!isset($this->destPath)) || $this->data === NULL) {
             throw new SFException( 'No destination path or data. Use setDestinationPath() and setData()', ERR_REPORT_APP );
         }
-        
+
         $this->callMethod( 'startDownload', array( $this->destPath ) );
     }
-    
-    
+
+
     /**
      * [INTERNAL FUNCTION]
      * This function is called by the daemon to start a transfer. It returns an array
      * of two elements, first is a string with the MIME content-type of the data, and
      * second is a integer number containing the size in bytes of the transfer.
-     * 
+     *
      * @return array    Transfer descriptives
     */
     public function transferStart() {
         $this->_transferStarted = TRUE;
         $this->_transferSize = $this->length;
         $this->dataPos = 0;
-        
+
         return array( 'application/octet-stream', $this->_transferSize );
     }
-    
-    
+
+
     /**
      * [INTERNAL FUNCTION]
      * This function is called by the daemon to get (a piece of) data of a transfer.
@@ -927,12 +927,12 @@ class FileFromStreamDownloader extends Node {
         if (!$this->_transferStarted) {
             throw new SFException( 'File transfer not started!' );
         }
-        
+
         echo fread( $this->stream, ($len = min(8192,$this->_transferSize-$this->dataPos)) );
         $this->dataPos += $len;
     }
-    
-    
+
+
     /**
      * [INTERNAL FUNCTION]
      * This function is called by the daemon when all data has been transferred.
@@ -946,15 +946,103 @@ class FileFromStreamDownloader extends Node {
     }
 }
 
+class URLUploader extends Node {
+
+    public $remoteConstructor = 'URLUploader';
+
+    public $localPath = NULL;
+    public $serverPath = NULL;
+    public $cycleStart = 500;
+
+    private $_transferStarted = FALSE;
+    private $_transferFile = NULL;
+
+    public function __construct($localPath = NULL, $serverPath = NULL, $cycleStart = NULL) {
+        /* Set the local path */
+        if (!empty($localPath)) {
+            $this->localPath = $localPath;
+        }
+
+        /* Set the url */
+        if (!empty($serverPath)) {
+            $this->serverPath = $serverPath;
+        }
+
+        /* Set the url */
+        if (!empty($cycleStart)) {
+            $this->cycleStart = $cycleStart;
+        }
+
+        /* Load the parent constructor */
+        parent::__construct();
+    }
+
+    public function attach() {
+        $this->createRemoteObject(array($this->hostWindow));
+        $this->setEventType('cycle', MSG_SEND);
+        $this->setEventType('failed', MSG_SEND);
+        $this->setEventType('finished', MSG_SEND);
+        $this->setEventType('cancelled', MSG_SEND);
+    }
+
+    public function detach() {
+        $this->unRegister();
+    }
+
+    public function setPaths($localPath, $serverPath) {
+        $this->localPath = $localPath;
+        $this->serverPath = $serverPath;
+    }
+
+    public function startUpload() {
+        /* Check the local path and url */
+        if (empty($this->localPath) || empty($this->serverPath)) {
+            throw new SFException('No local path or server path given. Use setPaths()', ERR_REPORT_APP);
+        }
+
+        /* Start the upload */
+        $this->callMethod('startUpload', array($this->localPath, $this->serverPath, intval($this->cycleStart)));
+    }
+
+    public function cancelUpload() {
+         $this->callMethod('cancelUpload');
+    }
+
+    public function transferStart() {
+        $this->_transferStarted = TRUE;
+        $this->_transferFile = fopen($this->serverPath, 'w');
+    }
+
+    public function transferSetData($data) {
+        /* Check the transfer state */
+        if (!$this->_transferStarted) {
+            throw new SFException('File transfer not started!');
+        }
+
+        /* Write the file */
+        fwrite($this->_transferFile, $data);
+    }
+
+    public function transferEnd() {
+        /* Close the file */
+        fclose($this->_transferFile);
+
+        /* Reset the values */
+        $this->_transferStarted = FALSE;
+        $this->_transferFile = NULL;
+    }
+}
+
+
 /**
  * Background url downloader
- * 
- * This class constructs a node that downloads a file from url to the client in 
+ *
+ * This class constructs a node that downloads a file from url to the client in
  * the background. Construct it with the url as the first argument and
  * the remote (client) path as the second argument, and call startDownload(). This control
- * fires a 'started' event when the download starts, a 'finished' event when the download 
+ * fires a 'started' event when the download starts, a 'finished' event when the download
  * is finished and a 'cancelled' event when the download is cancelled.
- * 
+ *
  * @see XULFilePicker
  * @package API
  * @subpackage FileHandling
@@ -965,7 +1053,7 @@ class URLDownloader extends Node {
 
     public $url = NULL;
     public $destPath = NULL;
-    
+
     /**
      * Constructor
      *
@@ -983,18 +1071,18 @@ class URLDownloader extends Node {
 
         parent::__construct();
     }
-    
+
     public function attach() {
         $this->createRemoteObject(array($this->hostWindow));
         $this->setEventType('failed', MSG_SEND);
         $this->setEventType('finished', MSG_SEND);
         $this->setEventType('cancelled', MSG_SEND);
     }
-    
+
     public function detach() {
         $this->unRegister();
     }
-    
+
     /**
      * Set the source and destination paths
      *
@@ -1005,11 +1093,11 @@ class URLDownloader extends Node {
         $this->url = $url;
         $this->destPath = $destPath;
     }
-    
-    
+
+
     /**
      * Cancel a running download
-     * 
+     *
      * Cancels the downloader which fires the 'cancelled' event
     */
     public function cancelDownload() {
@@ -1018,14 +1106,14 @@ class URLDownloader extends Node {
 
     /**
      * Start the download
-     * 
+     *
      * Starts the downloader which fires the 'started' event beforehand
     */
     public function startDownload() {
         if (empty($this->url) || empty($this->destPath)) {
             throw new SFException('No URL or path given. Use setPaths()', ERR_REPORT_APP);
         }
-        
+
         $this->callMethod('startDownload', array($this->destPath, $this->url));
     }
 }
@@ -1033,7 +1121,7 @@ class URLDownloader extends Node {
 
 /**
  * Client filesystem service
- * 
+ *
  * This class is used to access the client filesystem, to read and write
  * to directories and files, to run executables and to monitor files.
  * All operations are asynchronous, meaning that the call will not block
@@ -1069,16 +1157,16 @@ class ClientFileService extends Node {
         $this->createRemoteObject( array( $this->hostWindow ) );
         $this->setEvent( 'result', MSG_SEND, $this, 'onResult' );
     }
-    
+
     public function detach() {
         $this->callMethod( 'cancelAllMonitors' );
         $this->unRegister();
     }
-    
-    
+
+
     /**
      * Gets the contents of a directory
-     * 
+     *
      * The handler receives these parameters:
      * - ClientFileService $fileService - this object
      * - bool $status: indicates whether the operation was successful
@@ -1092,11 +1180,11 @@ class ClientFileService extends Node {
         $this->_handlersList[$path] = array( $handlerObj, $handlerMethod );
         $this->callMethod( 'getDirectory', array( $path, TRUE ) );
     }
-    
+
 
     /**
      * Gets the contents of a special directory
-     * 
+     *
      * The handler receives these parameters:
      * - ClientFileService $fileService: this object
      * - bool $status: indicates whether the operation was successful
@@ -1112,11 +1200,11 @@ class ClientFileService extends Node {
         $this->_handlersList[$id] = array( $handlerObj, $handlerMethod );
         $this->callMethod( 'getSpecialDirectory', array( $id, $retrieveContents ) );
     }
-    
-    
+
+
     /**
      * Creates the directory
-     * 
+     *
      * The handler receives these parameters:
      * - ClientFileService $fileService - this object
      * - bool $status: indicates whether the operation was successful
@@ -1130,11 +1218,11 @@ class ClientFileService extends Node {
         $this->_handlersCreateDirectory[$path] = ($handlerObj&&$handlerMethod ? array( $handlerObj, $handlerMethod ) : NULL);
         $this->callMethod( 'createDirectory', array( $path ) );
     }
-    
-    
+
+
     /**
      * Copies a file from server to client
-     * 
+     *
      * Returns the FileDownloader object to allow progress checking. The handler is attached to the 'finished', 'failed' and 'cancelled' events
      * of the FileDownloader.
      *
@@ -1156,14 +1244,14 @@ class ClientFileService extends Node {
         $fdn->setEventHandler( 'failed', $this, 'onDownloaderFinished' );
         $fdn->setEventHandler( 'cancelled', $this, 'onDownloaderFinished' );
         $fdn->startDownload();
-        
+
         return $fdn;
     }
-    
-    
+
+
     /**
      * Stores a string in a file on the client side
-     * 
+     *
      * Returns the FileFromStringDownloader object to allow progress checking. The handler is attached to the 'finished', 'failed' and 'cancelled' events
      * of the FileFromStringDownloader.
      *
@@ -1184,14 +1272,14 @@ class ClientFileService extends Node {
         $fdn->setEventHandler( 'failed', $this, 'onDownloaderFinished' );
         $fdn->setEventHandler( 'cancelled', $this, 'onDownloaderFinished' );
         $fdn->startDownload();
-        
+
         return $fdn;
     }
-    
-    
+
+
     /**
      * Stores data read from a stream in a file on the client side
-     * 
+     *
      * Returns the FileFromStreamDownloader object to allow progress checking. The handler is attached to the 'finished', 'failed' and 'cancelled' events
      * of the FileFromStringDownloader.
      *
@@ -1213,11 +1301,11 @@ class ClientFileService extends Node {
         $fdn->setEventHandler( 'failed', $this, 'onDownloaderFinished' );
         $fdn->setEventHandler( 'cancelled', $this, 'onDownloaderFinished' );
         $fdn->startDownload();
-        
+
         return $fdn;
     }
-    
-    
+
+
     /**
      * [INTERNAL FUNCTION] Event handler
     */
@@ -1226,11 +1314,11 @@ class ClientFileService extends Node {
             $event->sourceObject->removeNode();
         }
     }
-    
-    
+
+
     /**
      * Copies a file from client to server
-     * 
+     *
      * Returns the FileUploader object to allow progress checking. The handler is attached to the 'finished', 'failed' and 'cancelled' events
      * of the FileUploader.
      *
@@ -1251,14 +1339,14 @@ class ClientFileService extends Node {
         $fup->setEventHandler( 'failed', $this, 'onUploaderFinished' );
         $fup->setEventHandler( 'cancelled', $this, 'onUploaderFinished' );
         $fup->startUpload();
-        
+
         return $fup;
     }
-    
-    
+
+
     /**
      * Reads a file on the client side to a string
-     * 
+     *
      * Returns the FileToStringUploader object to allow progress checking. The handler is attached to the 'finished', 'failed' and 'cancelled' events
      * of the FileToStringUploader. The file contents are put in the FileToStringUploader::$data property
      *
@@ -1278,14 +1366,14 @@ class ClientFileService extends Node {
         $fup->setEventHandler( 'failed', $this, 'onUploaderFinished' );
         $fup->setEventHandler( 'cancelled', $this, 'onUploaderFinished' );
         $fup->startUpload();
-        
+
         return $fup;
     }
-    
-    
+
+
     /**
      * Reads a file on the client side and writes it to a stream resource on the server
-     * 
+     *
      * Returns the FileToStreamUploader object to allow progress checking. The handler is attached to the 'finished', 'failed' and 'cancelled' events
      * of the FileToStreamUploader.
      *
@@ -1306,11 +1394,11 @@ class ClientFileService extends Node {
         $fup->setEventHandler( 'failed', $this, 'onUploaderFinished' );
         $fup->setEventHandler( 'cancelled', $this, 'onUploaderFinished' );
         $fup->startUpload();
-        
+
         return $fup;
     }
-    
-    
+
+
     /**
      * [INTERNAL FUNCTION] Event handler
     */
@@ -1319,11 +1407,11 @@ class ClientFileService extends Node {
             $event->sourceObject->removeNode();
         }
     }
-    
-    
+
+
     /**
      * Removes the directory
-     * 
+     *
      * The handler receives these parameters:
      * - ClientFileService $fileService - this object
      * - bool $status: indicates whether the operation was successful
@@ -1338,11 +1426,11 @@ class ClientFileService extends Node {
         $this->_handlersRemoveDirectory[$clientPath] = ($handlerObj&&$handlerMethod ? array( $handlerObj, $handlerMethod ) : NULL);
         $this->callMethod( 'removeDirectory', array( $clientPath, (bool) $recursive ) );
     }
-    
-    
+
+
     /**
      * Removes the file
-     * 
+     *
      * The handler receives these parameters:
      * - ClientFileService $fileService - this object
      * - bool $status: indicates whether the operation was successful
@@ -1356,11 +1444,11 @@ class ClientFileService extends Node {
         $this->_handlersRemoveFile[$clientPath] = ($handlerObj&&$handlerMethod ? array( $handlerObj, $handlerMethod ) : NULL);
         $this->callMethod( 'removeFile', array( $clientPath ) );
     }
-    
-    
+
+
     /**
      * Starts monitoring the file
-     * 
+     *
      * The handler receives these parameters when the file is created, removed or changed:
      * - ClientFileService $fileService - this object
      * - string $path: the remote path
@@ -1376,15 +1464,15 @@ class ClientFileService extends Node {
         if (isset($this->_handlersMonitorFile[$clientPath])) {
             throw new SFException( "Path $clientPath is already being monitored!", ERR_REPORT_APP );
         }
-        
+
         $this->_handlersMonitorFile[$clientPath] = array( $handlerObj, $handlerMethod );
         $this->callMethod( 'monitorFile', array( $clientPath ) );
     }
 
-    
+
     /**
      * Cancel monitoring the file
-     * 
+     *
      * @param string        $clientPath         The path on the client side to stop monitoring monitor
      */
     public function cancelMonitorFile ($clientPath) {
@@ -1392,20 +1480,20 @@ class ClientFileService extends Node {
         unset($this->_handlersMonitorFile[$clientPath]);
     }
 
-    
+
     /**
      * Cancel all file monitors
-     * 
+     *
      */
     public function cancelAllMonitors () {
         $this->callMethod( 'cancelAllMonitors');
         $this->_handlersMonitorFile = array();
     }
-    
+
 
     /**
      * Executes the file
-     * 
+     *
      * The handler receives these parameters:
      * - ClientFileService $fileService - this object
      * - bool $status: indicates whether the operation was successful
@@ -1422,10 +1510,10 @@ class ClientFileService extends Node {
         $this->callMethod( 'executeFile', array( $clientPath, count($args) ? $args : NULL, $async ) );
     }
 
-    
+
     /**
      * Open the file with the native protocol handler for given file
-     * 
+     *
      * The handler receives these parameters:
      * - ClientFileService $fileService - this object
      * - string $path: the remote path
@@ -1436,10 +1524,10 @@ class ClientFileService extends Node {
         $this->callMethod( 'openFileWithNativeProtocolHandler', array( $clientPath ));
     }
 
-    
+
     /**
      * Open the file with the native protocol handler for given file
-     * 
+     *
      * The handler receives these parameters:
      * - ClientFileService $fileService - this object
      * - string $path: the remote path
@@ -1450,7 +1538,7 @@ class ClientFileService extends Node {
         $this->callMethod( 'openURIWithNativeProtocolHandler', array( $uri ));
     }
 
-    
+
     /**
      * Retreives the file info for a specific file
      *
@@ -1569,7 +1657,7 @@ class ClientFileService extends Node {
                 } else {
                     $dirFile = NULL;
                 }
-                
+
                 if (isset($this->_handlersList[$id]) && is_array($this->_handlersList[$id])) {
                     call_user_func_array( $this->_handlersList[$id], array($this,$status,$dirFile) );
                 }
@@ -1585,7 +1673,7 @@ class ClientFileService extends Node {
                     $dirFile = NULL;
                 }
                 if (isset($this->_handlersCreateDirectory[$id]) && is_array($this->_handlersCreateDirectory[$id])) {
-                    
+
                     call_user_func_array( $this->_handlersCreateDirectory[$id], array($this,$status,$dirFile) );
                 }
             break;
@@ -1594,7 +1682,7 @@ class ClientFileService extends Node {
                 $path = array_shift( $args );
 
                 if (isset($this->_handlersRemoveDirectory[$id]) && is_array($this->_handlersRemoveDirectory[$id])) {
-                    
+
                     call_user_func_array( $this->_handlersRemoveDirectory[$id], array($this,$status,$path));
                 }
             break;
@@ -1603,7 +1691,7 @@ class ClientFileService extends Node {
                 $path = array_shift( $args );
 
                 if (isset($this->_handlersRemoveFile[$id]) && is_array($this->_handlersRemoveFile[$id])) {
-                    
+
                     call_user_func_array( $this->_handlersRemoveFile[$id], array($this,$status,$path));
                 }
             break;
@@ -1616,7 +1704,7 @@ class ClientFileService extends Node {
                 list($status) = $args;
 
                 if (isset($this->_handlersExecuteFile[$id]) && is_array($this->_handlersExecuteFile[$id])) {
-                    
+
                     call_user_func_array( $this->_handlersExecuteFile[$id], array($this,$status));
                 }
             break;
@@ -1630,7 +1718,7 @@ class ClientFileService extends Node {
             case 'getCryptoHash':
                 $status = array_shift( $args );
                 $hash = array_shift( $args );
-                
+
                 if (isset($this->_handlersGetCryptoHash[$id]) && is_array($this->_handlersGetCryptoHash[$id])) {
                     call_user_func_array( $this->_handlersGetCryptoHash[$id], array($this, $id, $status, $hash));
                 }
@@ -1638,7 +1726,7 @@ class ClientFileService extends Node {
             case 'renameFile':
                 $status = array_shift( $args );
                 $newFile = array_shift( $args );
-                
+
                 if (isset($this->_handlersRenameFile[$id]) && is_array($this->_handlersRenameFile[$id])) {
                     call_user_func_array( $this->_handlersRenameFile[$id], array($this, $status, $newFile));
                 }
@@ -1646,7 +1734,7 @@ class ClientFileService extends Node {
             case 'copyFile':
                 $status = array_shift( $args );
                 $newFile = array_shift( $args );
-                
+
                 if (isset($this->_handlersCopyFile[$id]) && is_array($this->_handlersCopyFile[$id])) {
                     call_user_func_array( $this->_handlersCopyFile[$id], array($this, $status, $newFile));
                 }
@@ -1705,7 +1793,7 @@ class ClientFileService extends Node {
 
 /**
  * Client filesystem class structure representing files (ClientFile) and directories (ClientDirectory) on the client side
- * 
+ *
  * These classes form the object representation of the filesystem of the client and can be created from the
  * methods ClientFileService::getDirectory(), ClientFileService::getSpecialDirectory() and ClientFileService::createDirectory().
  *
@@ -1736,11 +1824,11 @@ class ClientFile extends ClientBaseFile {
 
     public $isDirectory = FALSE;
     public $size;
-    
-    
+
+
     /**
      * Copies a file from server to client
-     * 
+     *
      * Returns the FileDownloader object to allow progress checking. The handler is attached to the 'finished', 'failed' and 'cancelled' events
      * of the FileDownloader.
      *
@@ -1752,11 +1840,11 @@ class ClientFile extends ClientBaseFile {
     public function write($localPath, $handlerObj = NULL, $handlerMethod = NULL) {
         return $this->fileService->writeFile( $localPath, $this->path, $handlerObj, $handlerMethod );
     }
-    
-    
+
+
     /**
      * Copies a file from client to server
-     * 
+     *
      * Returns the FileUploader object to allow progress checking. The handler is attached to the 'finished', 'failed' and 'cancelled' events
      * of the FileUploader.
      *
@@ -1768,11 +1856,11 @@ class ClientFile extends ClientBaseFile {
     public function read($localPath, $handlerObj = NULL, $handlerMethod = NULL) {
         return $this->fileService->readFile( $this->path, $localPath, $handlerObj, $handlerMethod );
     }
-    
-    
+
+
     /**
      * Stores a string in a file on the client side
-     * 
+     *
      * Returns the FileFromStringDownloader object to allow progress checking. The handler is attached to the 'finished', 'failed' and 'cancelled' events
      * of the FileFromStringDownloader.
      *
@@ -1784,11 +1872,11 @@ class ClientFile extends ClientBaseFile {
     public function writeFromString($data, $handlerObj = NULL, $handlerMethod = NULL) {
         return $this->fileService->writeFileFromString( $this->path, $data, $handlerObj, $handlerMethod );
     }
-    
-    
+
+
     /**
      * Reads a file on the client side to a string
-     * 
+     *
      * Returns the FileToStringUploader object to allow progress checking. The handler is attached to the 'finished', 'failed' and 'cancelled' events
      * of the FileToStringUploader. The file contents are put in the FileToStringUploader::$data property
      *
@@ -1799,11 +1887,11 @@ class ClientFile extends ClientBaseFile {
     public function readToString($handlerObj = NULL, $handlerMethod = NULL) {
         return $this->fileService->readFileToString( $this->path, $handlerObj, $handlerMethod );
     }
-    
-    
+
+
     /**
      * Read from a stream and write to a file on the client side
-     * 
+     *
      * Returns the FileFromStreamDownloader object to allow progress checking. The handler is attached to the 'finished', 'failed' and 'cancelled' events
      * of the FileFromStreamDownloader.
      *
@@ -1816,11 +1904,11 @@ class ClientFile extends ClientBaseFile {
     public function writeFromStream($stream, $length, $handlerObj = NULL, $handlerMethod = NULL) {
         return $this->fileService->writeFileFromStream( $this->path, $stream, $length, $handlerObj, $handlerMethod );
     }
-    
-    
+
+
     /**
      * Reads a file on the client side to a stream
-     * 
+     *
      * Returns the FileToStreamUploader object to allow progress checking. The handler is attached to the 'finished', 'failed' and 'cancelled' events
      * of the FileToStreamUploader.
      *
@@ -1835,7 +1923,7 @@ class ClientFile extends ClientBaseFile {
 
     /**
      * Removes the file
-     * 
+     *
      * The handler receives these parameters:
      * - ClientFileService $fileService - this object
      * - bool $status: indicates whether the operation was successful
@@ -1847,11 +1935,11 @@ class ClientFile extends ClientBaseFile {
     public function remove($handlerObj = NULL, $handlerMethod = NULL) {
         $this->fileService->removeFile( $this->path, $handlerObj, $handlerMethod );
     }
-    
-    
+
+
     /**
      * Starts monitoring the file
-     * 
+     *
      * The handler receives these parameters when the file is created, removed or changed:
      * - ClientFileService $fileService - this object
      * - string $path: the remote path
@@ -1866,10 +1954,10 @@ class ClientFile extends ClientBaseFile {
         $this->fileService->monitorFile( $this->path, $handlerObj, $handlerMethod );
     }
 
-    
+
     /**
      * Executes the file
-     * 
+     *
      * The handler receives these parameters:
      * - ClientFileService $fileService - this object
      * - bool $status: indicates whether the operation was successful
@@ -1968,11 +2056,11 @@ class ClientDirectory extends ClientBaseFile {
 
     public $isDirectory = TRUE;
     public $entries = array();
-    
-    
+
+
     /**
      * Returns a new ClientDirectory representing a new directory in the current one
-     * 
+     *
      * @param string        $dirName        The directory name to append to the current path
      * @return ClientDirectory  The (new or existing) directory
     */
@@ -1984,7 +2072,7 @@ class ClientDirectory extends ClientBaseFile {
                 throw new SFException( "$dirName is a file", ERR_REPORT_APP );
             }
         }
-        
+
         $file = new ClientDirectory;
         $file->fileService = $this->fileService;
         $file->path = $this->path.$this->fileService->getDirSeparator().$dirName;
@@ -1992,11 +2080,11 @@ class ClientDirectory extends ClientBaseFile {
         $file->exists = FALSE;
         return $file;
     }
-    
-    
+
+
     /**
      * Returns a new ClientFile representing a new file in the current directory
-     * 
+     *
      * @param string        $fileName       The filename to append to the current path
      * @return ClientFile   The (new or existing) file
     */
@@ -2008,7 +2096,7 @@ class ClientDirectory extends ClientBaseFile {
                 throw new SFException( "$fileName is a directory", ERR_REPORT_APP );
             }
         }
-        
+
         $file = new ClientFile;
         $file->fileService = $this->fileService;
         $file->path = $this->path.$this->fileService->getDirSeparator().$fileName;
@@ -2016,11 +2104,11 @@ class ClientDirectory extends ClientBaseFile {
         $file->exists = FALSE;
         return $file;
     }
-    
-    
+
+
     /**
      * Creates the directory
-     * 
+     *
      * The handler receives these parameters:
      * - ClientFileService $fileService - this object
      * - bool $status: indicates whether the operation was successful
@@ -2032,11 +2120,11 @@ class ClientDirectory extends ClientBaseFile {
     public function create($handlerObj = NULL, $handlerMethod = NULL) {
         $this->fileService->createDirectory( $this->path, $handlerObj, $handlerMethod );
     }
-    
-    
+
+
     /**
      * Gets the contents of a directory
-     * 
+     *
      * The handler receives these parameters:
      * - ClientFileService $fileService - this object
      * - bool $status: indicates whether the operation was successful
@@ -2048,11 +2136,11 @@ class ClientDirectory extends ClientBaseFile {
     public function get($handlerObj, $handlerMethod) {
         $this->fileService->getDirectory( $this->path, $handlerObj, $handlerMethod );
     }
-    
-    
+
+
     /**
      * Removes the directory
-     * 
+     *
      * The handler receives these parameters:
      * - ClientFileService $fileService - this object
      * - bool $status: indicates whether the operation was successful
