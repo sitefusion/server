@@ -428,11 +428,13 @@ class DaemonProcess extends SiteFusionProcess
         }
 
         try {
+
             $quoteChar = self::GetDatabaseColumnEscapeCharacter();
-            $columns = array('id', 'type', 'ident', 'user', 'app', 'args', 'client_ip', 'port', 'pid');
+            $columns = array('id', 'type', 'ident', 'user', 'app', 'args', 'client_ip', 'port', 'pid', 'memory', 'memory_peak', 'nodes');
             $columnString = $quoteChar . implode($quoteChar.','.$quoteChar, $columns) . $quoteChar;
 
             self::DatabaseQuery('INSERT INTO ' . self::$Database->tblProcesses . ' (' . $columnString . ') VALUES (?,?,?,?,?,?,?,?,?,?,?,?)', array($param->sid, $param->type, $param->ident, $param->user, $param->app, $param->args, $param->ip, $child->port, $child->pid, 0, 0, 0));
+
         }
         catch ( Exception $ex ) {
             self::$Database = NULL;
