@@ -427,7 +427,7 @@ class DaemonProcess extends SiteFusionProcess
         }
 
         try {
-            self::DatabaseQuery('INSERT INTO ' . self::$Database->tblProcesses . ' (id, type, ident, user, app, args, client_ip, port, pid) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)', array($param->sid, $param->type, $param->ident, $param->user, $param->app, $param->args, $param->ip, $child->port, $child->pid, 0, 0, 0));
+            self::DatabaseQuery('INSERT INTO ' . self::$Database->tblProcesses . ' (id, type, ident, user, app, args, client_ip, port, pid, memory, memory_peak, nodes) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)', array($param->sid, $param->type, $param->ident, $param->user, $param->app, $param->args, $param->ip, $child->port, $child->pid, 0, 0, 0));
         }
         catch ( Exception $ex ) {
             self::$Database = NULL;
