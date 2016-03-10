@@ -1134,6 +1134,313 @@ class DaemonProcess extends SiteFusionProcess
 
 /**
  * @package Daemon
+ * @subpackage Process
+*/
+
+class SiteFusionProcess
+{
+    static protected $Options;
+    static protected $Socket;
+    static protected $Database;
+    static protected $Log = FALSE;
+    static protected $Address;
+    static protected $Port;
+    static protected $Daemonized = FALSE;
+    static protected $Shutdown = FALSE;
+    static protected $ShutdownKill = FALSE;
+    static protected $ProcessType = NULL;
+
+
+    protected function __construct() {}
+
+    static protected function OpenLog() {
+        try {
+            if(! file_exists( self::$Options['logfile'] ) ) {
+                touch( self::$Options['logfile'] );
+                if( self::$Options['changeIdentity'] ) {
+                    chown( self::$Options['logfile'], self::$Options['systemUser'] );
+                    chmod( self::$Options['logfile'], 0664 );
+                }
+            }
+
+            if(! self::$Log = fopen( self::$Options['logfile'], 'a' ) ) {
+                echo 'Unable to open logfile '.self::$Options['logfile'] . ' for writing, exiting...' . PHP_EOL;
+                return FALSE;
+            }
+        }
+        catch( SFException $ex ) {
+            echo $ex->getMessage() . PHP_EOL;
+            return FALSE;
+        }
+
+        return TRUE;
+    }
+
+    static protected function Log( $text ) {
+        if (!self::$Daemonized) {
+            echo $text . PHP_EOL;
+        }
+        if (self::$Log) {
+            fwrite( self::$Log, date('d-m-Y H:i:s: ').$text.PHP_EOL );
+        }
+    }
+
+    static protected function GetDatabaseConnection() {
+        $tries = 0;
+        //construct DSN for fallback mysql settings
+        $dsn = (self::$Options['databaseDSN'] ? self::$Options['databaseDSN'] : 'mysql:host='.self::$Options['databaseHost'].';dbname='.self::$Options['databaseName']);
+
+        $username = self::$Options['databaseUsername'];
+        $password  = self::$Options['databasePassword'];
+
+        while( $tries++ <= self::$Options['databaseFailureRetries'] ) {
+            try {
+                self::$Database = new PDO($dsn, $username, $password);
+            }
+            catch ( PDOException $ex ) {
+                self::$Database = NULL;
+                throw new SFException( 'Database connection failed (code: '.$ex->getCode().'): ' . $ex->getMessage() );
+            }
+            self::$Database->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+            if( ! self::$Database ) {
+                self::Log( 'Database connection failed, retry '.$tries.' in '.self::$Options['databaseFailureRetryInterval'].'ms' );
+                usleep( self::$Options['databaseFailureRetryInterval'] * 1000 );
+            }
+            else {
+                break;
+            }
+        }
+        //prepare table names
+        self::$Database->tblProcesses = 'processes';
+        self::$Database->tblJobs = 'jobs';
+        self::$Database->tblServices = 'services';
+    }
+
+    static protected function InitDatabase() {
+        self::GetDatabaseConnection();
+
+        try {
+            self::DatabaseQuery( 'DELETE FROM '.self::$Database->tblProcesses);
+        }
+        catch (PDOException $ex ) {
+            throw new SFException( 'Failed to truncate table \'processes\' (code: '.$ex->getCode().'): '. $ex->getMessage() );
+        }
+    }
+
+    static protected function CloseDatabase() {
+        if( ! self::$Database ) {
+            self::GetDatabaseConnection();
+        }
+
+        try {
+            self::DatabaseQuery( 'DELETE FROM '.self::$Database->tblProcesses);
+        }
+        catch (PDOException $ex ) {
+            throw new SFException( 'Failed to truncate table \'processes\' (code: '.$ex->getCode().'): '. $ex->getMessage() );
+        }
+    }
+
+    static protected function ResetDatabase() {
+        try {
+            //http://stackoverflow.com/questions/1046614/do-sql-connections-opened-with-pdo-in-php-have-to-be-closed
+            self::$Database = NULL;
+        }
+        catch ( SFException $ex ) {
+
+        }
+
+        self::GetDatabaseConnection();
+    }
+
+    static protected function DatabaseQuery( $sql, $args=NULL ) {
+        $execSucceeded = FALSE;
+        $statement = self::$Database->prepare($sql);
+        if (!$statement) {
+            throw new SFException( 'Database query preparation error for query: ' . $sql);
+        }
+        $execSucceeded = (($args && is_array($args))  ? $statement->execute($args) : $statement->execute());
+
+        if( !$execSucceeded ) {
+            self::GetDatabaseConnection();
+            $execSucceeded = (($args && is_array($args))  ? $statement->execute($args) : $statement->execute());
+        }
+
+        return $statement;
+    }
+
+    static protected function OpenSocket( $address, $port ) {
+        if (($sock = socket_create(AF_INET, SOCK_STREAM, SOL_TCP)) === FALSE) {
+            throw new SFException( 'socket_create() failed: reason: ' . socket_strerror(socket_last_error()) );
+        }
+
+        $bound = FALSE;
+
+        while( !$bound ) {
+            try {
+                if (socket_bind($sock, $address, $port) === FALSE) {
+                    throw new SFException( 'socket_bind() failed: reason: ' . socket_strerror(socket_last_error($sock)) );
+                }
+                $bound = TRUE;
+            }
+            catch ( SFException $ex ) {
+                sleep(1);
+            }
+        }
+
+        if (socket_listen($sock, 5) === FALSE) {
+            throw new SFException( 'socket_listen() failed: reason: ' . socket_strerror(socket_last_error($sock)) );
+        }
+
+        socket_set_nonblock($sock);
+
+        return $sock;
+    }
+
+    static protected function OpenUnixSocket( $address ) {
+        if (($sock = socket_create(AF_UNIX, SOCK_STREAM, 0)) === FALSE) {
+            throw new SFException( 'socket_create() failed: reason: ' . socket_strerror(socket_last_error()) );
+        }
+
+        $bound = FALSE;
+
+        while( !$bound ) {
+            try {
+                if (socket_bind($sock, $address) === FALSE) {
+                    throw new SFException( 'socket_bind() failed: reason: ' . socket_strerror(socket_last_error($sock)) );
+                }
+                $bound = TRUE;
+            }
+            catch ( SFException $ex ) {
+                sleep(1);
+            }
+        }
+
+        if (socket_listen($sock, 5) === FALSE) {
+            throw new SFException( 'socket_listen() failed: reason: ' . socket_strerror(socket_last_error($sock)) );
+        }
+
+        socket_set_nonblock($sock);
+
+        return $sock;
+    }
+
+    static protected function SetSignalHandlers() {
+        pcntl_signal( SIGHUP, array( 'SiteFusionProcess', 'SignalHandler' ) );
+        pcntl_signal( SIGTERM, array( 'SiteFusionProcess', 'SignalHandler' ) );
+        pcntl_signal( SIGINT, array( 'SiteFusionProcess', 'SignalHandler' ) );
+        pcntl_signal( SIGCHLD, array( 'SiteFusionProcess', 'SignalHandler' ) );
+    }
+
+    static public function SignalHandler( $signo ) {
+        switch ( $signo ) {
+            case SIGHUP:
+                break;
+
+            case SIGINT:
+            case SIGTERM:
+                self::$Shutdown = TRUE;
+                break;
+
+            case SIGCHLD:
+                pcntl_waitpid(-1, $status);
+                break;
+        }
+    }
+
+    static public function ChangeIdentity( $user = NULL, $group = NULL ) {
+        if( ! (($ginfo = posix_getgrnam( $group = ($group !== NULL ? $group : DaemonProcess::$Options['systemGroup']) )) && posix_setgid( $ginfo['gid'] )) ) {
+            self::Log( 'Cannot change identity to group '.$group );
+        }
+
+        if( ! (($uinfo = posix_getpwnam( $user = ($user !== NULL ? $user : DaemonProcess::$Options['systemUser']) )) && posix_setuid( $uinfo['uid'] )) ) {
+            self::Log( 'Cannot change identity to user '.$user );
+        }
+    }
+
+    static protected function WriteCommand( $socket, $cmd, $param = NULL, $data = NULL ) {
+        if(! is_array($param) ) {
+            $param = array();
+        }
+
+        if( $data !== NULL ) {
+            $param['DATALENGTH'] = strlen($data);
+        }
+
+        $msg = $cmd;
+
+        foreach ( $param as $key => $val ) {
+            if (is_array($val)) {
+                continue;
+            }
+            $msg .= ' '.$key.'='.$val;
+        }
+
+        $msg .= "\n";
+
+        if( socket_write( $socket, $msg, strlen($msg) ) === FALSE ) {
+            throw new SFException( 'WriteCommand: socket_write() failed: '.socket_strerror(socket_last_error($socket)) );
+        }
+        if( $data !== NULL ) {
+            if( socket_write( $socket, $data, strlen($data) ) === FALSE ) {
+                throw new SFException( 'WriteCommand: socket_write() failed: '.socket_strerror(socket_last_error($socket)) );
+            }
+        }
+    }
+
+    static protected function ReadCommand( $socket ) {
+        $cmddata = socket_read( $socket, 4096, PHP_NORMAL_READ );
+
+        if( $cmddata === FALSE ) {
+            throw new SFException( 'ReadCommand: socket_read() failed: '.socket_strerror(socket_last_error($socket)) );
+        }
+
+        $data = NULL;
+        $cmd = explode( ' ', rtrim($cmddata) );
+
+        $ret = new StdClass;
+        $ret->command = array_shift( $cmd );
+
+        foreach ( $cmd as $param ) {
+            list($key,$val) = explode( '=', $param );
+            $ret->{$key} = $val;
+        }
+
+        if( isset($ret->DATALENGTH) ) {
+            $dl = (int) $ret->DATALENGTH;
+
+            $data = '';
+            while( strlen($data) < $dl ) {
+                $sbuf = socket_read( $socket, min($dl-strlen($data),2048), PHP_BINARY_READ );
+                if( $sbuf === FALSE ) {
+                    if( socket_last_error($socket) != 35 ) {
+                        throw new SFException( 'ReadCommand: socket_read() failed: '.socket_strerror(socket_last_error($socket)) );
+                    }
+                }
+                $data .= $sbuf;
+            }
+        }
+
+        $ret->data = $data;
+
+        return $ret;
+    }
+
+    /**
+     * Easy access method to get the escape character for columns in DB queries.
+     * Needed with the new PostGreSQL update, for now just checks for pgsql
+     * @return string Either a double-qoute or tick depending on the database engine
+     */
+    static protected function GetDatabaseColumnEscapeCharacter() {
+        global $SFCONFIG;
+        return (strpos($SFCONFIG['databaseDSN'], 'pgsql') === 0 ? '"' : '`');
+    }
+
+}
+
+
+/**
+ * @package Daemon
  * @subpackage Master
 */
 
