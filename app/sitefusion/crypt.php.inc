@@ -1,7 +1,7 @@
 <?php
 
 function hash_password($password) {
-    $salt = hex2bin("29738b2bc5ec631dc6c18b6f7bbac0");
+    $salt = pack("H*" , "29738b2bc5ec631dc6c18b6f7bbac0");
     return compat_pbkdf2("sha256", $password, $salt, 1000, 20);
 }
 
