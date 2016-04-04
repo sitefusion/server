@@ -87,6 +87,9 @@ function getConnection($address, $port) {
 }
 
 try {
+    /* Set unlimited execution time */
+    set_time_limit(0);
+
     /* Send the start command */
     $socket = getConnection($address, $port);
     WriteCommand($socket, 'WRITE', array('cid' => $cid, 'action' => 'start'));
