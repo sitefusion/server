@@ -61,7 +61,7 @@ try {
 
     /* Check the session */
     $dbSession = GetSessionFromSID($sid, $dbUsername, $dbPassword, $dbDSN, $dbHost, $dbName);
-    if ($dbSession['ident'] != $ident) {
+    if (!is_array($dbSession) || $dbSession['ident'] != $ident) {
         throw new Exception('Not authorized');
     }
 
