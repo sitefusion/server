@@ -33,12 +33,12 @@
 include( '../conf/webfrontend.conf' );
 include( 'functions.php' );
 
-$sid = isset($_GET['sid']) ? $_GET['sid'] : NULL;
-if (!$sid) {
-	throw new Exception( 'Not authorized' );
-}
-
 try {
+	$sid = isset($_GET['sid']) ? $_GET['sid'] : NULL;
+	if (!$sid) {
+		throw new Exception( 'Not authorized' );
+	}
+	
 	$dbDSN = (isset($WEBCONFIG['databaseDSN']) ? $WEBCONFIG['databaseDSN'] : NULL);
 	$dbHost = (isset($WEBCONFIG['databaseHost']) ? $WEBCONFIG['databaseHost'] : NULL);
 	$dbName = (isset($WEBCONFIG['databaseName']) ? $WEBCONFIG['databaseName'] : NULL);
@@ -47,7 +47,7 @@ try {
 	
 	$dbSession = $dbSession = GetSessionFromSID($sid, $dbUsername, $dbPassword, $dbDSN, $dbHost, $dbName);
 	
-	if( $dbSession['ident'] != $_GET['ident'] )
+	if( !is_array($dbSession) || $_GET['ident'] == '' || $dbSession['ident'] != $_GET['ident'] )
 		throw new Exception( 'Not authorized' );
 }
 catch ( Exception $ex ) {

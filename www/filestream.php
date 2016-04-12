@@ -49,7 +49,7 @@ try {
 
 	$dbSession = $dbSession = GetSessionFromSID($sid, $dbUsername, $dbPassword, $dbDSN, $dbHost, $dbName);
 	
-	if( $dbSession['ident'] != $_GET['ident'] )
+	if( !is_array($dbSession) || $_GET['ident'] == '' || $dbSession['ident'] != $_GET['ident'] )
 		throw new Exception( 'Not authorized' );
 	
 	$port = (int) $dbSession['port'];
