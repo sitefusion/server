@@ -76,7 +76,7 @@ class ServiceProcess extends ExtendedSiteFusionProcess
 
 		if( preg_match( '/[^a-zA-Z0-9_\-\/]/', $path ) || (! file_exists(self::$Options['sitefusionPath'].'/app/' . $path . '.service.php.inc')) ) {
 			self::Log( 'Service does not exist: ' . $path);
-			self::DatabaseQuery('DELETE FROM `' . self::$Options['databaseName'] . '`.`services` WHERE `id` = ' . intval($serviceId));
+			self::DatabaseQuery('DELETE FROM services WHERE id = ' . intval($serviceId));
 			exit();
 		}
 
@@ -357,7 +357,7 @@ class ServiceProcess extends ExtendedSiteFusionProcess
 		if( !self::$Service )
 			return;
 
-		self::DatabaseQuery( "UPDATE `".self::$Options['databaseName']."`.`processes` SET `memory` = ".memory_get_usage().", `memory_peak` = ".memory_get_peak_usage()." WHERE `id` = '".self::$SessionID."' LIMIT 1" );
+		self::DatabaseQuery( "UPDATE processes SET memory = ".memory_get_usage().", memory_peak = ".memory_get_peak_usage()." WHERE id = '".self::$SessionID."' LIMIT 1" );
 	}
 }
 
