@@ -67,7 +67,7 @@ try {
     for ($n = 0; $n < 20; $n++) {
         $dbSession = $dbSession = GetSessionFromSID($sid, $dbUsername, $dbPassword, $dbDSN, $dbHost, $dbName);
         if (empty($dbSession['ident'])) {
-            usleep(200);    
+            usleep(200);
         } else {
             break;
         }
@@ -84,51 +84,52 @@ catch ( Exception $ex ) {
 
 try {
     $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
-    if ($socket === false)
+    if ($socket === FALSE) {
         throw new Exception( "socket_create() failed: reason: " . socket_strerror(socket_last_error()) );
+    }
 
     $result = socket_connect($socket, $WEBCONFIG['address'], $port );
-    if ($result === false)
+    if ($result === FALSE) {
         throw new Exception( "socket_connect() failed.\nReason: ($result) " . socket_strerror(socket_last_error($socket)) );
-}
-catch ( Exception $ex ) {
-    ReturnError( 'server_offline', $ex->getMessage() );
+    }
+} catch (Exception $ex) {
+    ReturnError('server_offline', $ex->getMessage());
 }
 
 try {
-    WriteCommand( $socket, 'COMM', NULL, $content );
-
-    $cmd = ReadCommand( $socket );
+    WriteCommand($socket, 'COMM', NULL, $content);
+    $cmd = ReadCommand($socket);
     socket_close($socket);
-}
-catch ( Exception $ex ) {
-    // Give the daemon some time to collect error output
-    usleep( 500000 );
-    
+} catch (Exception $ex) {
+    /* Give the daemon some time to collect error output */
+    usleep(500000);
+
     try {
         $socket = @socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
-        if ($socket === false)
-            throw new Exception( "socket_create() failed: reason: " . socket_strerror(socket_last_error()) );
+        if ($socket === FALSE) {
+            throw new Exception('socket_create() failed: reason: ' . socket_strerror(socket_last_error()));
+        }
 
-        $result = @socket_connect($socket, $WEBCONFIG['address'], $WEBCONFIG['port'] );
-        if ($result === false)
-            throw new Exception( "socket_connect() failed.\nReason: ($result) " . socket_strerror(socket_last_error($socket)) );
-        
-        WriteCommand( $socket, 'GETERROR', array( 'clientid' => $_GET['clientid'] ) );
-        $cmd = ReadCommand( $socket );
-        
-        if( $cmd->found )
-            ReturnError( 'php_error', $cmd->data );
-        else
-            ReturnError( 'php_error', 'webfrontend comm: ReadCommand failed' );
-    }
-    catch ( Exception $ex ) {
-        ReturnError( 'unspecified_error', $ex->getMessage() );
+        $result = @socket_connect($socket, $WEBCONFIG['address'], $WEBCONFIG['port']);
+        if ($result === FALSE) {
+            throw new Exception("socket_connect() failed.\nReason: ($result) " . socket_strerror(socket_last_error($socket)));
+        }
+
+        WriteCommand($socket, 'GETERROR', array('clientid' => $_GET['clientid']));
+        $cmd = ReadCommand($socket);
+
+        if ($cmd->found) {
+            ReturnError('php_error', $cmd->data);
+        } else {
+            ReturnError('php_error', 'webfrontend comm: ReadCommand failed');
+        }
+    } catch (Exception $ex) {
+        ReturnError('unspecified_error', $ex->getMessage());
     }
 }
 
-if( substr($cmd->data,-16) != '"EXEC_COMPLETE";' )
-    ReturnError( 'php_error', $cmd->data );
-else
-    ReturnResult( $cmd->data );
-
+if (substr($cmd->data,-16) != '"EXEC_COMPLETE";') {
+    ReturnError('php_error', $cmd->data);
+} else {
+    ReturnResult($cmd->data);
+}

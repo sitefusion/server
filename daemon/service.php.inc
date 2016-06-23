@@ -234,26 +234,26 @@ class ServiceProcess extends ExtendedSiteFusionProcess
 			$read = array( self::$Socket );
 			$write = NULL;
 			$except = NULL;
-			if( socket_select( $read, $write, $except, 0, self::$Options['daemonCycleInterval'] ) > 0 ) {
+			if( @socket_select( $read, $write, $except, 0, self::$Options['daemonCycleInterval'] ) > 0 ) {
 				$client = socket_accept( self::$Socket );
 			}
 			else {
 				return NULL;
 			}
-		}
-		catch( SFException $ex ) {
-			//self::Log( 'PollForClient: ' . $ex->getMessage() );
+		} catch(SFException $ex) {
 			return FALSE;
 		}
+
 		return $client;
 	}
 
 	static private function CloseClient( $client ) {
 		if( ($index = array_search( $client, self::$Clients, TRUE )) !== FALSE ) {
 			try {
-				socket_close( self::$Clients[$index] );
+				@socket_close(self::$Clients[$index]);
+			} catch (SFException $ex) {
+
 			}
-			catch ( SFException $ex ) {}
 
 			self::$Clients[$index]->connected = FALSE;
 			self::$Service->handleCall( '__disconnect', array( self::$Clients[$index] ) );

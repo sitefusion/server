@@ -477,6 +477,7 @@ class DaemonProcess extends SiteFusionProcess
                 if( self::$Options['debug'] ) {
                     try { unlink( self::$Options['runtimeDirectory'] . '/debug' . $child->pid . '.sock' ); } catch( SFException $ex ) {}
                 }
+
                 self::Log( "Application ended ($child->sessionId) at port $child->port with [pid: $child->pid], [application: $child->app], [args: $child->args], [user: $child->user], [ip: $child->ip]" );
                 break;
 
@@ -1046,20 +1047,18 @@ class DaemonProcess extends SiteFusionProcess
 
     static private function PollForClient() {
         try {
-            $read = array( self::$Socket );
+            $read = array(self::$Socket);
             $write = NULL;
             $except = NULL;
-            if( socket_select( $read, $write, $except, 0, self::$Options['daemonCycleInterval'] ) > 0 ) {
-                $client = socket_accept( self::$Socket );
-            }
-            else {
+            if (@socket_select( $read, $write, $except, 0, self::$Options['daemonCycleInterval'] ) > 0) {
+                $client = socket_accept(self::$Socket);
+            } else {
                 return NULL;
             }
-        }
-        catch( SFException $ex ) {
-            //self::Log( 'PollForClient: ' . $ex->getMessage() );
+        } catch(SFException $ex) {
             return FALSE;
         }
+
         return $client;
     }
 
@@ -1150,39 +1149,25 @@ class SiteFusionProcess
     static protected $ShutdownKill = FALSE;
     static protected $ProcessType = NULL;
 
-
     protected function __construct() {}
 
     static protected function OpenLog() {
         try {
-            if(! file_exists( self::$Options['logfile'] ) ) {
+            if (!file_exists( self::$Options['logfile'])) {
                 touch( self::$Options['logfile'] );
-                if( self::$Options['changeIdentity'] ) {
-                    chown( self::$Options['logfile'], self::$Options['systemUser'] );
-                    chmod( self::$Options['logfile'], 0664 );
+                if (self::$Options['changeIdentity']) {
+                    chown(self::$Options['logfile'], self::$Options['systemUser']);
+                    chmod(self::$Options['logfile'], 0664);
                 }
             }
 
-            if(! self::$Log = fopen( self::$Options['logfile'], 'a' ) ) {
-                echo 'Unable to open logfile '.self::$Options['logfile'] . ' for writing, exiting...' . PHP_EOL;
-                return FALSE;
-            }
-        }
-        catch( SFException $ex ) {
+            self::$Log = TRUE;
+        } catch (SFException $ex) {
             echo $ex->getMessage() . PHP_EOL;
             return FALSE;
         }
 
         return TRUE;
-    }
-
-    static protected function Log( $text ) {
-        if (!self::$Daemonized) {
-            echo $text . PHP_EOL;
-        }
-        if (self::$Log) {
-            fwrite( self::$Log, date('d-m-Y H:i:s: ').$text.PHP_EOL );
-        }
     }
 
     static protected function GetDatabaseConnection() {
@@ -1348,6 +1333,16 @@ class SiteFusionProcess
         }
     }
 
+    static protected function Log($text) {
+        if (!self::$Daemonized) {
+            echo $text . PHP_EOL;
+        }
+
+        if (self::$Log) {
+            file_put_contents(self::$Options['logfile'], date('d-m-Y H:i:s') . ': ' . $text . PHP_EOL, FILE_APPEND | LOCK_EX);
+        }
+    }
+
     static public function ChangeIdentity( $user = NULL, $group = NULL ) {
         if( ! (($ginfo = posix_getgrnam( $group = ($group !== NULL ? $group : DaemonProcess::$Options['systemGroup']) )) && posix_setgid( $ginfo['gid'] )) ) {
             self::Log( 'Cannot change identity to group '.$group );
@@ -1356,6 +1351,10 @@ class SiteFusionProcess
         if( ! (($uinfo = posix_getpwnam( $user = ($user !== NULL ? $user : DaemonProcess::$Options['systemUser']) )) && posix_setuid( $uinfo['uid'] )) ) {
             self::Log( 'Cannot change identity to user '.$user );
         }
+    }
+
+    static public function GetProcessType() {
+        return self::$ProcessType;
     }
 
     static protected function WriteCommand( $socket, $cmd, $param = NULL, $data = NULL ) {
@@ -1378,20 +1377,20 @@ class SiteFusionProcess
 
         $msg .= "\n";
 
-        if( socket_write( $socket, $msg, strlen($msg) ) === FALSE ) {
+        if( @socket_write( $socket, $msg, strlen($msg) ) === FALSE ) {
             throw new SFException( 'WriteCommand: socket_write() failed: '.socket_strerror(socket_last_error($socket)) );
         }
+
         if( $data !== NULL ) {
-            if( socket_write( $socket, $data, strlen($data) ) === FALSE ) {
+            if(@socket_write( $socket, $data, strlen($data) ) === FALSE ) {
                 throw new SFException( 'WriteCommand: socket_write() failed: '.socket_strerror(socket_last_error($socket)) );
             }
         }
     }
 
     static protected function ReadCommand( $socket ) {
-        $cmddata = socket_read( $socket, 4096, PHP_NORMAL_READ );
-
-        if( $cmddata === FALSE ) {
+        $cmddata = @socket_read( $socket, 4096, PHP_NORMAL_READ );
+        if ($cmddata === FALSE) {
             throw new SFException( 'ReadCommand: socket_read() failed: '.socket_strerror(socket_last_error($socket)) );
         }
 
@@ -1411,7 +1410,7 @@ class SiteFusionProcess
 
             $data = '';
             while( strlen($data) < $dl ) {
-                $sbuf = socket_read( $socket, min($dl-strlen($data),2048), PHP_BINARY_READ );
+                $sbuf = @socket_read( $socket, min($dl-strlen($data),2048), PHP_BINARY_READ );
                 if( $sbuf === FALSE ) {
                     if( socket_last_error($socket) != 35 ) {
                         throw new SFException( 'ReadCommand: socket_read() failed: '.socket_strerror(socket_last_error($socket)) );
@@ -1434,6 +1433,19 @@ class SiteFusionProcess
     static protected function GetDatabaseColumnEscapeCharacter() {
         global $SFCONFIG;
         return (strpos($SFCONFIG['databaseDSN'], 'pgsql') === 0 ? '"' : '`');
+    }
+
+    static public function GetOption($name) {
+        $protected = array(
+            'databaseUsername',
+            'databasePassword'
+        );
+
+        if (in_array($name, $protected) || !isset(self::$Options[$name])) {
+            return NULL;
+        }
+
+        return self::$Options[$name];
     }
 
 }
