@@ -95,29 +95,49 @@ if (version_compare(phpversion(), '7.0.0', '>=')) {
         if (class_exists('ApplicationProcess')) {
             $parentType = ApplicationProcess::GetProcessType();
             if ($parentType === NULL) {
-                if (class_exists('ServiceProcess')) {
-                    $parentType = ServiceProcess::GetProcessType();
-                    if ($parentType === NULL) {
-                        if (class_exists('DaemonProcess')) {
-                            $parentType = DaemonProcess::GetProcessType();
-                            if ($parentType !== NULL) {
-                                $logfile = DaemonProcess::GetOption('logfile');
-                            }
-                        }
-                    } else {
-                        $logfile = ServiceProcess::GetOption('logfile');
+                if (class_exists('DaemonProcess')) {
+                    $parentType = DaemonProcess::GetProcessType();
+                    if ($parentType !== NULL) {
+                        $logfile = DaemonProcess::GetOption('logfile');
                     }
                 }
             } else {
                 $logfile = ApplicationProcess::GetOption('logfile');
             }
+        } elseif (class_exists('ServiceProcess')) {
+            $parentType = ServiceProcess::GetProcessType();
+            if ($parentType === NULL) {
+                if (class_exists('DaemonProcess')) {
+                    $parentType = DaemonProcess::GetProcessType();
+                    if ($parentType !== NULL) {
+                        $logfile = DaemonProcess::GetOption('logfile');
+                    }
+                }
+            } else {
+                $logfile = ServiceProcess::GetOption('logfile');
+            }
+        } elseif (class_exists('DaemonProcess')) {
+            $parentType = DaemonProcess::GetProcessType();
+            if ($parentType !== NULL) {
+                $logfile = DaemonProcess::GetOption('logfile');
+            }
+        }
+
+        /* Get the message */
+        if ($ex instanceof SFException) {
+            $message = $ex->getFormattedReport();
+        } else {
+            $message = $ex;
         }
 
         /* Check if logfile and parent type is not NULL */
         if ($logfile !== NULL && $parentType !== NULL && file_exists($logfile)) {
-            $text = date('d-m-Y H:i:s') . ': ' . $parentType . ': ' . $ex . PHP_EOL;
+            $text = date('d-m-Y H:i:s') . ': ' . $message . PHP_EOL;
             file_put_contents($logfile, $text, FILE_APPEND | LOCK_EX);
         }
+
+        /* Show the message */
+        echo $message . PHP_EOL;
     }
 
     set_exception_handler('exceptionHandler');
