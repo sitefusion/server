@@ -287,38 +287,40 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 	}
 
 	static private function ListenToParent() {
-		while( 1 ) {
+		while(1) {
 			$read = array(self::$ParentSocket,self::$EventPipe);
 			$write = NULL;
 			$except = NULL;
 
 			try {
-				if( socket_select($read, $write, $except, 0) < 1 )
+				if (@socket_select($read, $write, $except, 0) < 1) {
 					return;
-			}
-			catch ( SFException $ex ) {
+				}
+			} catch (SFException $ex) {
 				return;
 			}
 
-			if( count($read) ) {
-				foreach ( $read as $socket ) {
+			if (count($read)) {
+				foreach ($read as $socket) {
 					try {
-						$cmd = self::ReadCommand( $socket );
-
-						switch ( $cmd->command ) {
-							case 'EVENT': self::HandleEvent( $cmd ); break;
-							case 'MESSAGE': self::HandleMessage( $cmd ); break;
+						$cmd = self::ReadCommand($socket);
+						switch ($cmd->command) {
+							case 'EVENT':
+								self::HandleEvent($cmd);
+							break;
+							case 'MESSAGE':
+								self::HandleMessage($cmd);
+							break;
+						}
+					} catch (SFException $ex) {
+						if (self::$ConnectedDebugger) {
+							throw $ex;
 						}
 					}
-					catch ( SFException $ex ) {
-						if( self::$ConnectedDebugger )
-							throw $ex;
-
-						self::Log('Uncaught Exception in application ('.self::$SessionID.'): ' . $ex->getFormattedReport());
-					}
 				}
+			} else {
+				return;
 			}
-			else return;
 		}
 	}
 
