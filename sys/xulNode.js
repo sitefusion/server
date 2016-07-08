@@ -48,7 +48,7 @@ SiteFusion.Classes.Node = function() {
 
     SiteFusion.Classes.Node.prototype.setEventHost = function( events, exclude ) {
         this.eventHost = {};
-        
+
         for( var n = 0; n < SiteFusion.Comm.XULEvents.length; n++ ) {
             this.createEvent( SiteFusion.Comm.XULEvents[n] );
 
@@ -87,7 +87,7 @@ SiteFusion.Classes.Node = function() {
 
     SiteFusion.Classes.Node.prototype.setEventListener = function( evt ) {
         var xulEvt = (SiteFusion.Comm.XULEvents.indexOf(evt) != -1);
-        
+
         if( ! xulEvt ) return;
         if( this.eventHost[evt].noAutoBind ) return;
 
@@ -100,7 +100,7 @@ SiteFusion.Classes.Node = function() {
     SiteFusion.Classes.Node.prototype.setEventType = function( evt, type ) {
         if( this.eventHost[evt] === null )
             SiteFusion.Error( 'Widget ' + this.sfClassName + ' does not support event ' + evt );
-        
+
         this.eventHost[evt].msgType = type;
 
         var oThis = this;
@@ -110,7 +110,7 @@ SiteFusion.Classes.Node = function() {
     SiteFusion.Classes.Node.prototype.setEventBlocking = function( evt, blocking ) {
         if( this.eventHost[evt] === null )
             SiteFusion.Error( 'Widget ' + this.sfClassName + ' does not support event ' + evt );
-        
+
         this.eventHost[evt].blocking = blocking;
     };
 
@@ -118,7 +118,7 @@ SiteFusion.Classes.Node = function() {
         var obj = event.currentTarget;
 
         if( ! obj.sfNode ) return;
-        
+
         var tr = obj.sfNode.fireEvent( event );
         return tr;
     };
@@ -126,15 +126,15 @@ SiteFusion.Classes.Node = function() {
     SiteFusion.Classes.Node.prototype.fireEvent = function( e, args ) {
         var event = typeof(e) == 'string' ? null:e;
         var eventName = typeof(e) == 'string' ? e:e.type;
-        
+
         if( this.eventHost[eventName] === null )
             SiteFusion.Error( 'Widget ' + this.sfClassName + ' does not support event ' + e );
 
         var sfEvent = this.eventHost[eventName];
-        
+
         if( ! args )
             args = [];
-        
+
         if( sfEvent.reflex !== null ) {
             this._dummy = sfEvent.reflex;
             var ret = this._dummy( eventName, args, event );
@@ -146,7 +146,7 @@ SiteFusion.Classes.Node = function() {
             if( sfEvent[n].yield )
                 sfEvent[n].yield();
         }
-        
+
         if( sfEvent.msgType == 0 ) {
 
             return SiteFusion.Comm.SendCommand( this, eventName, args );
@@ -192,16 +192,16 @@ SiteFusion.Classes.Node = function() {
     SiteFusion.Classes.Node.prototype.addReflex = function( e, code ) {
         if( this.eventHost[e] === null )
             SiteFusion.Error( 'Widget ' + this.sfClassName + ' does not support event ' + e );
-        
+
         var func;
-        
+
         try {
             eval( "func = function( eventName, eventArguments, eventObject ) { " + code + " }" );
         }
         catch ( e ) {
             SiteFusion.Error( 'Reflex contains an error: ' + e );
         }
-        
+
         this.eventHost[e].reflex = func;
 
         var oThis = this;
@@ -222,7 +222,7 @@ SiteFusion.Classes.Node = function() {
         try {
             if( childSFNode.parentNode )
                 return;
-        
+
             if( this.isPainted ) {
                 this.deferredSFChildren.push( [ 'addChild', childSFNode ] );
             }
@@ -238,7 +238,7 @@ SiteFusion.Classes.Node = function() {
         try {
             if( childSFNode.parentNode )
                 return;
-            
+
             if( this.isPainted ) {
                 this.deferredSFChildren.push( [ 'addChildBefore', childSFNode, beforeSFNode ] );
             }
@@ -408,7 +408,7 @@ SiteFusion.Classes.Node = function() {
         for( var n = 1; n < arguments.length; n++ ) {
             flavours.push( arguments[n] );
         }
-        
+
         this.draggable = true;
         this.draggableClassname = clsName;
         this.draggableFlavours = flavours;
@@ -431,11 +431,11 @@ SiteFusion.Classes.Node = function() {
 
     SiteFusion.Classes.Node.prototype.onDragStartEvent = function( event ) {
         event.dataTransfer.setData('sfNode/' + this.draggableClassname, this.cid);
-        
+
         for (var n = 0; n < this.draggableFlavours.length; n += 2) {
             event.dataTransfer.setData(this.draggableFlavours[n], this.draggableFlavours[n + 1]);
         }
-        
+
         this.fireEvent( 'sfdragstart' );
     };
 
@@ -463,7 +463,7 @@ SiteFusion.Classes.Node.prototype.Observer = function() {
     SiteFusion.Classes.Node.prototype.Observer.prototype.observe = function(aSubject, aTopic, aData) {
         var data = '';
         var subject = '';
-        if (aSubject) { 
+        if (aSubject) {
             try {
                 aSubject.QueryInterface(Ci.nsISupportsString);
                 if (aSubject && aSubject.data) {
@@ -484,7 +484,7 @@ SiteFusion.Classes.Node.prototype.Observer = function() {
     SiteFusion.Classes.Node.prototype.Observer.prototype.register = function(topicId) {
         //we can only register 1 observer per topicId per SFNode
         this.unregister(topicId);
-        
+
         this.topicIds.push(topicId);
         this.observerService.addObserver(this, topicId, false);
     };
@@ -515,13 +515,13 @@ SiteFusion.Classes.Node.prototype.DropObserver = function() {
 
     SiteFusion.Classes.Node.prototype.DropObserver.prototype.initialize = function( sfNode, flavors ) {
         this.sfNode = sfNode;
-        
+
         var oThis = this;
         this.sfNode.element.addEventListener( 'dragover', function(event) { oThis.onFileDragOver(event) || oThis.onDragOver(event); }, true );
         this.sfNode.element.addEventListener( 'drop', function(event) { oThis.onFileDrop(event) || oThis.onDrop(event); }, true );
 
         this.flavorNames = [];
-        
+
         for( var n = 0; n < flavors.length; n++ ) {
             this.flavorNames.push( (flavors[n]+'').toLowerCase() );
         }
@@ -549,20 +549,19 @@ SiteFusion.Classes.Node.prototype.DropObserver = function() {
             if (types[0].substr(0, 7) == 'sfnode/') {
                 d = SiteFusion.Registry[d];
             }
-            
+
             event.preventDefault();
             event.stopPropagation();
-            
+
             this.sfNode.fireEvent( 'sfdragdrop', [ d ] );
         }
     };
 
     SiteFusion.Classes.Node.prototype.DropObserver.prototype.onFileDragOver = function( event ) {
-        return false;
         var dragService = Cc["@mozilla.org/widget/dragservice;1"].getService(Ci.nsIDragService);
         var dragSession = dragService.getCurrentSession();
         var flavor;
-        
+
         var supported = (dragSession.isDataFlavorSupported(flavor = "text/x-moz-url") && this.flavorNames.indexOf("text/x-moz-url") != -1);
         if (!supported)
             supported = (dragSession.isDataFlavorSupported(flavor = "application/x-moz-file") && this.flavorNames.indexOf("application/x-moz-file") != -1);
@@ -570,11 +569,11 @@ SiteFusion.Classes.Node.prototype.DropObserver = function() {
         if (supported) {
             event.preventDefault();
             event.stopPropagation();
-            
+
             dragSession.canDrop = true;
             this.sfNode.fireEvent( 'sfdragover', [ flavor ] );
         }
-        
+
         return supported;
     };
 
@@ -607,7 +606,7 @@ SiteFusion.Classes.Node.prototype.DropObserver = function() {
                     str = data.value.QueryInterface(Components.interfaces.nsISupportsString);
                 } catch(ex) {
                 }
-            
+
                 if (str) {
                     uri = _ios.newURI(str.data.split("\n")[0], null, null).spec;
                 } else {
@@ -617,13 +616,13 @@ SiteFusion.Classes.Node.prototype.DropObserver = function() {
                     }
                 }
             }
-            
+
             if (uri) {
                 if ( typeof(uri) == 'string' && uri.substr(0,7) == 'file://' ) {
                     var file = fileProtHandler.getFileFromURLSpec( uri );
                     uri = [file.path, fileService.resultFromFile(file)];
                 }
-                
+
                 uris.push(uri);
             }
         }
