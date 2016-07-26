@@ -962,7 +962,9 @@ class PromptService extends Node {
             $this->handlerMethod = NULL;
             $this->carryValue = NULL;
 
-            $ho->{$hm}( $this, $cv );
+            if ($ho !== NULL && $hm !== NULL) {
+                $ho->{$hm}($this, $cv);
+            }
         }
     }
 }
