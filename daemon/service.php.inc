@@ -76,7 +76,7 @@ class ServiceProcess extends ExtendedSiteFusionProcess
 
 		if( preg_match( '/[^a-zA-Z0-9_\-\/]/', $path ) || (! file_exists(self::$Options['sitefusionPath'].'/app/' . $path . '.service.php.inc')) ) {
 			self::Log( 'Service does not exist: ' . $path);
-			self::DatabaseQuery('DELETE FROM `' . self::$Options['databaseName'] . '`.`services` WHERE `id` = ' . intval($serviceId));
+			self::DatabaseQuery('DELETE FROM services WHERE id = ' . intval($serviceId));
 			exit();
 		}
 
@@ -234,26 +234,26 @@ class ServiceProcess extends ExtendedSiteFusionProcess
 			$read = array( self::$Socket );
 			$write = NULL;
 			$except = NULL;
-			if( socket_select( $read, $write, $except, 0, self::$Options['daemonCycleInterval'] ) > 0 ) {
+			if( @socket_select( $read, $write, $except, 0, self::$Options['daemonCycleInterval'] ) > 0 ) {
 				$client = socket_accept( self::$Socket );
 			}
 			else {
 				return NULL;
 			}
-		}
-		catch( SFException $ex ) {
-			//self::Log( 'PollForClient: ' . $ex->getMessage() );
+		} catch(SFException $ex) {
 			return FALSE;
 		}
+
 		return $client;
 	}
 
 	static private function CloseClient( $client ) {
 		if( ($index = array_search( $client, self::$Clients, TRUE )) !== FALSE ) {
 			try {
-				socket_close( self::$Clients[$index] );
+				@socket_close(self::$Clients[$index]);
+			} catch (SFException $ex) {
+
 			}
-			catch ( SFException $ex ) {}
 
 			self::$Clients[$index]->connected = FALSE;
 			self::$Service->handleCall( '__disconnect', array( self::$Clients[$index] ) );
@@ -357,7 +357,7 @@ class ServiceProcess extends ExtendedSiteFusionProcess
 		if( !self::$Service )
 			return;
 
-		self::DatabaseQuery( "UPDATE `".self::$Options['databaseName']."`.`processes` SET `memory` = ".memory_get_usage().", `memory_peak` = ".memory_get_peak_usage()." WHERE `id` = '".self::$SessionID."' LIMIT 1" );
+		self::DatabaseQuery( "UPDATE processes SET memory = ".memory_get_usage().", memory_peak = ".memory_get_peak_usage()." WHERE id = '".self::$SessionID."' LIMIT 1" );
 	}
 }
 

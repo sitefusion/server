@@ -33,17 +33,17 @@
 function WriteCommand( $socket, $cmd, $param = NULL, $data = NULL ) {
 	if(! is_array($param) )
 		$param = array();
-	
+
 	if( $data !== NULL )
 		$param['DATALENGTH'] = strlen($data);
-	
+
 	$msg = $cmd;
 	foreach ( $param as $key => $val ) {
 		$msg .= ' '.$key.'='.$val;
 	}
-	
+
 	$msg .= "\n";
-	
+
 	if( socket_write( $socket, $msg, strlen($msg) ) === FALSE )
 		throw new Exception( 'WriteCommand: socket_write() failed: '.socket_strerror(socket_last_error($socket)) );
 	if( $data !== NULL ) {
@@ -56,7 +56,7 @@ function GetSessionFromSID($sid, $username, $password, $dsn = NULL, $host = NULL
 	$db = NULL;
 	if (!$dsn && $host && $databaseName) {
 		$dsn = 'mysql:host='.$host.';dbname='.$databaseName;
-	} 
+	}
 	try {
 	    $db = new PDO($dsn, $username, $password);
 	} catch(PDOException $e) {
@@ -68,7 +68,7 @@ function GetSessionFromSID($sid, $username, $password, $dsn = NULL, $host = NULL
 		throw new Exception("Error preparing database statement!");
 	}
 	$statement->execute(array($sid));
-	
+
 	return $statement->fetch();
 }
 
@@ -90,7 +90,7 @@ function ReadCommand( $socket ) {
 
 	if( isset($ret->DATALENGTH) ) {
 		$dl = (int) $ret->DATALENGTH;
-	
+
 		$data = '';
 		while( strlen($data) < $dl ) {
 			$sbuf = @socket_read( $socket, min($dl-strlen($data),2048), PHP_BINARY_READ );
@@ -122,5 +122,3 @@ function ReturnResult( $data ) {
 	header( 'Content-Type: sitefusion/result; charset=utf-8' );
 	echo $data;
 }
-
-?>

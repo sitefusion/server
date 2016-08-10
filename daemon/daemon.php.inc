@@ -34,6 +34,7 @@
 
 class DaemonProcess extends SiteFusionProcess
 {
+
     static public $Started;
     static public $PID;
     static public $MemoryUsed;
@@ -411,7 +412,7 @@ class DaemonProcess extends SiteFusionProcess
     }
 
     static private function ChildStarted( $child, $param ) {
-
+        global $SFCONFIG;
         $param->ip = ($param->ip ? $param->ip : '0.0.0.0');
 
         $child->loggedIn = TRUE;
@@ -427,7 +428,13 @@ class DaemonProcess extends SiteFusionProcess
         }
 
         try {
-            self::DatabaseQuery('INSERT INTO ' . self::$Database->tblProcesses . ' (id, type, ident, user, app, args, client_ip, port, pid, memory, memory_peak, nodes) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)', array($param->sid, $param->type, $param->ident, $param->user, $param->app, $param->args, $param->ip, $child->port, $child->pid, 0, 0, 0));
+
+            $quoteChar = self::GetDatabaseColumnEscapeCharacter();
+            $columns = array('id', 'type', 'ident', 'user', 'app', 'args', 'client_ip', 'port', 'pid', 'memory', 'memory_peak', 'nodes');
+            $columnString = $quoteChar . implode($quoteChar.','.$quoteChar, $columns) . $quoteChar;
+
+            self::DatabaseQuery('INSERT INTO ' . self::$Database->tblProcesses . ' (' . $columnString . ') VALUES (?,?,?,?,?,?,?,?,?,?,?,?)', array($param->sid, $param->type, $param->ident, $param->user, $param->app, $param->args, $param->ip, $child->port, $child->pid, 0, 0, 0));
+
         }
         catch ( Exception $ex ) {
             self::$Database = NULL;
@@ -470,6 +477,7 @@ class DaemonProcess extends SiteFusionProcess
                 if( self::$Options['debug'] ) {
                     try { unlink( self::$Options['runtimeDirectory'] . '/debug' . $child->pid . '.sock' ); } catch( SFException $ex ) {}
                 }
+
                 self::Log( "Application ended ($child->sessionId) at port $child->port with [pid: $child->pid], [application: $child->app], [args: $child->args], [user: $child->user], [ip: $child->ip]" );
                 break;
 
@@ -1039,20 +1047,18 @@ class DaemonProcess extends SiteFusionProcess
 
     static private function PollForClient() {
         try {
-            $read = array( self::$Socket );
+            $read = array(self::$Socket);
             $write = NULL;
             $except = NULL;
-            if( socket_select( $read, $write, $except, 0, self::$Options['daemonCycleInterval'] ) > 0 ) {
-                $client = socket_accept( self::$Socket );
-            }
-            else {
+            if (@socket_select( $read, $write, $except, 0, self::$Options['daemonCycleInterval'] ) > 0) {
+                $client = socket_accept(self::$Socket);
+            } else {
                 return NULL;
             }
-        }
-        catch( SFException $ex ) {
-            //self::Log( 'PollForClient: ' . $ex->getMessage() );
+        } catch(SFException $ex) {
             return FALSE;
         }
+
         return $client;
     }
 
@@ -1121,6 +1127,7 @@ class DaemonProcess extends SiteFusionProcess
                 break;
         }
     }
+
 }
 
 
@@ -1142,43 +1149,31 @@ class SiteFusionProcess
     static protected $ShutdownKill = FALSE;
     static protected $ProcessType = NULL;
 
-
     protected function __construct() {}
 
     static protected function OpenLog() {
         try {
-            if(! file_exists( self::$Options['logfile'] ) ) {
+            if (!file_exists( self::$Options['logfile'])) {
                 touch( self::$Options['logfile'] );
-                if( self::$Options['changeIdentity'] ) {
-                    chown( self::$Options['logfile'], self::$Options['systemUser'] );
-                    chmod( self::$Options['logfile'], 0664 );
+                if (self::$Options['changeIdentity']) {
+                    chown(self::$Options['logfile'], self::$Options['systemUser']);
+                    chmod(self::$Options['logfile'], 0664);
                 }
             }
 
-            if(! self::$Log = fopen( self::$Options['logfile'], 'a' ) ) {
-                echo "Unable to open logfile ".self::$Options['logfile']." for writing, exiting...\n";
-                return FALSE;
-            }
-        }
-        catch( SFException $ex ) {
-            echo $ex->getMessage() . "\n";
+            self::$Log = TRUE;
+        } catch (SFException $ex) {
+            echo $ex->getMessage() . PHP_EOL;
             return FALSE;
         }
 
         return TRUE;
     }
 
-    static protected function Log( $text ) {
-        if(! self::$Daemonized )
-            echo $text."\n";
-        if( self::$Log )
-            fwrite( self::$Log, date('d-m-Y H:i:s: ').$text."\n" );
-    }
-
     static protected function GetDatabaseConnection() {
         $tries = 0;
         //construct DSN for fallback mysql settings
-        $dsn = (self::$Options['databaseDSN'] ? self::$Options['databaseDSN'] : "mysql:host=".self::$Options['databaseHost'].";dbname=".self::$Options['databaseName']);
+        $dsn = (self::$Options['databaseDSN'] ? self::$Options['databaseDSN'] : 'mysql:host='.self::$Options['databaseHost'].';dbname='.self::$Options['databaseName']);
 
         $username = self::$Options['databaseUsername'];
         $password  = self::$Options['databasePassword'];
@@ -1197,34 +1192,37 @@ class SiteFusionProcess
                 self::Log( 'Database connection failed, retry '.$tries.' in '.self::$Options['databaseFailureRetryInterval'].'ms' );
                 usleep( self::$Options['databaseFailureRetryInterval'] * 1000 );
             }
-            else break;
+            else {
+                break;
+            }
         }
         //prepare table names
-        self::$Database->tblProcesses = "processes";
-        self::$Database->tblJobs = "jobs";
-        self::$Database->tblServices = "services";
+        self::$Database->tblProcesses = 'processes';
+        self::$Database->tblJobs = 'jobs';
+        self::$Database->tblServices = 'services';
     }
 
     static protected function InitDatabase() {
         self::GetDatabaseConnection();
 
         try {
-            self::DatabaseQuery( "DELETE FROM ".self::$Database->tblProcesses);
+            self::DatabaseQuery( 'DELETE FROM '.self::$Database->tblProcesses);
         }
         catch (PDOException $ex ) {
-            throw new SFException( "Failed to truncate table 'processes'(code: ".$ex->getCode()."): ". $ex->getMessage() );
+            throw new SFException( 'Failed to truncate table \'processes\' (code: '.$ex->getCode().'): '. $ex->getMessage() );
         }
     }
 
     static protected function CloseDatabase() {
-        if( ! self::$Database )
+        if( ! self::$Database ) {
             self::GetDatabaseConnection();
+        }
 
         try {
-            self::DatabaseQuery( "DELETE FROM ".self::$Database->tblProcesses);
+            self::DatabaseQuery( 'DELETE FROM '.self::$Database->tblProcesses);
         }
         catch (PDOException $ex ) {
-            throw new SFException( "Failed to truncate table 'processes'(code: ".$ex->getCode()."): ". $ex->getMessage() );
+            throw new SFException( 'Failed to truncate table \'processes\' (code: '.$ex->getCode().'): '. $ex->getMessage() );
         }
     }
 
@@ -1233,7 +1231,9 @@ class SiteFusionProcess
             //http://stackoverflow.com/questions/1046614/do-sql-connections-opened-with-pdo-in-php-have-to-be-closed
             self::$Database = NULL;
         }
-        catch ( SFException $ex ) {}
+        catch ( SFException $ex ) {
+
+        }
 
         self::GetDatabaseConnection();
     }
@@ -1242,7 +1242,7 @@ class SiteFusionProcess
         $execSucceeded = FALSE;
         $statement = self::$Database->prepare($sql);
         if (!$statement) {
-            throw new SFException( "Database query preparation error for query: $sql");
+            throw new SFException( 'Database query preparation error for query: ' . $sql);
         }
         $execSucceeded = (($args && is_array($args))  ? $statement->execute($args) : $statement->execute());
 
@@ -1255,24 +1255,26 @@ class SiteFusionProcess
     }
 
     static protected function OpenSocket( $address, $port ) {
-        if (($sock = socket_create(AF_INET, SOCK_STREAM, SOL_TCP)) === false) {
-            throw new SFException( "socket_create() failed: reason: " . socket_strerror(socket_last_error()) );
+        if (($sock = socket_create(AF_INET, SOCK_STREAM, SOL_TCP)) === FALSE) {
+            throw new SFException( 'socket_create() failed: reason: ' . socket_strerror(socket_last_error()) );
         }
 
         $bound = FALSE;
 
         while( !$bound ) {
             try {
-                if (socket_bind($sock, $address, $port) === false) {
-                    throw new SFException( "socket_bind() failed: reason: " . socket_strerror(socket_last_error($sock)) );
+                if (socket_bind($sock, $address, $port) === FALSE) {
+                    throw new SFException( 'socket_bind() failed: reason: ' . socket_strerror(socket_last_error($sock)) );
                 }
                 $bound = TRUE;
             }
-            catch ( SFException $ex ) { sleep(1); }
+            catch ( SFException $ex ) {
+                sleep(1);
+            }
         }
 
-        if (socket_listen($sock, 5) === false) {
-            throw new SFException( "socket_listen() failed: reason: " . socket_strerror(socket_last_error($sock)) );
+        if (socket_listen($sock, 5) === FALSE) {
+            throw new SFException( 'socket_listen() failed: reason: ' . socket_strerror(socket_last_error($sock)) );
         }
 
         socket_set_nonblock($sock);
@@ -1281,24 +1283,26 @@ class SiteFusionProcess
     }
 
     static protected function OpenUnixSocket( $address ) {
-        if (($sock = socket_create(AF_UNIX, SOCK_STREAM, 0)) === false) {
-            throw new SFException( "socket_create() failed: reason: " . socket_strerror(socket_last_error()) );
+        if (($sock = socket_create(AF_UNIX, SOCK_STREAM, 0)) === FALSE) {
+            throw new SFException( 'socket_create() failed: reason: ' . socket_strerror(socket_last_error()) );
         }
 
         $bound = FALSE;
 
         while( !$bound ) {
             try {
-                if (socket_bind($sock, $address) === false) {
-                    throw new SFException( "socket_bind() failed: reason: " . socket_strerror(socket_last_error($sock)) );
+                if (socket_bind($sock, $address) === FALSE) {
+                    throw new SFException( 'socket_bind() failed: reason: ' . socket_strerror(socket_last_error($sock)) );
                 }
                 $bound = TRUE;
             }
-            catch ( SFException $ex ) { sleep(1); }
+            catch ( SFException $ex ) {
+                sleep(1);
+            }
         }
 
-        if (socket_listen($sock, 5) === false) {
-            throw new SFException( "socket_listen() failed: reason: " . socket_strerror(socket_last_error($sock)) );
+        if (socket_listen($sock, 5) === FALSE) {
+            throw new SFException( 'socket_listen() failed: reason: ' . socket_strerror(socket_last_error($sock)) );
         }
 
         socket_set_nonblock($sock);
@@ -1329,6 +1333,16 @@ class SiteFusionProcess
         }
     }
 
+    static protected function Log($text) {
+        if (!self::$Daemonized) {
+            echo $text . PHP_EOL;
+        }
+
+        if (self::$Log) {
+            file_put_contents(self::$Options['logfile'], date('d-m-Y H:i:s') . ': ' . $text . PHP_EOL, FILE_APPEND | LOCK_EX);
+        }
+    }
+
     static public function ChangeIdentity( $user = NULL, $group = NULL ) {
         if( ! (($ginfo = posix_getgrnam( $group = ($group !== NULL ? $group : DaemonProcess::$Options['systemGroup']) )) && posix_setgid( $ginfo['gid'] )) ) {
             self::Log( 'Cannot change identity to group '.$group );
@@ -1339,35 +1353,46 @@ class SiteFusionProcess
         }
     }
 
-    static protected function WriteCommand( $socket, $cmd, $param = NULL, $data = NULL ) {
-        if(! is_array($param) )
-            $param = array();
+    static public function GetProcessType() {
+        return self::$ProcessType;
+    }
 
-        if( $data !== NULL )
+    static protected function WriteCommand( $socket, $cmd, $param = NULL, $data = NULL ) {
+        if(! is_array($param) ) {
+            $param = array();
+        }
+
+        if( $data !== NULL ) {
             $param['DATALENGTH'] = strlen($data);
+        }
 
         $msg = $cmd;
 
         foreach ( $param as $key => $val ) {
-            if (is_array($val)) continue;
+            if (is_array($val)) {
+                continue;
+            }
             $msg .= ' '.$key.'='.$val;
         }
 
         $msg .= "\n";
 
-        if( socket_write( $socket, $msg, strlen($msg) ) === FALSE )
+        if( @socket_write( $socket, $msg, strlen($msg) ) === FALSE ) {
             throw new SFException( 'WriteCommand: socket_write() failed: '.socket_strerror(socket_last_error($socket)) );
+        }
+
         if( $data !== NULL ) {
-            if( socket_write( $socket, $data, strlen($data) ) === FALSE )
+            if(@socket_write( $socket, $data, strlen($data) ) === FALSE ) {
                 throw new SFException( 'WriteCommand: socket_write() failed: '.socket_strerror(socket_last_error($socket)) );
+            }
         }
     }
 
     static protected function ReadCommand( $socket ) {
-        $cmddata = socket_read( $socket, 4096, PHP_NORMAL_READ );
-
-        if( $cmddata === FALSE )
+        $cmddata = @socket_read( $socket, 4096, PHP_NORMAL_READ );
+        if ($cmddata === FALSE) {
             throw new SFException( 'ReadCommand: socket_read() failed: '.socket_strerror(socket_last_error($socket)) );
+        }
 
         $data = NULL;
         $cmd = explode( ' ', rtrim($cmddata) );
@@ -1385,10 +1410,11 @@ class SiteFusionProcess
 
             $data = '';
             while( strlen($data) < $dl ) {
-                $sbuf = socket_read( $socket, min($dl-strlen($data),2048), PHP_BINARY_READ );
+                $sbuf = @socket_read( $socket, min($dl-strlen($data),2048), PHP_BINARY_READ );
                 if( $sbuf === FALSE ) {
-                    if( socket_last_error($socket) != 35 )
+                    if( socket_last_error($socket) != 35 ) {
                         throw new SFException( 'ReadCommand: socket_read() failed: '.socket_strerror(socket_last_error($socket)) );
+                    }
                 }
                 $data .= $sbuf;
             }
@@ -1398,6 +1424,30 @@ class SiteFusionProcess
 
         return $ret;
     }
+
+    /**
+     * Easy access method to get the escape character for columns in DB queries.
+     * Needed with the new PostGreSQL update, for now just checks for pgsql
+     * @return string Either a double-qoute or tick depending on the database engine
+     */
+    static protected function GetDatabaseColumnEscapeCharacter() {
+        global $SFCONFIG;
+        return (strpos($SFCONFIG['databaseDSN'], 'pgsql') === 0 ? '"' : '`');
+    }
+
+    static public function GetOption($name) {
+        $protected = array(
+            'databaseUsername',
+            'databasePassword'
+        );
+
+        if (in_array($name, $protected) || !isset(self::$Options[$name])) {
+            return NULL;
+        }
+
+        return self::$Options[$name];
+    }
+
 }
 
 

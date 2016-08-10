@@ -128,7 +128,7 @@ SiteFusion.Classes.CustomTree.prototype.constructor = SiteFusion.Classes.CustomT
     SiteFusion.Classes.CustomTree.prototype.onItemEvent = function ( eventObj, eventName ) {
         var row = {}, column = {}, part = {};
         this.element.boxObject.getCellAt(eventObj.clientX, eventObj.clientY, row, column, part);
-        
+
         if(row.value != -1) {
             var rowId = this.view.visibleData[row.value].id;
             var colIndex = column.value.index;
@@ -142,7 +142,7 @@ SiteFusion.Classes.CustomTree.prototype.constructor = SiteFusion.Classes.CustomT
         if (selection.length == 0 || typeof selection[0] == 'undefined') {
             return;
         }
-        
+
         var dragAllowed;
 
         if( tree.isDraggable ) {
@@ -367,7 +367,7 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
         var row = this.idToRow[rowId];
 
         var idx = this.getRowIndex( row );
-        
+
         var visibleCount;
         if( idx !== false ){
             visibleCount = this.getVisibleRowCount( row );
@@ -416,7 +416,7 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
             var startAt = rowId === null ? 0 : this.getRowIndex(this.idToRow[rowId]);
             visData = [];
             visPos = rowId === null ? startAt : startAt + 1;
-        
+
             for( var n = 0; n < childSet.length; n++ ) {
                 var idx = this.getRowIndex( childSet[n], startAt );
                 var len = this.getVisibleRowCount( childSet[n] );
@@ -517,10 +517,16 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
     };
 
     SiteFusion.Classes.CustomTree.ViewConstructor.prototype.getParentIndex = function( idx ) {
-        if( typeof(this.visibleData[idx]) == 'undefined' || this.visibleData[idx].parentId === null ) return -1;
+        if (typeof(this.visibleData[idx]) == 'undefined') {
+            return -1;
+        }
 
-        for( var n = 0; n < this.visibleData.length; n++ ) {
-            if( this.visibleData[n].id == this.visibleData[idx].parentId ) {
+        if (this.visibleData[idx].parentId === null) {
+            return -1;
+        }
+
+        for(var n = 0; n < this.visibleData.length; n++) {
+            if(this.visibleData[n].id == this.visibleData[idx].parentId) {
                 return n;
             }
         }
@@ -528,55 +534,88 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
 
     SiteFusion.Classes.CustomTree.ViewConstructor.prototype.getLevel = function( idx ) {
         var level = 0;
-        var row = this.visibleData[idx];
-
-        while( row.parentId !== null ) {
-            row = this.idToRow[row.parentId];
-            level++;
+        if (typeof(this.visibleData[idx]) != 'undefined') {
+            var row = this.visibleData[idx];
+            while( row.parentId !== null ) {
+                row = this.idToRow[row.parentId];
+                level++;
+            }
         }
 
         return level;
     };
 
     SiteFusion.Classes.CustomTree.ViewConstructor.prototype.getCellText = function( idx, column ) {
-        if( this.visibleData[idx].isSeparator )
+        if (typeof(this.visibleData[idx]) == 'undefined') {
             return null;
+        }
+
+        if (this.visibleData[idx].isSeparator) {
+            return null;
+        }
+
         return this.visibleData[idx].columns[column.index];
     };
 
     SiteFusion.Classes.CustomTree.ViewConstructor.prototype.getCellValue = function( idx, column ) {
+        if (typeof(this.visibleData[idx]) == 'undefined') {
+            return null;
+        }
+
         return this.visibleData[idx].columns[column.index];
     };
 
     SiteFusion.Classes.CustomTree.ViewConstructor.prototype.isContainer = function( idx ) {
+        if (typeof(this.visibleData[idx]) == 'undefined') {
+            return false;
+        }
+
         return this.visibleData[idx].isContainer;
     };
 
     SiteFusion.Classes.CustomTree.ViewConstructor.prototype.isContainerOpen = function( idx ) {
+        if (typeof(this.visibleData[idx]) == 'undefined') {
+            return false;
+        }
+
         return this.visibleData[idx].isOpen;
     };
 
     SiteFusion.Classes.CustomTree.ViewConstructor.prototype.isContainerEmpty = function( idx ) {
+        if (typeof(this.visibleData[idx]) == 'undefined') {
+            return true;
+        }
+
         return this.visibleData[idx].isEmpty;
     };
 
     SiteFusion.Classes.CustomTree.ViewConstructor.prototype.getImageSrc = function( idx, col ) {
-        if( col.primary && this.visibleData[idx].primaryImage ) {
-            return this.sfTree.parseImageURL( this.visibleData[idx].primaryImage );
-        } else if( this.visibleData[idx].images && this.visibleData[idx].images[col.index] ) {
-            return this.sfTree.parseImageURL( this.visibleData[idx].images[col.index] );
+        if (typeof(this.visibleData[idx]) == 'undefined') {
+            return '';
+        } else if (col.primary && this.visibleData[idx].primaryImage) {
+            return this.sfTree.parseImageURL(this.visibleData[idx].primaryImage);
+        } else if (this.visibleData[idx].images && this.visibleData[idx].images[col.index]) {
+            return this.sfTree.parseImageURL(this.visibleData[idx].images[col.index]);
         } else {
             return '';
         }
     };
 
     SiteFusion.Classes.CustomTree.ViewConstructor.prototype.isSeparator = function( idx ) {
+        if (typeof(this.visibleData[idx]) == 'undefined') {
+            return false;
+        }
+
         return (this.visibleData[idx].isSeparator ? true : false);
     };
 
     SiteFusion.Classes.CustomTree.ViewConstructor.prototype.getProgressMode = function( idx, col ) {
         var Ci = Components.interfaces;
-        if( this.visibleData[idx].progressModes && this.visibleData[idx].progressModes[col.index] ) {
+        if (typeof(this.visibleData[idx]) == 'undefined') {
+            return Ci.nsITreeView.PROGRESS_NONE;
+        }
+
+        if (this.visibleData[idx].progressModes && this.visibleData[idx].progressModes[col.index]) {
             switch ( this.visibleData[idx].progressModes[col.index] ) {
                 case 'normal':          return Ci.nsITreeView.PROGRESS_NORMAL;
                 case 'undetermined':    return Ci.nsITreeView.PROGRESS_UNDETERMINED;
@@ -586,50 +625,61 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
     };
 
     SiteFusion.Classes.CustomTree.ViewConstructor.prototype.isEditable = function( idx, col ) {
-        if( this.visibleData[idx].editableCells && this.visibleData[idx].editableCells[col.index] ) {
-            return true;
+        if (typeof(this.visibleData[idx]) == 'undefined') {
+            return false;
         }
 
-        return false;
+        return (this.visibleData[idx].editableCells && this.visibleData[idx].editableCells[col.index]) ? true : false;
     };
 
     SiteFusion.Classes.CustomTree.ViewConstructor.prototype.setCellText = function( idx, col, value ) {
-        this.visibleData[idx].columns[col.index] = value;
-        this.invalidateRow( idx );
-        var id = this.visibleData[idx].id;
-        var oThis = this;
-        this.sfTree.hostWindow.windowObject.setTimeout( function() {
-            oThis.sfTree.fireEvent( 'cellValueChange', [ oThis.visibleData[idx].id, col.index, value ] );
-        }, 1 );
+        if (typeof(this.visibleData[idx]) != 'undefined') {
+            this.visibleData[idx].columns[col.index] = value;
+            this.invalidateRow(idx);
+
+            var id = this.visibleData[idx].id;
+            var oThis = this;
+            this.sfTree.hostWindow.windowObject.setTimeout(function() {
+                oThis.sfTree.fireEvent('cellValueChange', [oThis.visibleData[idx].id, col.index, value]);
+            }, 1);
+        }
     };
 
     SiteFusion.Classes.CustomTree.ViewConstructor.prototype.setCellValue = function( idx, col, value ) {
-        this.visibleData[idx].columns[col.index] = value;
-        this.invalidateRow( idx );
-        var id = this.visibleData[idx].id;
-        var oThis = this;
-        this.sfTree.hostWindow.windowObject.setTimeout( function() {
-            oThis.sfTree.fireEvent( 'cellValueChange', [ oThis.visibleData[idx].id, col.index, value ] );
-        }, 1 );
+        if (typeof(this.visibleData[idx]) != 'undefined') {
+            this.visibleData[idx].columns[col.index] = value;
+            this.invalidateRow(idx);
+
+            var id = this.visibleData[idx].id;
+            var oThis = this;
+            this.sfTree.hostWindow.windowObject.setTimeout(function() {
+                oThis.sfTree.fireEvent('cellValueChange', [oThis.visibleData[idx].id, col.index, value]);
+            }, 1);
+        }
     };
 
     SiteFusion.Classes.CustomTree.ViewConstructor.prototype.canDrop = function( idx, orientation ) {
+        if (typeof(this.visibleData[idx]) == 'undefined') {
+            return false;
+        }
+
         var row = this.visibleData[idx];
         var Cc = Components.classes;
         var Ci = Components.interfaces;
         var allowedOrient;
 
-        if( this.sfTree.allowDrop ) {
-            if( typeof(row.allowDrop) != 'undefined' ) {
-                if ( row.allowDrop === false ) {
+        if (this.sfTree.allowDrop) {
+            if (typeof(row.allowDrop) != 'undefined') {
+                if (row.allowDrop === false) {
                     return false;
                 }
+
                 allowedOrient = row.allowDrop;
             } else {
                 allowedOrient = this.sfTree.allowDrop;
             }
         } else {
-            if( typeof(row.allowDrop) == 'undefined' || row.allowDrop === false ) {
+            if (typeof(row.allowDrop) == 'undefined' || row.allowDrop === false) {
                 return false;
             }
 
@@ -639,21 +689,22 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
         var ds = Cc["@mozilla.org/widget/dragservice;1"].getService(Ci.nsIDragService);
         var session = ds.getCurrentSession();
 
-        if( session.isDataFlavorSupported("text/x-moz-url") || session.isDataFlavorSupported("application/x-moz-file") ) {
+        if (session.isDataFlavorSupported("text/x-moz-url") || session.isDataFlavorSupported("application/x-moz-file")) {
             return session.canDrop = this.sfTree.allowFileDrop;
         }
 
-        if( this.sfTree.preventCircularHeritage || !this.sfTree.allowForeignDrop ) {
-            if( this.sfTree.preventCircularHeritage ) {
-                if( session.sourceNode && session.sourceNode.tagName == 'treechildren' && session.sourceNode.parentNode.sfNode == this.sfTree ) {
+        if (this.sfTree.preventCircularHeritage || !this.sfTree.allowForeignDrop) {
+            if (this.sfTree.preventCircularHeritage) {
+                if (session.sourceNode && session.sourceNode.tagName == 'treechildren' && session.sourceNode.parentNode.sfNode == this.sfTree) {
                     var selection = session.sourceNode.parentNode.sfNode.draggedSelection;
-                    for( var n = 0; n < selection.length; n++ ) {
+                    for (var n = 0; n < selection.length; n++) {
                         var obj = row;
-                        while( 1 ) {
-                            if( obj.id == selection[n] ) {
+                        while(1) {
+                            if (obj.id == selection[n]) {
                                 return false;
                             }
-                            if( obj.parentId === null ) {
+
+                            if(obj.parentId === null) {
                                 break;
                             }
 
@@ -662,21 +713,26 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
                     }
                 }
             }
-            if( !this.sfTree.allowForeignDrop ) {
-                if( !(session.sourceNode && session.sourceNode.tagName == 'treechildren' && session.sourceNode.parentNode.sfNode == this.sfTree) ) {
+
+            if (!this.sfTree.allowForeignDrop) {
+                if (!(session.sourceNode && session.sourceNode.tagName == 'treechildren' && session.sourceNode.parentNode.sfNode == this.sfTree)) {
                     return false;
                 }
             }
         }
 
-        switch ( allowedOrient ) {
+        switch (allowedOrient) {
             case 'any':     return true;
-            case 'on':      return ( orientation == Ci.nsITreeView.DROP_ON );
-            case 'between': return ( orientation != Ci.nsITreeView.DROP_ON );
+            case 'on':      return (orientation == Ci.nsITreeView.DROP_ON);
+            case 'between': return (orientation != Ci.nsITreeView.DROP_ON);
         }
     };
 
     SiteFusion.Classes.CustomTree.ViewConstructor.prototype.drop = function( idx, orientation ) {
+        if (idx != -1 && typeof(this.visibleData[idx]) == 'undefined') {
+            return;
+        }
+
         var ds = Cc["@mozilla.org/widget/dragservice;1"].getService(Ci.nsIDragService);
         var session = ds.getCurrentSession();
         var id = (idx == -1 ? null : this.visibleData[idx].id);
@@ -752,19 +808,22 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
     };
 
     SiteFusion.Classes.CustomTree.ViewConstructor.prototype.getRowProperties = function( idx, prop ) {
-        var row = this.visibleData[idx];
         var propStr = '';
-        if( row.properties ) {
-            var aserv = Cc["@mozilla.org/atom-service;1"].getService(Ci.nsIAtomService);
-            for( var n = 0; n < row.properties.length; n++ ) {
-                if (typeof prop === 'undefined') {
-                    propStr += (propStr.length ? " " : "") + row.properties[n];
-                }
-                else {
-                    prop.AppendElement(aserv.getAtom(row.properties[n]));
+        if (typeof(this.visibleData[idx]) != 'undefined') {
+            var row = this.visibleData[idx];
+            if( row.properties ) {
+                var aserv = Cc["@mozilla.org/atom-service;1"].getService(Ci.nsIAtomService);
+                for( var n = 0; n < row.properties.length; n++ ) {
+                    if (typeof prop === 'undefined') {
+                        propStr += (propStr.length ? " " : "") + row.properties[n];
+                    }
+                    else {
+                        prop.AppendElement(aserv.getAtom(row.properties[n]));
+                    }
                 }
             }
         }
+
         if (propStr.length) {
             return propStr;
         }
@@ -789,19 +848,22 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
     };
 
     SiteFusion.Classes.CustomTree.ViewConstructor.prototype.getCellProperties = function( idx, column, prop ) {
-        var row = this.visibleData[idx];
         var propStr = '';
-        if( row.cellProperties && row.cellProperties[column.index] ) {
-            var aserv = Cc["@mozilla.org/atom-service;1"].getService(Ci.nsIAtomService);
-            for( var n = 0; n < row.cellProperties[column.index].length; n++ ) {
-                if (typeof prop === 'undefined') {
-                    propStr += (propStr.length ? " " : "") + row.cellProperties[column.index][n];
-                }
-                else {
-                    prop.AppendElement(aserv.getAtom(row.cellProperties[column.index][n]));
+        if (typeof(this.visibleData[idx]) != 'undefined') {
+            var row = this.visibleData[idx];
+            if( row.cellProperties && row.cellProperties[column.index] ) {
+                var aserv = Cc["@mozilla.org/atom-service;1"].getService(Ci.nsIAtomService);
+                for( var n = 0; n < row.cellProperties[column.index].length; n++ ) {
+                    if (typeof prop === 'undefined') {
+                        propStr += (propStr.length ? " " : "") + row.cellProperties[column.index][n];
+                    }
+                    else {
+                        prop.AppendElement(aserv.getAtom(row.cellProperties[column.index][n]));
+                    }
                 }
             }
         }
+
         if (propStr.length) {
             return propStr;
         }

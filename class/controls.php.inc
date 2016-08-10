@@ -863,8 +863,9 @@ class XULMenuList extends BranchNode
     }
 
     public function selectItem($val) {
-        if (!(isset($this->children[0]) && $this->children[0] instanceof XULMenuPopup))
+        if (!(isset($this->children[0]) && $this->children[0] instanceof XULMenuPopup)) {
             throw new SFException('XULMenuList needs a XULMenuPopup childnode to contain menu items', ERR_REPORT_APP);
+        }
 
         if (!$this->isRegistered) {
             $this->selectAfterAttach = $val;
@@ -875,10 +876,10 @@ class XULMenuList extends BranchNode
             $this->selectedItem = $this->children[0]->children[$val];
             $this->selectedValue = $this->selectedItem->value();
 
-            if ($this->isRegistered)
+            if ($this->isRegistered) {
                 $this->callMethod('selectedItem', $val);
-        }
-        elseif ($val instanceof XULMenuItem) {
+            }
+        } elseif ($val instanceof XULMenuItem) {
             $n = -1;
             foreach ($this->children[0]->children as $item) {
                 $n++;
@@ -887,29 +888,26 @@ class XULMenuList extends BranchNode
                     $this->selectedItem = $item;
                     $this->selectedValue = $item->value();
 
-                    if ($this->isRegistered)
+                    if ($this->isRegistered) {
                         $this->callMethod('selectedItem', $n);
+                    }
 
                     break;
                 }
             }
         } elseif ($val === NULL) {
-
             $this->selectedItem = $val;
             $this->selectedValue = $val;
 
             if ($this->isRegistered) {
                 $this->callMethod('selectedItem', $val);
             }
-        }
-        else {
+        } else {
             foreach ($this->children[0]->children as $item) {
                 if ($item->value() == $val) {
                     return $this->selectItem($item);
                 }
             }
-
-            ClientError::ConsoleMessage('selectItem: Invalid item: ' . $val);
         }
 
         return $this;
