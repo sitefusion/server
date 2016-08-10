@@ -612,7 +612,7 @@ SiteFusion.Classes.CustomTree.ViewConstructor = function( tree ) {
     SiteFusion.Classes.CustomTree.ViewConstructor.prototype.getProgressMode = function( idx, col ) {
         var Ci = Components.interfaces;
         if (typeof(this.visibleData[idx]) == 'undefined') {
-            return Ci.nsITreeView.PROGRESS_NONEs;
+            return Ci.nsITreeView.PROGRESS_NONE;
         }
 
         if (this.visibleData[idx].progressModes && this.visibleData[idx].progressModes[col.index]) {
