@@ -126,7 +126,7 @@ class XULFilePicker extends Node {
     public function yieldCollect($e, $returnCode, $path = NULL, $selectedFilter = FALSE) {
         $this->returnCode = $returnCode;
         $this->selectedFilter = array();
-        if (isset($selectedFilter) && count($selectedFilter) > 1) {
+        if (!empty($selectedFilter) && count($selectedFilter) > 1) {
             $this->selectedFilter['filterName'] = $selectedFilter[0];
             $this->selectedFilter['filterContents'] = explode(';', $selectedFilter[1]);
         }
