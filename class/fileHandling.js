@@ -405,9 +405,9 @@ SiteFusion.Classes.URLUploader.prototype.constructor = SiteFusion.Classes.URLUpl
 
             /* Check the file */
             if (file.exists() && file.isFile()) {
-                /* Create stream object from the input file */
+                /* Create stream object from the input file and set ioFlag on reading  */
                 var stream = Components.classes["@mozilla.org/network/file-input-stream;1"].createInstance(Components.interfaces.nsIFileInputStream);
-                stream.init(file, 0x04 | 0x08, 0644, 0x04);
+                stream.init(file, 0x01, 0644, 0x04);
 
                 /* Get the mime type */
                 var mimeType = null;
