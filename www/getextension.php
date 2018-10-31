@@ -39,7 +39,7 @@ $extension = $_GET['extension'];
 $allowedRoot = realpath($WEBCONFIG['sitefusionPath'].'/extensions');
 $path = realpath($allowedRoot.'/'.$extension);
 
-if ($path !== FALSE && !(substr($path, 0, strlen($allowedRoot)) == $allowedRoot)) {
+if ($path !== FALSE && !(substr($path, 0, strlen($allowedRoot)) == $allowedRoot) && is_file($path)) {
     echo 'Invalid extension: $extension';
     exit(1);
 }
