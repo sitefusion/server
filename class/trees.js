@@ -43,6 +43,17 @@ SiteFusion.Classes.Tree.prototype.constructor = SiteFusion.Classes.Tree;
         win.windowObject.setTimeout(function() { oThis.element.columns.restoreNaturalOrder(); }, 100);
         
         this.eventHost.yield.msgType = 1;
+        
+        var isMac = navigator.platform.toUpperCase().indexOf('MAC')>=0;
+
+        if (isMac) {
+            this.element.addEventListener('popuphiding', function(e) {
+                var origEl = e.target;
+                var par =  origEl.parentNode;
+                var el = par.removeChild(origEl);
+                par.appendChild(el);
+            });
+        }
     };
     
     SiteFusion.Classes.Tree.prototype.yield = function() {
