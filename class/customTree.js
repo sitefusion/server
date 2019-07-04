@@ -109,6 +109,17 @@ SiteFusion.Classes.CustomTree.prototype.constructor = SiteFusion.Classes.CustomT
 
         this.setEventHost( [ 'yield', 'openStateChange', 'cellValueChange', 'treeDrop', 'nodeDrop', 'fileDrop', 'sortColumn', 'itemClick', 'itemDoubleClick', 'itemContextClick' ] );
         this.eventHost.yield.msgType = 1;
+        
+        var isMac = navigator.platform.toUpperCase().indexOf('MAC')>=0;
+
+        if (isMac) {
+            this.element.addEventListener('popuphiding', function(e) {
+                var origEl = e.target;
+                var par =  origEl.parentNode;
+                var el = par.removeChild(origEl);
+                par.appendChild(el);
+            });
+        }
     };
 
     SiteFusion.Classes.CustomTree.prototype.setView = function() {
