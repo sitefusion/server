@@ -616,7 +616,7 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 		include_once('app/' . $app . '.startup.php.inc');
 
 		if (function_exists('authorizeLogin')) {
-			$authObject = authorizeLogin($args, $user, $pass);
+			$authObject = authorizeLogin($args, $user, $pass, $ip);
 			if (is_object($authObject)) {
 				if (!$authObject->success) {
 					//check for  incompatible client
@@ -636,7 +636,7 @@ class ApplicationProcess extends ExtendedSiteFusionProcess
 
 		//check application availability (if implemented in app)
 		if (function_exists('getAvailability')) {
-			$availableObject = getAvailability($args, $user, $pass);
+			$availableObject = getAvailability($args, $user, $pass, $ip);
 			if (is_object($availableObject)) {
 				if (!$availableObject->success) {
 					if (version_compare(self::$ClientVersion, '3.0.2', '<')) {
@@ -897,6 +897,3 @@ function sfstack() {
 
 	ApplicationProcess::DebugShowStack( $bt );
 }
-
-
-

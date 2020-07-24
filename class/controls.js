@@ -29,7 +29,7 @@ SiteFusion.Classes.Button = function() {
     SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULButton';
-    
+
     this.initialize.apply(this, arguments);
 };
 SiteFusion.Classes.Button.prototype = Object.create(SiteFusion.Classes.Node.prototype);
@@ -38,7 +38,7 @@ SiteFusion.Classes.Button.prototype.constructor = SiteFusion.Classes.Button;
     SiteFusion.Classes.Button.prototype.initialize = function( win ) {
         this.element = win.createElement( 'button' );
         this.element.sfNode = this;
-        
+
         this.setEventHost();
     };
 
@@ -46,7 +46,7 @@ SiteFusion.Classes.ProgressMeter = function() {
     SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULProgressMeter';
-    
+
     this.initialize.apply(this, arguments);
 };
 SiteFusion.Classes.ProgressMeter.prototype = Object.create(SiteFusion.Classes.Node.prototype);
@@ -55,10 +55,10 @@ SiteFusion.Classes.ProgressMeter.prototype.constructor = SiteFusion.Classes.Prog
     SiteFusion.Classes.ProgressMeter.prototype.initialize = function( win, mode ) {
         this.element = win.createElement( 'progressmeter' );
         this.element.sfNode = this;
-        
+
         this.value = this.numericValue;
         this.mode( mode );
-        
+
         this.setEventHost();
     };
 
@@ -66,7 +66,7 @@ SiteFusion.Classes.Splitter = function() {
     SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULSplitter';
-    
+
     this.initialize.apply(this, arguments);
 };
 SiteFusion.Classes.Splitter.prototype = Object.create(SiteFusion.Classes.Node.prototype);
@@ -75,7 +75,7 @@ SiteFusion.Classes.Splitter.prototype.constructor = SiteFusion.Classes.Splitter;
     SiteFusion.Classes.Splitter.prototype.initialize = function( win ) {
         this.element = win.createElement( 'splitter' );
         this.element.sfNode = this;
-        
+
         this.setEventHost();
     };
 
@@ -83,7 +83,7 @@ SiteFusion.Classes.ColorPicker = function() {
     SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULColorPicker';
-    
+
     this.initialize.apply(this, arguments);
 };
 SiteFusion.Classes.ColorPicker.prototype = Object.create(SiteFusion.Classes.Node.prototype);
@@ -92,7 +92,7 @@ SiteFusion.Classes.ColorPicker.prototype.constructor = SiteFusion.Classes.ColorP
     SiteFusion.Classes.ColorPicker.prototype.initialize = function( win ) {
         this.element = win.createElement( 'colorpicker' );
         this.element.sfNode = this;
-        
+
         this.setEventHost( [ 'yield' ] );
     };
 
@@ -104,7 +104,7 @@ SiteFusion.Classes.Scale = function() {
     SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULScale';
-    
+
     this.initialize.apply(this, arguments);
 };
 SiteFusion.Classes.Scale.prototype = Object.create(SiteFusion.Classes.Node.prototype);
@@ -113,10 +113,10 @@ SiteFusion.Classes.Scale.prototype.constructor = SiteFusion.Classes.Scale;
     SiteFusion.Classes.Scale.prototype.initialize = function( win ) {
         this.element = win.createElement( 'scale' );
         this.element.sfNode = this;
-        
+
         this.setEventHost( [ 'yield' ] );
     };
-    
+
     SiteFusion.Classes.Scale.prototype.yield = function() {
         this.fireEvent( 'yield', [ this.element.value ] );
     };
@@ -125,7 +125,7 @@ SiteFusion.Classes.TextBox = function() {
     SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULTextBox';
-    
+
     this.initialize.apply(this, arguments);
 };
 SiteFusion.Classes.TextBox.prototype = Object.create(SiteFusion.Classes.Node.prototype);
@@ -134,19 +134,19 @@ SiteFusion.Classes.TextBox.prototype.constructor = SiteFusion.Classes.TextBox;
     SiteFusion.Classes.TextBox.prototype.initialize = function( win ) {
         this.element = win.createElement( 'textbox' );
         this.element.sfNode = this;
-                
+
         this.setEventHost( [ 'yield', 'return' ] );
         var oThis = this;
         this.eventHost.yield.msgType = 1;
     };
-    
+
     SiteFusion.Classes.TextBox.prototype._keypressHandler = function( event ) {
         if( event.keyCode == 13 ) {
             var oThis = this;
             setTimeout( function() { oThis.sfNode.fireEvent( 'return' ); }, 10 );
         }
     };
-    
+
     SiteFusion.Classes.TextBox.prototype.value = function( text ) {
         if (this.element.type !== 'number') {
             this.element.setAttribute( 'value', text );
@@ -171,10 +171,10 @@ SiteFusion.Classes.TextBox.prototype.constructor = SiteFusion.Classes.TextBox;
         var validityObj = {};
         if ( this.element.type != 'number' ) {
             for( var prop in this.element.inputField.validity){
-                validityObj[prop] = this.element.inputField.validity[prop];   
+                validityObj[prop] = this.element.inputField.validity[prop];
             }
         }
-        
+
         this.fireEvent( 'yield', [ val, JSON.stringify(validityObj) ] );
     };
 
@@ -182,7 +182,7 @@ SiteFusion.Classes.TimePicker = function() {
     SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULTimePicker';
-    
+
     this.initialize.apply(this, arguments);
 };
 SiteFusion.Classes.TimePicker.prototype = Object.create(SiteFusion.Classes.Node.prototype);
@@ -191,12 +191,23 @@ SiteFusion.Classes.TimePicker.prototype.constructor = SiteFusion.Classes.TimePic
     SiteFusion.Classes.TimePicker.prototype.initialize = function( win ) {
         this.element = win.createElement( 'timepicker' );
         this.element.sfNode = this;
-        
+
+        var isMac = navigator.platform.toUpperCase().indexOf('MAC')>=0;
+
+        if (isMac) {
+            this.element.addEventListener('popuphiding', function(e) {
+                var origEl = this;
+                var par =  origEl.parentNode;
+                var el = par.removeChild(origEl);
+                par.appendChild(el);
+            });
+        }
+
         this.setEventHost( [ 'yield' ] );
-    
+
         this.eventHost.yield.msgType = 1;
     };
-    
+
     SiteFusion.Classes.TimePicker.prototype.value = function( text ) {
         if (typeof(text) == "number") {
             var dateval = new Date(Math.round(text * 1000));
@@ -211,7 +222,7 @@ SiteFusion.Classes.TimePicker.prototype.constructor = SiteFusion.Classes.TimePic
             }
         }
     };
-    
+
     SiteFusion.Classes.TimePicker.prototype.reset = function() {
         var dateval = new Date();
         this.element.value = dateval.getHours() + ":" + dateval.getMinutes() + ":" + dateval.getSeconds();
@@ -219,7 +230,7 @@ SiteFusion.Classes.TimePicker.prototype.constructor = SiteFusion.Classes.TimePic
 
     SiteFusion.Classes.TimePicker.prototype.yield = function() {
         var val;
-        
+
         val = this.element.value + '';
         var hour = this.element.hour;
         var minute = this.element.minute;
@@ -232,7 +243,7 @@ SiteFusion.Classes.DatePicker = function() {
     SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULDatePicker';
-    
+
     this.initialize.apply(this, arguments);
 };
 SiteFusion.Classes.DatePicker.prototype = Object.create(SiteFusion.Classes.Node.prototype);
@@ -241,11 +252,22 @@ SiteFusion.Classes.DatePicker.prototype.constructor = SiteFusion.Classes.DatePic
     SiteFusion.Classes.DatePicker.prototype.initialize = function( win ) {
         this.element = win.createElement( 'datepicker' );
         this.element.sfNode = this;
-        
+
+        var isMac = navigator.platform.toUpperCase().indexOf('MAC')>=0;
+
+        if (isMac) {
+            this.element.addEventListener('popuphiding', function(e) {
+                var origEl = this;
+                var par =  origEl.parentNode;
+                var el = par.removeChild(origEl);
+                par.appendChild(el);
+            });
+        }
+
         this.element.timeoutloop = null;
 
         this.setEventHost( [ 'yield' ] );
-        
+
         this.eventHost.yield.msgType = 1;
     };
 
@@ -290,7 +312,7 @@ SiteFusion.Classes.DatePicker.prototype.constructor = SiteFusion.Classes.DatePic
             this.element.timeoutloop = window.setTimeout(function() {
                 self.setDateValue(dateVal);
             }, 200);
-            
+
         }
         // Workaround end
 
@@ -299,7 +321,7 @@ SiteFusion.Classes.DatePicker.prototype.constructor = SiteFusion.Classes.DatePic
     SiteFusion.Classes.DatePicker.prototype.isBound = function() {
         return (typeof this.element._setValueNoSync !== 'undefined');
     };
-    
+
     SiteFusion.Classes.DatePicker.prototype.reset = function() {
         this.setDateValue(new Date());
     };
@@ -322,7 +344,7 @@ SiteFusion.Classes.CheckBox = function() {
     SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULCheckBox';
-    
+
     this.initialize.apply(this, arguments);
 };
 SiteFusion.Classes.CheckBox.prototype = Object.create(SiteFusion.Classes.Node.prototype);
@@ -331,12 +353,12 @@ SiteFusion.Classes.CheckBox.prototype.constructor = SiteFusion.Classes.CheckBox;
     SiteFusion.Classes.CheckBox.prototype.initialize = function( win ) {
         this.element = win.createElement( 'checkbox' );
         this.element.sfNode = this;
-    
+
         this.setEventHost( [ 'yield' ] );
-        
+
         this.eventHost.yield.msgType = 1;
     };
-    
+
     SiteFusion.Classes.CheckBox.prototype.yield = function() {
         this.fireEvent( 'yield', [ this.element.checked ] );
     };
@@ -345,7 +367,7 @@ SiteFusion.Classes.RadioGroup = function() {
     SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULRadioGroup';
-    
+
     this.initialize.apply(this, arguments);
 };
 SiteFusion.Classes.RadioGroup.prototype = Object.create(SiteFusion.Classes.Node.prototype);
@@ -354,18 +376,18 @@ SiteFusion.Classes.RadioGroup.prototype.constructor = SiteFusion.Classes.RadioGr
     SiteFusion.Classes.RadioGroup.prototype.initialize = function( win ) {
         this.element = win.createElement( 'radiogroup' );
         this.element.sfNode = this;
-        
+
         this.setEventHost( [ 'yield' ] );
-    
+
         this.eventHost.yield.msgType = 1;
     };
-    
+
     SiteFusion.Classes.RadioGroup.prototype.yield = function() {
         var sel = this.element.selectedItem;
         if( sel !== null ) {
             sel = sel.sfNode;
         }
-        
+
         this.fireEvent( 'yield', [ sel ] );
     };
 
@@ -378,7 +400,7 @@ SiteFusion.Classes.Radio = function() {
     SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULRadio';
-    
+
     this.initialize.apply(this, arguments);
 };
 SiteFusion.Classes.Radio.prototype = Object.create(SiteFusion.Classes.Node.prototype);
@@ -387,7 +409,7 @@ SiteFusion.Classes.Radio.prototype.constructor = SiteFusion.Classes.Radio;
     SiteFusion.Classes.Radio.prototype.initialize = function( win ) {
         this.element = win.createElement( 'radio' );
         this.element.sfNode = this;
-        
+
         this.setEventHost();
     };
 
@@ -395,7 +417,7 @@ SiteFusion.Classes.MenuList = function() {
     SiteFusion.Classes.Node.apply(this, arguments);
 
     this.sfClassName = 'XULMenuList';
-    
+
     this.initialize.apply(this, arguments);
 };
 SiteFusion.Classes.MenuList.prototype = Object.create(SiteFusion.Classes.Node.prototype);
@@ -405,11 +427,11 @@ SiteFusion.Classes.MenuList.prototype.constructor = SiteFusion.Classes.MenuList;
         this.element = win.createElement( 'menulist' );
         this.element.sfNode = this;
         this.hostWindow = win;
-        
+
         this.setEventHost( [ 'yield' ] );
-        
+
         this.eventHost.yield.msgType = 1;
-        
+
         // FIXME:
         // This is the dirtiest workaround ever, but it seems to be the only way to
         // get the menulist to function properly in situations where it is constructed
@@ -424,7 +446,7 @@ SiteFusion.Classes.MenuList.prototype.constructor = SiteFusion.Classes.MenuList;
         setTimeout( function() { oThis._fixElement(); }, 1000 );
         // /FIXME: end of workaround timer call
     };
-    
+
     // FIXME:
     // This workaround function needs to be removed when Mozilla fixes the menulist bindings
     SiteFusion.Classes.MenuList.prototype._fixElement = function() {
@@ -432,7 +454,7 @@ SiteFusion.Classes.MenuList.prototype.constructor = SiteFusion.Classes.MenuList;
             // If itemCount is undefined, the menulist is broken
             var par = this.element.parentNode;
             if(! par ) return;  // element has been removed before timer hit
-            
+
             // Replacing the menulist element with a new one is nescessary to rearm the bindings
             var before = this.element.nextSibling;
             par.removeChild( this.element );
@@ -440,21 +462,21 @@ SiteFusion.Classes.MenuList.prototype.constructor = SiteFusion.Classes.MenuList;
             this.element = this.hostWindow.createElement( 'menulist' );
             this.element.appendChild( popup );
             this.element.sfNode = this;
-            
+
             if( before )
                 par.insertBefore( this.element, before );
             else
                 par.appendChild( this.element );
-            
+
             var oThis = this;
-            
+
             // Hook up all menuitems with an event handler for DOMMenuItemActive to manually
             // keep track of selected items
             for( var n = 0; n < popup.childNodes.length; n++ ) {
                 var item = popup.childNodes[n];
                 if( typeof(item._menulistHandlerSet) != 'undefined' )
                     continue;
-                
+
                 var func = function() {
                     for( var c = 0; c < this.parentNode.childNodes.length; c++ ) {
                         if( this.parentNode.childNodes[c] == this ) {
@@ -463,16 +485,16 @@ SiteFusion.Classes.MenuList.prototype.constructor = SiteFusion.Classes.MenuList;
                         }
                     }
                 };
-                
+
                 item._menulistHandlerSet = true;
                 item.addEventListener( 'DOMMenuItemActive', func, true );
-                
+
                 // Use the 'selected' attribute to preset the initial selection because
                 // setting selectedIndex on the menulist here will still break it
                 if( typeof(this.selectedIndex) != 'undefined' && this.selectedIndex == n )
                     item.setAttribute( 'selected', 'true' );
             }
-            
+
             // Hook a function on the command event to set the element.selectedIndex to
             // the actual index in this.selectedIndex
             var setFunc = function() {
@@ -491,35 +513,35 @@ SiteFusion.Classes.MenuList.prototype.constructor = SiteFusion.Classes.MenuList;
                         currentIndex = 0;
                     else
                         currentIndex += (event.keyCode == 38 ? -1:1);
-                    
+
                     oThis.selectedIndex = currentIndex;
                 }
             };
-            
+
             this.element.addEventListener( 'command', setFunc, true );
             this.element.addEventListener( 'keypress', keyFunc, true );
-            
+
             // Restore SiteFusion event listeners that were previously set on the discarded element
             for( var n = 0; n < SiteFusion.Comm.XULEvents.length; n++ ) {
                 this.setEventListener( SiteFusion.Comm.XULEvents[n] );
             }
-            
+
             // Repeat if this iteration didn't execute after the menulist became visible
             setTimeout( function() { oThis._fixElement(); }, 1000 );
         }
     };
     // /FIXME: end of workaround function
-    
+
     SiteFusion.Classes.MenuList.prototype.yield = function() {
         var item, idx, elInputField;
-        
+
         if( this.element.editable )
             elInputField = this.element.inputField.value;
 
         idx = (typeof(this.element.selectedIndex) == 'undefined' || this.element.selectedIndex == -1)  ? 0 : this.element.selectedIndex;
         if( typeof( this.element.childNodes[0].childNodes[idx] ) == 'undefined' ){ item = null; }
         else{   item = this.element.childNodes[0].childNodes[idx].sfNode; }
-        
+
         this.fireEvent( 'yield', new Array( item, elInputField ) );
     };
 
@@ -527,7 +549,7 @@ SiteFusion.Classes.MenuList.prototype.constructor = SiteFusion.Classes.MenuList;
         // FIXME: this property becomes obsolete when the workaround is removed
         this.selectedIndex = item;
         // /FIXME: end of workaround property
-        
+
         var oThis = this;
         SiteFusion.Interface.DeferredCallbacks.push(
             function() {
@@ -535,7 +557,7 @@ SiteFusion.Classes.MenuList.prototype.constructor = SiteFusion.Classes.MenuList;
             }
         );
     };
-    
+
     SiteFusion.Classes.MenuList.prototype.addItem = function( item, index ) {
         var oThis = this;
         SiteFusion.Interface.DeferredCallbacks.push(
