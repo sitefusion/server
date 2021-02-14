@@ -55,6 +55,7 @@ SiteFusion.Classes.MenuPopup.prototype = Object.create(SiteFusion.Classes.Node.p
 SiteFusion.Classes.MenuPopup.prototype.constructor = SiteFusion.Classes.MenuPopup;
 
     SiteFusion.Classes.MenuPopup.prototype.initialize = function( win, isMenubarPopup, parentMenu ) {
+        Components.utils.import("resource://gre/modules/Services.jsm");
         if( win.systemMenuBar && isMenubarPopup ) {
             this.element = parentMenu.childNodes[0];
         }
@@ -64,7 +65,7 @@ SiteFusion.Classes.MenuPopup.prototype.constructor = SiteFusion.Classes.MenuPopu
 
             var isMac = navigator.platform.toUpperCase().indexOf('MAC')>=0;
 
-            if (isMac) {
+            if (isMac && Services.vc.compare(xulAppInfo.version, '4.0.0') == -1) {
                 this.element.addEventListener('popuphiding', function(e) {
                     var origEl = this;
                     var par =  origEl.parentNode;
