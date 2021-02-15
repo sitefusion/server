@@ -327,12 +327,7 @@ SiteFusion.Classes.FileDownloader.prototype.constructor = SiteFusion.Classes.Fil
                 .getInterface(Components.interfaces.nsIWebNavigation)
                 .QueryInterface(Components.interfaces.nsILoadContext);
 
-                var info = Components.classes["@mozilla.org/xre/app-info;1"].getService(Components.interfaces.nsIXULAppInfo);
-                if (parseInt(info.platformVersion) < 36) {
-                    this.persistObject.saveURI(uri, null, null, null, null, this.targetFile, privacyContext);
-                } else {
-                    this.persistObject.saveURI(uri, null, null, null, null, null, this.targetFile, privacyContext);
-                }
+                this.persistObject.saveURI(uri, null, null, null, null, null, this.targetFile, privacyContext);
             }
         } catch (e) {
             this.fireEvent( 'failed', [ this.localPath, e.name ] );
@@ -561,12 +556,8 @@ SiteFusion.Classes.URLDownloader.prototype.constructor = SiteFusion.Classes.URLD
             .getInterface(Components.interfaces.nsIWebNavigation)
             .QueryInterface(Components.interfaces.nsILoadContext);
 
-            var info = Components.classes["@mozilla.org/xre/app-info;1"].getService(Components.interfaces.nsIXULAppInfo);
-            if (parseInt(info.platformVersion) < 36) {
-                this.persistObject.saveURI(uri, null, null, null, null, this.targetFile, privacyContext);
-            } else {
-                this.persistObject.saveURI(uri, null, null, null, null, null, this.targetFile, privacyContext);
-            }
+            this.persistObject.saveURI(uri, null, null, null, null, null, this.targetFile, privacyContext);
+
         } catch (e) {
             this.fireEvent('failed', [this.localPath, this.url, e.name]);
             return;
