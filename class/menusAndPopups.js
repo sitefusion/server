@@ -64,7 +64,7 @@ SiteFusion.Classes.MenuPopup.prototype.constructor = SiteFusion.Classes.MenuPopu
             this.element.setAttribute( 'type', 'created' );
 
             var isMac = navigator.platform.toUpperCase().indexOf('MAC')>=0;
-
+            var xulAppInfo = Components.classes["@mozilla.org/xre/app-info;1"].getService(Components.interfaces.nsIXULAppInfo);
             if (isMac && Services.vc.compare(xulAppInfo.version, '4.0.0') == -1) {
                 this.element.addEventListener('popuphiding', function(e) {
                     var origEl = this;
