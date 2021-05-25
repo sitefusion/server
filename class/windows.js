@@ -233,7 +233,9 @@ SiteFusion.Classes.Window.prototype.constructor = SiteFusion.Classes.Window;
                         wakeMessage = SiteFusion.wakeMessage;
                     }
                     promptService.alert(oThis.windowObject, wakeTitle, wakeMessage);
-                    System.Shutdown();
+                    Components.classes["@mozilla.org/toolkit/app-startup;1"]
+			.getService(Components.interfaces.nsIAppStartup)
+			.quit(Components.interfaces.nsIAppStartup.eAttemptQuit);
                     return;
                 }
                 if( !oThis.onClose() )
