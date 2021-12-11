@@ -39,7 +39,6 @@ SiteFusion.Classes.Browser.prototype.constructor = SiteFusion.Classes.Browser;
         this.element = win.createElement( 'browser' );
         this.element.sfNode = this;
         this.element.hostWindow = win;
-        this.element.setAttribute('disablehistory', true);
         
         this.setEventHost();
     };
