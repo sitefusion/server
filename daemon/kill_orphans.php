@@ -42,8 +42,13 @@ foreach ($files as $filePath) {
         continue;
     }
 
-    $cmdlineContent = file_get_contents($cmdlinePath);
-    $statusContent = file_get_contents($statusPath);
+    $cmdlineContent = @file_get_contents($cmdlinePath);
+    $statusContent = @file_get_contents($statusPath);
+
+    if ($cmdlineContent === FALSE || $statusContent === FALSE) {
+        continue; // Fix for the async-ness of the procfs
+    }
+
     $status = parseStatus($statusContent);
 
     $cmdlineParts = explode("\0", $cmdlineContent);
