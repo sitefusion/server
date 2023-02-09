@@ -188,22 +188,24 @@ SiteFusion.Comm.Transmission.prototype.send = function() {
 
 SiteFusion.Comm.Transmission.prototype.openHttpRequest = function() {
     this.request = new XMLHttpRequest();
-    
+
     var aSync = (this.reverseInitiative || !this.blocking);
-    
+
     this.state = this.STATE_CONNECTED;
     if ( typeof(this.onstatechange) == 'function' ) {
         this.onstatechange();
     }
     
     try {
-        this.request.open( 'POST',
-            SiteFusion.Address + '/' + (this.reverseInitiative ? 'revcomm':'comm') + '.php'
+        var url = SiteFusion.Address + '/' + (this.reverseInitiative ? 'revcomm':'comm') + '.php'
             + '?app=' + SiteFusion.Application
             + '&args=' + SiteFusion.Arguments
             + '&sid=' + SiteFusion.SID
             + '&ident=' + SiteFusion.Ident
-            + '&clientid=' + SiteFusion.ClientID,
+            + '&clientid=' + SiteFusion.ClientID
+
+        this.request.open( 'POST',
+            url,
             aSync
         );
         
@@ -214,14 +216,16 @@ SiteFusion.Comm.Transmission.prototype.openHttpRequest = function() {
         if ( aSync ) {
             var transmission = this;
             this.request.onreadystatechange = function( event ) {
-                if( this.readyState == 4 )
-                    transmission.handleResponse();
+                if( this.readyState == 4 ) {
+                    transmission.handleResponse(url);
+                }
             };
         }
 
         this.request.send( this.payload );
     } catch ( e ) {
         var oThis = this;
+        SiteFusion.consoleMessage(e);
         setTimeout( function() { oThis.openHttpRequest(); }, 1000 );
         return;
     }
@@ -231,8 +235,11 @@ SiteFusion.Comm.Transmission.prototype.openHttpRequest = function() {
     }
 };
 
-SiteFusion.Comm.Transmission.prototype.handleResponse = function() {
+SiteFusion.Comm.Transmission.prototype.handleResponse = function(url) {
     if ( this.request.status != 200 ) {
+
+        SiteFusion.consoleMessage("request to " + url + " status: " + this.request.status + " reponseText: " + this.request.responseText);
+
         if( !this.reverseInitiative ) {
             var oThis = this;
             setTimeout( function() { oThis.openHttpRequest(); }, 1000 );
