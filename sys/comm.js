@@ -225,7 +225,7 @@ SiteFusion.Comm.Transmission.prototype.openHttpRequest = function() {
         this.request.send( this.payload );
     } catch ( e ) {
         var oThis = this;
-        SiteFusion.consoleMessage(e);
+        SiteFusion.consoleError(e);
         setTimeout( function() { oThis.openHttpRequest(); }, 1000 );
         return;
     }
@@ -238,7 +238,7 @@ SiteFusion.Comm.Transmission.prototype.openHttpRequest = function() {
 SiteFusion.Comm.Transmission.prototype.handleResponse = function(url) {
     if ( this.request.status != 200 ) {
 
-        SiteFusion.consoleMessage("request to " + url + " status: " + this.request.status + " reponseText: " + this.request.responseText);
+        SiteFusion.consoleError("request to " + url + " status: " + this.request.status + " reponseText: " + this.request.responseText);
 
         if( !this.reverseInitiative ) {
             var oThis = this;
