@@ -132,6 +132,7 @@ SiteFusion.Classes.Menu.prototype.constructor = SiteFusion.Classes.Menu;
 SiteFusion.Classes.MenuItem = function() {
     SiteFusion.Classes.Node.apply(this, arguments);
     this.rightDown = false;
+    this.mouseUpTimer = null;
     this.sfClassName = 'XULMenuItem';
 
     this.initialize.apply(this, arguments);

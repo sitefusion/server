@@ -97,7 +97,7 @@ SiteFusion.Classes.CustomTree.prototype.constructor = SiteFusion.Classes.CustomT
         this.element = win.createElement( 'tree' );
         this.element.sfNode = this;
         this.hostWindow = win;
-
+        this.mouseUpTimer = null;
         this.rightDown = false;
 
         this.isSparse = false;
