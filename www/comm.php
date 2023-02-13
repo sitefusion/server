@@ -73,7 +73,7 @@ try {
         }
     }
 
-    if( $dbSession['ident'] != $_GET['ident'] )
+    if( empty($dbSession) || $dbSession['ident'] != $_GET['ident'] )
         throw new Exception( 'Not authorized');
 
     $port = (int) $dbSession['port'];
