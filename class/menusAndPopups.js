@@ -131,7 +131,8 @@ SiteFusion.Classes.Menu.prototype.constructor = SiteFusion.Classes.Menu;
 
 SiteFusion.Classes.MenuItem = function() {
     SiteFusion.Classes.Node.apply(this, arguments);
-
+    this.rightDown = false;
+    this.mouseUpTimer = null;
     this.sfClassName = 'XULMenuItem';
 
     this.initialize.apply(this, arguments);
@@ -141,7 +142,23 @@ SiteFusion.Classes.MenuItem.prototype.constructor = SiteFusion.Classes.MenuItem;
 
     SiteFusion.Classes.MenuItem.prototype.initialize = function( win ) {
         this.element = win.createElement( 'menuitem' );
+        this.hostWindow = win;
         this.element.sfNode = this;
+        this.element.addEventListener('mousedown', (e) => {
+            if (e.button == 2) {
+                if (this.mouseUpTimer) {
+                    this.hostWindow.windowObject.clearTimeout(this.mouseUpTimer);
+                }
+                this.element.rightDown = true;
+            }
+        });
+        var oThis = this;
+        this.element.addEventListener('mouseup', (e) => {
+            this.mouseUpTimer = this.hostWindow.windowObject.setTimeout( function() {
+                oThis.element.rightDown = false;
+            }, 500);
+
+        });
         this.setEventHost([ 'yield' ]);
     };
 

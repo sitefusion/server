@@ -97,6 +97,8 @@ SiteFusion.Classes.CustomTree.prototype.constructor = SiteFusion.Classes.CustomT
         this.element = win.createElement( 'tree' );
         this.element.sfNode = this;
         this.hostWindow = win;
+        this.mouseUpTimer = null;
+        this.rightDown = false;
 
         this.isSparse = false;
         this.isDraggable = false;
@@ -128,9 +130,29 @@ SiteFusion.Classes.CustomTree.prototype.constructor = SiteFusion.Classes.CustomT
         this.hostWindow.windowObject.setTimeout( function() {
             oThis.element.view = oThis.view;
             var tc = oThis.element.getElementsByTagName('treechildren')[0];
+
+            oThis.element.addEventListener('mousedown', (e) => {
+                if (e.button == 2) {
+                    if (oThis.mouseUpTimer) {
+                        oThis.hostWindow.windowObject.clearTimeout(oThis.mouseUpTimer);
+                    }
+                    oThis.rightDown = true;
+                }
+            });
+
+            oThis.element.addEventListener('mouseup', (e) => {
+                oThis.mouseUpTimer = oThis.hostWindow.windowObject.setTimeout( function() {
+                    oThis.rightDown = false;
+                }, 500);
+
+            });
+
             tc.setAttribute( 'ondragstart', 'sfRootWindow.windowObject.SiteFusion.Registry['+oThis.cid+'].onDragStartEvent(event);' );
-            oThis.element.setAttribute( 'onclick', 'sfRootWindow.windowObject.SiteFusion.Registry['+oThis.cid+'].onItemEvent(event, \'itemClick\');' );
+
             oThis.element.setAttribute( 'ondblclick', 'sfRootWindow.windowObject.SiteFusion.Registry['+oThis.cid+'].onItemEvent(event, \'itemDoubleClick\');' );
+
+            oThis.element.setAttribute( 'onclick', 'sfRootWindow.windowObject.SiteFusion.Registry['+oThis.cid+'].onItemEvent(event, \'itemClick\');' );
+
             oThis.element.setAttribute( 'oncontextmenu', 'sfRootWindow.windowObject.SiteFusion.Registry['+oThis.cid+'].onItemEvent(event, \'itemContextClick\');' );
         }, 1 );
         this.hostWindow.windowObject.setTimeout(function() {if (oThis.element.columns){oThis.element.columns.restoreNaturalOrder();}},200);
@@ -143,6 +165,20 @@ SiteFusion.Classes.CustomTree.prototype.constructor = SiteFusion.Classes.CustomT
         if(row.value != -1) {
             var rowId = this.view.visibleData[row.value].id;
             var colIndex = column.value.index;
+
+            if (eventName == 'itemDoubleClick') {
+                //filter false double clicks that include other buttons than just the primary one
+                var oThis = this;
+
+                //timer is needed in order to make sure
+                this.hostWindow.windowObject.setTimeout( function() {
+                    if (oThis.rightDown == false) {
+                        oThis.fireEvent( eventName, [ rowId, colIndex, part.value, eventObj.clientX, eventObj.clientY ] );
+                    }
+                }, 100);
+                eventObj.preventDefault();
+                return;
+            }
             this.fireEvent( eventName, [ rowId, colIndex, part.value, eventObj.clientX, eventObj.clientY ] );
         }
     };
