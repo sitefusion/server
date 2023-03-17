@@ -43,7 +43,7 @@
  * @property bool			$isRegistered		Indicates whether the node is registered and thus part of the XUL tree on the client side
  * @property bool			$isChild			Indicates whether the node is a child of another node
  * @property XULWindow		$rootWindow			Reference to the root window object (only set when the node is registered)
- * @property XULWindow		$hostWindow			Reference to the root window object (only set when the node is registered)
+ * @property XULWindow		$hostWindow			Reference to the host window object (only set when the node is registered)
  * @property Application	$rootApplication	Reference to the application object (only set when the node is registered)
  * @property array			$eventHandler		[INTERNAL] Keeps track of event handlers
  * @property array			$eventYielder		[INTERNAL] Keeps track of event yielders
