@@ -32,6 +32,11 @@ function readline_c( $prompt = '' )
     return rtrim( fgets( STDIN ), "\n" );
 }
 
+function ConsoleOutput($message)
+{
+    echo $message .PHP_EOL;
+}
+
 if (in_array('-c',$_SERVER['argv'])) {
 	include_once "../conf/webfrontend.conf";
 
@@ -48,21 +53,43 @@ else {
 	$dbname = ($dbname == '' ? 'sitefusion':$dbname);
 }
 
-$db = mysql_connect( ($dbhost == '' ? '127.0.0.1':$dbhost), $dbuser, $dbpass );
+$dbhost = '' ? '127.0.0.1' : $dbhost;
 
-if( ! $db )
-	die( "Error: Could not connect to server: " . mysql_error(). ".\n");
+$conn = new mysqli( $dbhost, $dbuser, $dbpass );
 
-echo "Create database '$dbname' if it doesn't exist...\n";
+if ($conn->connect_error)
+{
+    die("Connection failed: " . $conn->connect_error . PHP_EOL );
+}
 
-if( ! mysql_query( "CREATE DATABASE IF NOT EXISTS `".mysql_real_escape_string($dbname)."`" ) )
-	die( "Error: Could not create database: " . mysql_error() );
+$dbname_escaped = $conn->real_escape_string($dbname);
 
-mysql_select_db( $dbname );
+$sql = "CREATE DATABASE " . $dbname_escaped;
 
-echo "Create table 'processes' if it doesn't exist...\n";
+if ($conn->query($sql) === TRUE)
+{
+    ConsoleOutput("Database ' . $dbname . ' created successfully");
+}
+else
+{
+    ConsoleOutput("Database ' . $dbname . ' not created");
+    
+    ConsoleOutput("Check if already exists");    
+    if($conn->select_db($dbname))
+    {
+        ConsoleOutput('OK, database ' . $dbname . ' succesfully selected!');
+    }
+    else
+    {
+        die("Cannot create or select database: " . $conn->error . PHP_EOL );
+    }
+}
 
-if( ! mysql_query( "CREATE TABLE IF NOT EXISTS `processes` (
+$conn->select_db($dbname);
+
+ConsoleOutput("Create table 'processes' if it doesn't exist...");
+
+if( ! $conn->query( "CREATE TABLE IF NOT EXISTS `processes` (
 	 `id` varchar(32) NOT NULL,
 	 `type` varchar(10) NOT NULL,
 	 `ident` varchar(32) NOT NULL,
@@ -77,12 +104,11 @@ if( ! mysql_query( "CREATE TABLE IF NOT EXISTS `processes` (
 	 `nodes` int(11) NOT NULL,
 	 PRIMARY KEY  (`id`)
 	) ENGINE=MyISAM DEFAULT CHARSET=utf8;") )
-	die( "Error: Could not create table: " . mysql_error() );
+	die( "Error: Could not create table: " . $conn->error . PHP_EOL );
 
+ConsoleOutput("Create table 'jobs' if it doesn't exist...");
 
-echo "Create table 'jobs' if it doesn't exist...\n";
-
-if( ! mysql_query( "CREATE TABLE IF NOT EXISTS `jobs` (
+if( ! $conn->query( "CREATE TABLE IF NOT EXISTS `jobs` (
 	  `id` int(11) NOT NULL auto_increment,
 	  `owner` varchar(64) NOT NULL,
 	  `job` varchar(64) NOT NULL,
@@ -95,12 +121,11 @@ if( ! mysql_query( "CREATE TABLE IF NOT EXISTS `jobs` (
 	  `mail_output` varchar(64) NOT NULL,
 	  PRIMARY KEY  (`id`)
 	) ENGINE=MyISAM DEFAULT CHARSET=utf8;") )
-	die( "Error: Could not create table: " . mysql_error() );
+	die( "Error: Could not create table: " . $conn->error . PHP_EOL );
 
+ConsoleOutput("Create table 'services' if it doesn't exist...");
 
-echo "Create table 'services' if it doesn't exist...\n";
-
-if( ! mysql_query( "CREATE TABLE IF NOT EXISTS `services` (
+if( ! $conn->query( "CREATE TABLE IF NOT EXISTS `services` (
 	  `id` int(11) NOT NULL auto_increment,
 	  `owner` varchar(64) NOT NULL,
 	  `service` varchar(64) NOT NULL,
@@ -108,6 +133,6 @@ if( ! mysql_query( "CREATE TABLE IF NOT EXISTS `services` (
 	  `daemon` tinyint(4) NOT NULL,
 	  PRIMARY KEY  (`id`)
 	) ENGINE=MyISAM DEFAULT CHARSET=utf8;") )
-	die( "Error: Could not create table: " . mysql_error() );
+	die( "Error: Could not create table: " . $conn->error . PHP_EOL );
 
-echo "All done!\n";
+ConsoleOutput("All done!");
