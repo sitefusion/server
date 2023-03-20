@@ -439,6 +439,10 @@ class SiteFusionTimer
 		ExtendedSiteFusionProcess::RemoveTimer( $this );
 		$this->cancelled = TRUE;
 	}
+
+    public function isCancelled() {
+        return $this->cancelled;
+    }
 }
 
 
