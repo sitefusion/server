@@ -83,7 +83,7 @@ function errorHandler($no, $str, $file, $line) {
     throw new SFException($str, ERR_REPORT_APP, $file, $line);
 }
 
-set_error_handler('errorHandler');
+set_error_handler('errorHandler', , E_ALL & ~E_WARNING & ~E_NOTICE & ~E_DEPRECATED);
 
 if (version_compare(phpversion(), '7.0.0', '>=')) {
     function exceptionHandler(Throwable $ex) {
