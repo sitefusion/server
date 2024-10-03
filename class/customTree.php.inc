@@ -535,6 +535,12 @@ class TreeDataItem extends TreeDataSupports
 		return $this;
 	}
 
+        public function getCellProperties( $column ) {
+		if( ($index = $this->getColumnIndex($column)) === NULL )
+			throw new SFException( "No such column: $column", ERR_REPORT_APP );
+		return $this->_cellProperties[$index] ?? [];
+	}
+
 	public function setCellProperties( $column, $properties ) {
 		if( ($index = $this->getColumnIndex($column)) === NULL )
 			throw new SFException( "No such column: $column", ERR_REPORT_APP );
