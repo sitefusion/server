@@ -161,21 +161,24 @@ SiteFusion.Classes.TextBox.prototype.constructor = SiteFusion.Classes.TextBox;
     };
 
     SiteFusion.Classes.TextBox.prototype.yield = function() {
-        val = '';
-        if (this.element.type == 'number') {
+        let val = '';
+    	let validityObj = {};
+
+    	if (this.element.type === 'number') {
             val = this.element.valueNumber;
-        } else {
+    	} else if (this.element.inputField && typeof this.element.inputField.value !== 'undefined') {
             val = this.element.inputField.value + '';
-        }
 
-        var validityObj = {};
-        if ( this.element.type != 'number' ) {
-            for( var prop in this.element.inputField.validity){
-                validityObj[prop] = this.element.inputField.validity[prop];
+            if (this.element.inputField.validity) {
+            	for (let prop in this.element.inputField.validity) {
+                    validityObj[prop] = this.element.inputField.validity[prop];
+            	}
             }
-        }
+    	} else if (typeof this.element.value !== 'undefined') {
+            val = this.element.value + '';
+    	}	
 
-        this.fireEvent( 'yield', [ val, JSON.stringify(validityObj) ] );
+    	this.fireEvent('yield', [val, JSON.stringify(validityObj)]);
     };
 
 SiteFusion.Classes.TimePicker = function() {
